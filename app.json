@@ -15,14 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.rork.didit360"
+      "bundleIdentifier": "app.didit360"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "app.rork.didit360"
+      "package": "app.didit360"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
