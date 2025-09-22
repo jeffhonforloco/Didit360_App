@@ -1,318 +1,166 @@
-# Welcome to your Rork app
+Didit360 App - Cloud Infrastructure Guide
 
-## Project info
+======= Didit360 Overview
 
-This is a native cross-platform mobile app created with [Rork](https://rork.com)
+Didit360 is an innovative music streaming platform that brings together a diverse set of features to create a comprehensive ecosystem for music, creativity, and fan engagement. Designed to empower artists, podcasters, DJs, producers, and fans, Didit360 seamlessly combines streaming, creativity, and commerce under one roof.
 
-**Platform**: Native iOS & Android app, exportable to web
-**Framework**: Expo Router + React Native
+Core Features and Categories Audio and Video Streaming A core feature of Didit360, allowing users to stream high-quality music and videos from artists across the globe.
 
-## How can I edit this code?
+Podcasts (VoxSaga) A dedicated space for podcasters to host, share, and engage with their audience. Artists, DJs, and producers can also share their sessions, discussions, and mixes here.
 
-There are several ways of editing your native mobile application.
+SireAI (Powered by SireIQ) A creative suite integrated into Didit360, enabling: Image and Video Creation with AI assistance. Music Integration: Artists and fans can create visuals with synchronized music to share on the platform or social media.
 
-### **Use Rork**
+Audiobooks (Auralora) A rich library of audiobooks for users who enjoy storytelling and educational content. Perfect for authors, educators, and artists looking to expand their offerings.
 
-Simply visit [rork.com](https://rork.com) and prompt to build your app with AI.
+MusicNFTs (NFTChords) A marketplace where artists can upload, sell, and manage their Music NFTs. Both established artists and emerging artists can showcase exclusive content as NFTs.
 
-Changes made via Rork will be committed automatically to this GitHub repo.
+Didit360 Store A marketplace for artists to sell their merchandise, including clothing, accessories, and collectibles. Fans can directly support their favorite artists by purchasing from their collections.
 
-Whenever you make a change in your local code editor and push it to GitHub, it will be also reflected in Rork.
+Fan Engagement and Live Streaming Artist Pages: A personalized space for artists to connect with their fans, share content, and provide updates. Go Live: Artists (including podcasters, DJs, and producers) can live stream performances, mixes, or podcasts. Fans can interact, donate, or send virtual gifts during these sessions.
 
-### **Use your preferred code editor**
+Platform Accessibility Mobile-Based Features: Audio and video streaming. Podcast browsing and streaming (VoxSaga).
 
-If you want to work locally using your own code editor, you can clone this repo and push changes. Pushed changes will also be reflected in Rork.
+MusicNFT marketplace access and purchases (NFTChords). Artist merchandise browsing and shopping via the Didit360 Store.
 
-If you are new to coding and unsure which editor to use, we recommend Cursor. If you're familiar with terminals, try Claude Code.
+App-Based Features: SireAI for creating and integrating music with visuals. Go Live features for real-time fan engagement. Advanced management tools for artists to track analytics, revenue, and fan interactions. Collaboration tools for artists, podcasters, and producers.
 
-The only requirement is having Node.js & Bun installed - [install Node.js with nvm](https://github.com/nvm-sh/nvm) and [install Bun](https://bun.sh/docs/installation)
+Our Vision Didit360 is more than a music streaming platform—it’s a creative hub where artists, producers, and fans converge. Our goal is to empower creativity, enhance fan connections, and redefine how music, visuals, and commerce come together in one ecosystem.
 
-Follow these steps:
+This document provides a comprehensive guide for setting up, running, and deploying the Didit360 App while adhering to industry best practices. The proposed guide is a solid foundation for the Didit360 App, but given the diversity of products under Didit360(Music, Podcasts, Audiobooks, MusicNFT, SireAI), it can be refined further to account for each product's unique requirements. Here's how it can be optimized for best practices based on the different products:
 
-```bash
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Tech Stack Adjustments
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Since Didit360 has diverse offerings, the stack should balance scalability, performance, and flexibility:
 
-# Step 3: Install the necessary dependencies.
-bun i
+Backend: Stick with Node.js for fast API responses and its ecosystem's flexibility.
 
-# Step 4: Start the instant web preview of your Rork app in your browser, with auto-reloading of your changes
-bun run start-web
+For AI integrations (SireAI), consider a Python microservice (e.g., Flask/FastAPI) since Python excels in AI/ML processing.
 
-# Step 5: Start iOS preview
-# Option A (recommended):
-bun run start  # then press "i" in the terminal to open iOS Simulator
-# Option B (if supported by your environment):
-bun run start -- --ios
-```
+Frontend: Use React Native for cross-platform mobile development to provide a seamless user experience across iOS and Android.
 
-### **Edit a file directly in GitHub**
+Database: A hybrid approach is best:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Relational DB (PostgreSQL): For structured data like user profiles, subscriptions, and playlists.
+NoSQL DB (MongoDB): For unstructured data like metadata for music, podcasts, and audiobooks.
+Redis: Critical for caching real-time data (e.g., streaming buffers and user activity).
+Running the App for Multiple Products
 
-## What technologies are used for this project?
+For modularity, divide the application into microservices based on product categories:
 
-This project is built with the most popular native mobile cross-platform technical stack:
+Music, Podcasts, and Audiobooks: Shared APIs for playback, metadata, and user interactions.
+MusicNFT: Dedicated blockchain microservice for minting and managing NFTs.
+SireAI: Isolated microservice for AI/ML functionalities.
+Commands for individual microservices:
 
-- **React Native** - Cross-platform native mobile development framework created by Meta and used for Instagram, Airbnb, and lots of top apps in the App Store
-- **Expo** - Extension of React Native + platform used by Discord, Shopify, Coinbase, Telsa, Starlink, Eightsleep, and more
-- **Expo Router** - File-based routing system for React Native with support for web, server functions and SSR
-- **TypeScript** - Type-safe JavaScript
-- **React Query** - Server state management
-- **Lucide React Native** - Beautiful icons
+bash 
 
-## How can I test my app?
+cd services/music && npm install && npm start
+cd services/nft && npm install && npm start
+Dependencies Specific to Products
 
-### **On your phone (Recommended)**
+Music/Podcasts/Audiobooks:
 
-1. **iOS**: Download the [Rork app from the App Store](https://apps.apple.com/app/rork) or [Expo Go](https://apps.apple.com/app/expo-go/id982107779)
-2. **Android**: Download the [Expo Go app from Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent)
-3. Run `bun run start` and scan the QR code from your development server
+Transcoding: FFmpeg for audio/video encoding.
+Cloud Storage: S3/Blob for media storage.
+MusicNFT:
 
-### **In your browser**
+Blockchain: Infura or Alchemy for Ethereum network connections.
+Smart Contracts: Solidity contracts for minting NFTs.
+SireAI:
 
-Run `bun start-web` to test in a web browser. Note: The browser preview is great for quick testing, but some native features may not be available.
+Python libraries like TensorFlow/PyTorch for ML, spaCy for NLP, and FastAPI for serving the AI models.
+Environment Variables Environment variables should include service-specific parameters:
 
-### **iOS Simulator / Android Emulator**
+Music/Podcasts/Audiobooks:
 
-You can test Rork apps in Expo Go or Rork iOS app. You don't need XCode or Android Studio for most features.
+S3_BUCKET_NAME=didit360-media
+TRANSCODE_WORKER_COUNT=5
+MusicNFT:
 
-**When do you need Custom Development Builds?**
+BLOCKCHAIN_PROVIDER=https://eth-mainnet.infura.io/v3/<api-key>
+NFT_CONTRACT_ADDRESS=<contract-address>
+SireAI:
 
-- Native authentication (Face ID, Touch ID, Apple Sign In)
-- In-app purchases and subscriptions
-- Push notifications
-- Custom native modules
+AI_MODEL_PATH=/models/sireai
+AI_TIMEOUT=30s
+Deployment Adjustments for Specific Use Cases
 
-Learn more: [Expo Custom Development Builds Guide](https://docs.expo.dev/develop/development-builds/introduction/)
+Shared Storage: Use AWS S3 or Azure Blob Storage for centralized media storage, accessible across all microservices.
+Real-Time Streaming: Implement Content Delivery Networks (CDNs) like Cloudflare for low-latency delivery of audio and video.
+AI Workloads: Deploy SireAI on GPU-enabled instances (e.g., AWS EC2 G4dn).
+NFT Service: Host blockchain nodes using a service like Infura to avoid direct node hosting overhead.
+Scaling Considerations
 
-If you have XCode (iOS) or Android Studio installed:
+Music and video streaming require significant resources. Use:
 
-```bash
-# iOS Simulator
-bun run start -- --ios
+Horizontal Scaling: Auto-scale music/podcast playback microservices with Kubernetes.
+Serverless Functions: For short-lived tasks like transcoding or NFT minting (e.g., AWS Lambda).
+Load Balancing: Set up API Gateways for each product to ensure a smooth user experience.
+Monitoring and Logging
 
-# Android Emulator
-bun run start -- --android
-```
+Integrate Prometheus/Grafana for monitoring system performance.
+Use ELK Stack or AWS CloudWatch for analyzing logs across all microservices.
+Security Best Practices
 
-## How can I deploy this project?
+MusicNFT: Ensure smart contracts are audited before deployment to avoid vulnerabilities.
+User Data: Encrypt sensitive data at rest and in transit (TLS for APIs, AES-256 for storage).
+API Gateway: Add rate limiting and IP whitelisting for sensitive operations (e.g., NFT minting).
+Why This is Best for Didit360:
 
-### **Publish to App Store (iOS)**
+Scalability: Supports the high demand of streaming media and real-time user interactions.
+Flexibility: Microservices allow independent scaling and updates for each product.
+Performance: CDN and caching ensure fast delivery of media and responses.
+Security: Environment variables, encrypted connections, and smart contract audits safeguard user data and transactions.
+Future-Readiness: Easily extensible for new features or products within the Didit360 ecosystem.
+==============================================================================
 
-1. **Install EAS CLI**:
+To train the AI part of Didit360 with fine-tuned NLP (Natural Language Processing) and LLMs (Large Language Models), we need to focus on use cases like content recommendation, AI-assisted creativity (SireAI), user engagement, and personalization. Below, I’ll provide a step-by-step guide on how to fine-tune NLP models and LLMs, along with best practices to ensure optimal performance and scalability.
 
-   ```bash
-   bun i -g @expo/eas-cli
-   ```
+Define AI Use Cases for Didit360
+Here are the key AI use cases for Didit360:
 
-2. **Configure your project**:
+Content Recommendation: Provide personalized music, podcast, and audiobook recommendations. AI-Assisted Creativity (SireAI): Generate visuals, captions, and music integrations using AI. User Engagement: Enhance fan interactions with smart replies, sentiment analysis, and live-streaming insights. Personalization: Tailor the user experience based on preferences, behavior, and listening history. 2. Choose the Best NLP Models
 
-   ```bash
-   eas build:configure
-   ```
+Based on the use cases, here are the best NLP models to fine-tune:
 
-3. **Build for iOS**:
+Use Case Best Model Why? Content Recommendation Hugging Face BERT or OpenAI GPT-4 Pre-trained on large datasets for understanding user preferences and behavior. AI-Assisted Creativity OpenAI GPT-4 or Hugging Face T5 Generative models for creating visuals, captions, and music integrations. User Engagement Hugging Face RoBERTa or OpenAI GPT-4 Pre-trained for sentiment analysis, smart replies, and live-streaming insights. Personalization Hugging Face BERT or OpenAI GPT-4 Fine-tuned on user interaction data for personalized recommendations. 3. Data Collection and Preparation
 
-   ```bash
-   eas build --platform ios
-   ```
+To fine-tune NLP models, you need high-quality, domain-specific data. Here’s how to collect and prepare it:
 
-4. **Submit to App Store**:
-   ```bash
-   eas submit --platform ios
-   ```
+a. Content Recommendation
 
-For detailed instructions, visit [Expo's App Store deployment guide](https://docs.expo.dev/submit/ios/).
+Data Sources: User interaction logs (e.g., clicks, listening time, preferences). Public datasets for music and podcast recommendations (e.g., Million Song Dataset, Spotify Podcast Dataset). Data Format: Example: {"user_id": 123, "interaction": "listened to a rock song", "preference": "rock"}. b. AI-Assisted Creativity (SireAI)
 
-### **Publish to Google Play (Android)**
+Data Sources: Public datasets for image and video captioning (e.g., COCO, Flickr30k). Music metadata (e.g., genre, mood, tempo). Data Format: Example: {"image": "concert.jpg", "caption": "A lively rock concert with a cheering crowd"}. c. User Engagement
 
-1. **Build for Android**:
+Data Sources: Chat logs (ensure privacy compliance). Public datasets for sentiment analysis (e.g., IMDB Reviews, Twitter Sentiment Analysis). Data Format: Example: {"text": "I love this song!", "label": "positive"}. d. Personalization
 
-   ```bash
-   eas build --platform android
-   ```
+Data Sources: User profiles (e.g., age, location, interests). Listening history and preferences. Data Format: Example: {"user_id": 123, "preferences": ["rock", "jazz"], "history": ["song1", "song2"]}. 4. Fine-Tuning NLP Models
 
-2. **Submit to Google Play**:
-   ```bash
-   eas submit --platform android
-   ```
+Here’s how to fine-tune the selected models for each use case:
 
-For detailed instructions, visit [Expo's Google Play deployment guide](https://docs.expo.dev/submit/android/).
+a. Fine-Tuning OpenAI GPT-4
 
-### **Publish as a Website**
+Use Case: AI-Assisted Creativity, User Engagement. Steps: Prepare Data: Format data as JSONL (one JSON object per line). Example: {"prompt": "Generate a caption for this image: [image description]", "completion": "A lively rock concert with a cheering crowd"}. Fine-Tune via API: Use OpenAI’s fine-tuning API. Example: bash Copy openai api fine_tunes.create -t dataset.jsonl -m gpt-4 Deploy: Use the fine-tuned model via OpenAI’s API for real-time inference. b. Fine-Tuning Hugging Face Models
 
-Your React Native app can also run on the web:
+Use Case: Content Recommendation, Personalization. Steps: Install Libraries: bash Copy pip install transformers datasets Load Pre-Trained Model: python Copy from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-1. **Build for web**:
+model = AutoModelForSequenceClassification.from_pretrained("bert-base-uncased") tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased") Prepare Dataset: python Copy from datasets import load_dataset
 
-   ```bash
-   eas build --platform web
-   ```
+dataset = load_dataset("your_dataset") Fine-Tune: python Copy from transformers import Trainer, TrainingArguments
 
-2. **Deploy with EAS Hosting**:
-   ```bash
-   eas hosting:configure
-   eas hosting:deploy
-   ```
+training_args = TrainingArguments(output_dir="./results", per_device_train_batch_size=8) trainer = Trainer(model=model, args=training_args, train_dataset=dataset) trainer.train() Deploy: Use Hugging Face’s Inference API or deploy on your own infrastructure. 5. Best Practices for Fine-Tuning
 
-Alternative web deployment options:
+Start Small: Fine-tune on a small dataset first to validate the approach. Use Transfer Learning: Leverage pre-trained models to reduce training time and data requirements. Monitor Overfitting: Use techniques like early stopping and cross-validation. Optimize Hyperparameters: Use tools like Optuna or Ray Tune to find the best hyperparameters. Ensure Privacy: Anonymize and encrypt user data before using it for training. 6. Scaling AI Models
 
-- **Vercel**: Deploy directly from your GitHub repository
-- **Netlify**: Connect your GitHub repo to Netlify for automatic deployments
+To scale the AI part of Didit360, follow these steps:
 
-## App Features
+a. Use Cloud GPUs
 
-This template includes:
+Use NVIDIA T4 or A100 GPUs on AWS, Google Cloud, or Azure for training. Example: Use AWS p4d.24xlarge instances for large-scale training. b. Optimize for Inference
 
-- **Cross-platform compatibility** - Works on iOS, Android, and Web
-- **File-based routing** with Expo Router
-- **Tab navigation** with customizable tabs
-- **Modal screens** for overlays and dialogs
-- **TypeScript support** for better development experience
-- **Async storage** for local data persistence
-- **Vector icons** with Lucide React Native
+Use ONNX Runtime or TensorRT to optimize models for real-time inference. Deploy models on Kubernetes for scalability. c. Implement Caching
 
-## Project Structure
+Cache frequently accessed results (e.g., recommendations) to reduce load on the AI system. 7. Example Workflow
 
-```
-├── app/                    # App screens (Expo Router)
-│   ├── (tabs)/            # Tab navigation screens
-│   │   ├── _layout.tsx    # Tab layout configuration
-│   │   └── index.tsx      # Home tab screen
-│   ├── _layout.tsx        # Root layout
-│   ├── modal.tsx          # Modal screen example
-│   └── +not-found.tsx     # 404 screen
-├── assets/                # Static assets
-│   └── images/           # App icons and images
-├── constants/            # App constants and configuration
-├── app.json             # Expo configuration
-├── package.json         # Dependencies and scripts
-└── tsconfig.json        # TypeScript configuration
-```
-
-## Custom Development Builds
-
-For advanced native features, you'll need to create a Custom Development Build instead of using Expo Go.
-
-### **When do you need a Custom Development Build?**
-
-- **Native Authentication**: Face ID, Touch ID, Apple Sign In, Google Sign In
-- **In-App Purchases**: App Store and Google Play subscriptions
-- **Advanced Native Features**: Third-party SDKs, platform-specifc features (e.g. Widgets on iOS)
-- **Background Processing**: Background tasks, location tracking
-
-### **Creating a Custom Development Build**
-
-```bash
-# Install EAS CLI
-bun i -g @expo/eas-cli
-
-# Configure your project for development builds
-eas build:configure
-
-# Create a development build for your device
-eas build --profile development --platform ios
-eas build --profile development --platform android
-
-# Install the development build on your device and start developing
-bun start --dev-client
-```
-
-**Learn more:**
-
-- [Development Builds Introduction](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Creating Development Builds](https://docs.expo.dev/develop/development-builds/create-a-build/)
-- [Installing Development Builds](https://docs.expo.dev/develop/development-builds/installation/)
-
-## Advanced Features
-
-### **Add a Database**
-
-Integrate with backend services:
-
-- **Supabase** - PostgreSQL database with real-time features
-- **Firebase** - Google's mobile development platform
-- **Custom API** - Connect to your own backend
-
-### **Add Authentication**
-
-Implement user authentication:
-
-**Basic Authentication (works in Expo Go):**
-
-- **Expo AuthSession** - OAuth providers (Google, Facebook, Apple) - [Guide](https://docs.expo.dev/guides/authentication/)
-- **Supabase Auth** - Email/password and social login - [Integration Guide](https://supabase.com/docs/guides/getting-started/tutorials/with-expo-react-native)
-- **Firebase Auth** - Comprehensive authentication solution - [Setup Guide](https://docs.expo.dev/guides/using-firebase/)
-
-**Native Authentication (requires Custom Development Build):**
-
-- **Apple Sign In** - Native Apple authentication - [Implementation Guide](https://docs.expo.dev/versions/latest/sdk/apple-authentication/)
-- **Google Sign In** - Native Google authentication - [Setup Guide](https://docs.expo.dev/guides/google-authentication/)
-
-### **Add Push Notifications**
-
-Send notifications to your users:
-
-- **Expo Notifications** - Cross-platform push notifications
-- **Firebase Cloud Messaging** - Advanced notification features
-
-### **Add Payments**
-
-Monetize your app:
-
-**Web & Credit Card Payments (works in Expo Go):**
-
-- **Stripe** - Credit card payments and subscriptions - [Expo + Stripe Guide](https://docs.expo.dev/guides/using-stripe/)
-- **PayPal** - PayPal payments integration - [Setup Guide](https://developer.paypal.com/docs/checkout/mobile/react-native/)
-
-**Native In-App Purchases (requires Custom Development Build):**
-
-- **RevenueCat** - Cross-platform in-app purchases and subscriptions - [Expo Integration Guide](https://www.revenuecat.com/docs/expo)
-- **Expo In-App Purchases** - Direct App Store/Google Play integration - [Implementation Guide](https://docs.expo.dev/versions/latest/sdk/in-app-purchases/)
-
-**Paywall Optimization:**
-
-- **Superwall** - Paywall A/B testing and optimization - [React Native SDK](https://docs.superwall.com/docs/react-native)
-- **Adapty** - Mobile subscription analytics and paywalls - [Expo Integration](https://docs.adapty.io/docs/expo)
-
-## I want to use a custom domain - is that possible?
-
-For web deployments, you can use custom domains with:
-
-- **EAS Hosting** - Custom domains available on paid plans
-- **Netlify** - Free custom domain support
-- **Vercel** - Custom domains with automatic SSL
-
-For mobile apps, you'll configure your app's deep linking scheme in `app.json`.
-
-## Troubleshooting
-
-### **App not loading on device?**
-
-1. Make sure your phone and computer are on the same WiFi network
-2. Try using tunnel mode: `bun start -- --tunnel`
-3. Check if your firewall is blocking the connection
-
-### **Build failing?**
-
-1. Clear your cache: `bunx expo start --clear`
-2. Delete `node_modules` and reinstall: `rm -rf node_modules && bun install`
-3. Check [Expo's troubleshooting guide](https://docs.expo.dev/troubleshooting/build-errors/)
-
-### **Need help with native features?**
-
-- Check [Expo's documentation](https://docs.expo.dev/) for native APIs
-- Browse [React Native's documentation](https://reactnative.dev/docs/getting-started) for core components
-- Visit [Rork's FAQ](https://rork.com/faq) for platform-specific questions
-
-## About Rork
-
-Rork builds fully native mobile apps using React Native and Expo - the same technology stack used by Discord, Shopify, Coinbase, Instagram, and nearly 30% of the top 100 apps on the App Store.
-
-Your Rork app is production-ready and can be published to both the App Store and Google Play Store. You can also export your app to run on the web, making it truly cross-platform.
+Content Recommendation: Fine-tune Hugging Face BERT on user interaction logs. Deploy using Hugging Face’s Inference API. AI-Assisted Creativity: Fine-tune OpenAI GPT-4 on image and video captioning datasets. Deploy via OpenAI’s API. User Engagement: Fine-tune Hugging Face RoBERTa on sentiment analysis datasets. Deploy on AWS Lambda for serverless scaling. By following this roadmap, Didit360 can train and deploy fine-tuned NLP models effectively, ensuring personalization, scalability, and high performance. Let me know if you need further assistance! 🚀
