@@ -7,6 +7,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { LibraryProvider } from "@/contexts/LibraryContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
+import { trpc, trpcClient } from "@/lib/trpc";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,16 +45,18 @@ export default function RootLayout() {
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <RootContainer style={styles.container}>
-        <PlayerProvider>
-          <LibraryProvider>
-            <RootLayoutNav />
-            <MiniPlayer />
-          </LibraryProvider>
-        </PlayerProvider>
-      </RootContainer>
-    </QueryClientProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <RootContainer style={styles.container}>
+          <PlayerProvider>
+            <LibraryProvider>
+              <RootLayoutNav />
+              <MiniPlayer />
+            </LibraryProvider>
+          </PlayerProvider>
+        </RootContainer>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
 
