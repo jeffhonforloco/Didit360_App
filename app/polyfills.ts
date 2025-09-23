@@ -1,5 +1,26 @@
 import { Platform } from 'react-native';
 
+if (typeof (globalThis as any).__LOG_BUFFER === 'undefined') {
+  (globalThis as any).__LOG_BUFFER = [] as { level: 'log' | 'warn' | 'error'; ts: number; args: unknown[] }[];
+}
+
+const wrapConsole = (level: 'log' | 'warn' | 'error') => {
+  const original = console[level].bind(console);
+  console[level] = (...args: unknown[]) => {
+    try {
+      (globalThis as any).__LOG_BUFFER.push({ level, ts: Date.now(), args });
+      if ((globalThis as any).__LOG_BUFFER.length > 1000) {
+        (globalThis as any).__LOG_BUFFER.shift();
+      }
+    } catch {}
+    original(...args as []);
+  };
+};
+
+wrapConsole('log');
+wrapConsole('warn');
+wrapConsole('error');
+
 if (Platform.OS === 'web') {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires

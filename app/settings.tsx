@@ -1,10 +1,13 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Switch, TouchableOpacity, Image, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
-import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2, ChevronRight, User as UserIcon } from "lucide-react-native";
+import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2, ChevronRight, User as UserIcon, Shield, Fingerprint, Wifi, Info, FileDown } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Slider from "@/components/SliderCompat";
 import { router } from "expo-router";
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as Clipboard from 'expo-clipboard';
+import Constants from 'expo-constants';
 
 
 export default function SettingsScreen() {
@@ -14,6 +17,60 @@ export default function SettingsScreen() {
   const onToggle = useCallback((key: keyof typeof settings) => (value: boolean) => {
     void updateSetting(key as never, value as never);
   }, [updateSetting]);
+
+  const onToggleWifiOnly = useCallback((wifiOnly: boolean) => {
+    void updateSetting('downloadOverCellular', !wifiOnly);
+  }, [updateSetting]);
+
+  const onToggleBiometric = useCallback(async (next: boolean) => {
+    try {
+      if (Platform.OS === 'web') {
+        console.log('[Settings] Biometric not available on web. Toggling UI only.');
+        void updateSetting('biometricLock', next);
+        return;
+      }
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const supported = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      if (!hasHardware || !enrolled || supported.length === 0) {
+        console.log('[Settings] Biometric not available or not enrolled', { hasHardware, enrolled, supported });
+        void updateSetting('biometricLock', false);
+        return;
+      }
+      if (next) {
+        const res = await LocalAuthentication.authenticateAsync({ promptMessage: 'Enable biometric lock' });
+        if (res.success) {
+          void updateSetting('biometricLock', true);
+        } else {
+          console.log('[Settings] Biometric auth failed', res);
+        }
+      } else {
+        void updateSetting('biometricLock', false);
+      }
+    } catch (err) {
+      console.error('[Settings] biometric toggle error', err);
+    }
+  }, [updateSetting]);
+
+  const copyLogs = useCallback(async () => {
+    try {
+      const buffer = (globalThis as any).__LOG_BUFFER ?? [];
+      const meta = {
+        appName: Constants?.expoConfig?.name ?? 'App',
+        appVersion: Constants?.expoConfig?.version ?? Constants?.nativeAppVersion ?? '0.0.0',
+        appBuild: Constants?.nativeBuildVersion ?? '0',
+        platform: Platform.OS,
+      };
+      const payload = JSON.stringify({ meta, logs: buffer }, null, 2);
+      await Clipboard.setStringAsync(payload);
+      setStatusMsg('Debug logs copied to clipboard');
+      setTimeout(() => setStatusMsg(null), 2500);
+    } catch (err) {
+      console.error('[Settings] copy logs error', err);
+      setStatusMsg('Failed to copy logs');
+      setTimeout(() => setStatusMsg(null), 3000);
+    }
+  }, []);
 
   const themeOptions = useMemo(() => ([
     { key: 'light' as const, label: 'Light', Icon: Sun },
@@ -223,10 +280,34 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card} testID="card-connectivity">
-        <Text style={styles.cardTitle}>Connectivity</Text>
+        <Text style={styles.cardTitle}>Connectivity & Data</Text>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Download over cellular</Text>
-          <Switch value={settings.downloadOverCellular} onValueChange={onToggle("downloadOverCellular")} />
+          <View style={styles.rowLeftInline}>
+            <Wifi color="#9CA3AF" size={16} />
+            <Text style={styles.rowLabel}>Downloads: Wi‑Fi only</Text>
+          </View>
+          <Switch value={!settings.downloadOverCellular} onValueChange={onToggleWifiOnly} />
+        </View>
+        <View style={[styles.row, styles.rowTaller]}>
+          <View style={styles.rowLeftInline}>
+            <Activity color="#9CA3AF" size={16} />
+            <Text style={styles.rowLabel}>Cellular limit</Text>
+          </View>
+          <View style={styles.sliderWrap}>
+            <Slider
+              testID="slider-cellular-limit"
+              minimumValue={50}
+              maximumValue={5000}
+              step={50}
+              value={settings.cellularDataLimitMB}
+              onValueChange={(v: number) => void updateSetting('cellularDataLimitMB', Math.max(50, Math.min(5000, v)))}
+              minimumTrackTintColor={settings.accentColor}
+              maximumTrackTintColor="#2A2A2E"
+              thumbTintColor={settings.accentColor}
+              style={styles.slider}
+            />
+            <Text style={styles.sliderValue}>{settings.cellularDataLimitMB}MB</Text>
+          </View>
         </View>
         <View style={styles.row}>
           <Text style={styles.rowLabel}>Notifications</Text>
@@ -271,10 +352,20 @@ export default function SettingsScreen() {
       </View>
 
       <View style={styles.card} testID="card-privacy">
-        <Text style={styles.cardTitle}>Privacy</Text>
+        <Text style={styles.cardTitle}>Privacy & Security</Text>
         <View style={styles.row}>
-          <Text style={styles.rowLabel}>Share anonymous analytics</Text>
+          <View style={styles.rowLeftInline}>
+            <Shield color="#9CA3AF" size={16} />
+            <Text style={styles.rowLabel}>Share anonymous analytics</Text>
+          </View>
           <Switch value={settings.analytics} onValueChange={onToggle('analytics')} />
+        </View>
+        <View style={styles.row}>
+          <View style={styles.rowLeftInline}>
+            <Fingerprint color="#9CA3AF" size={16} />
+            <Text style={styles.rowLabel}>Biometric lock</Text>
+          </View>
+          <Switch value={settings.biometricLock} onValueChange={onToggleBiometric} />
         </View>
       </View>
 
@@ -325,6 +416,28 @@ export default function SettingsScreen() {
           </View>
         </View>
         <Text style={styles.helpText}>Theme applies to supported screens. Full theming can be added later.</Text>
+      </View>
+
+      <View style={styles.card} testID="card-about">
+        <Text style={styles.cardTitle}>About</Text>
+        <View style={styles.row}>
+          <View style={styles.rowLeftInline}>
+            <Info color="#9CA3AF" size={16} />
+            <Text style={styles.rowLabel}>App</Text>
+          </View>
+          <Text style={styles.rowLabel}>{Constants?.expoConfig?.name ?? 'App'} {Constants?.expoConfig?.version ?? Constants?.nativeAppVersion ?? ''}</Text>
+        </View>
+        <TouchableOpacity
+          testID="btn-copy-logs"
+          style={styles.secondaryButton}
+          onPress={copyLogs}
+          activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel="Copy debug logs"
+        >
+          <FileDown color="#E5E7EB" size={18} />
+          <Text style={styles.secondaryButtonText}>Copy debug logs</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.card, styles.footerCard]} testID="card-actions">

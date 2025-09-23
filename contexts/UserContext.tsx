@@ -27,6 +27,8 @@ export type AppSettings = {
   connectToDevices: boolean;
   showLocalDeviceOnly: boolean;
   carMode: boolean;
+  biometricLock: boolean;
+  cellularDataLimitMB: number;
 };
 
 export type UserProfile = {
@@ -67,6 +69,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   connectToDevices: false,
   showLocalDeviceOnly: false,
   carMode: false,
+  biometricLock: false,
+  cellularDataLimitMB: 500,
 };
 
 const PROFILE_KEY = "user_profile";
