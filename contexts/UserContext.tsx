@@ -8,6 +8,7 @@ export type AppSettings = {
   highQualityStreaming: boolean;
   downloadOverCellular: boolean;
   explicitContent: boolean;
+  theme: 'light' | 'dark' | 'system';
 };
 
 export type UserProfile = {
@@ -22,6 +23,7 @@ interface UserState {
   isLoading: boolean;
   updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
+  changePassword: (current: string, next: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -31,10 +33,12 @@ const DEFAULT_SETTINGS: AppSettings = {
   highQualityStreaming: true,
   downloadOverCellular: false,
   explicitContent: true,
+  theme: 'dark',
 };
 
 const PROFILE_KEY = "user_profile";
 const SETTINGS_KEY = "user_settings";
+const PASSWORD_KEY = "user_password";
 
 export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -85,6 +89,18 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     });
   }, []);
 
+  const changePassword = useCallback(async (current: string, next: string) => {
+    try {
+      const stored = (await AsyncStorage.getItem(PASSWORD_KEY)) ?? '';
+      const ok = !stored || stored === current;
+      if (!ok) throw new Error('Current password is incorrect');
+      if (!next || next.length < 6) throw new Error('Password must be at least 6 characters');
+      await AsyncStorage.setItem(PASSWORD_KEY, next);
+    } catch (err) {
+      throw err;
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
     try {
       await Promise.all([
@@ -102,6 +118,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     isLoading,
     updateProfile,
     updateSetting,
+    changePassword,
     signOut,
   };
 });
