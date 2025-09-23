@@ -238,4 +238,7 @@ export const genres = [
   "Indie",
   "Metal",
   "Reggae",
+  "Afro Beat",
+  "Afro Beats",
+  "High Life",
 ];
