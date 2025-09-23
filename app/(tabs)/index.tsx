@@ -12,8 +12,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { router } from "expo-router";
 import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres } from "@/data/mockData";
 import type { Track } from "@/types";
 
@@ -69,6 +70,9 @@ export default function HomeScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => console.log("Bell pressed")}> 
           <Bell color="#FFF" size={20} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconSpacer} testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')}> 
+          <SettingsIcon color="#FFF" size={20} />
         </TouchableOpacity>
       </View>
     </View>
