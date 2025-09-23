@@ -1,6 +1,9 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { User, Settings, LogOut, ChevronRight } from "lucide-react-native";
+import { router, type Href } from "expo-router";
+import { useUser } from "@/contexts/UserContext";
 
 export default function ProfileScreen() {
   const items = useMemo(
@@ -12,19 +15,22 @@ export default function ProfileScreen() {
     []
   );
 
+  const { signOut } = useUser();
+
   const onPress = (key: string) => {
     if (key === "logout") {
       Alert.alert("Sign out", "Are you sure?", [
         { text: "Cancel", style: "cancel" },
-        { text: "Sign out", style: "destructive", onPress: () => console.log("[Profile] Sign out pressed") },
+        { text: "Sign out", style: "destructive", onPress: async () => { try { await signOut(); } catch (e) { console.error(e); } } },
       ]);
       return;
     }
-    console.log(`[Profile] Pressed: ${key}`);
+    if (key === "account") router.push("/account" as Href);
+    else if (key === "settings") router.push("/settings" as Href);
   };
 
   return (
-    <View style={styles.container} testID="profile-screen">
+    <SafeAreaView style={styles.container} edges={["top"]} testID="profile-screen">
       <Text style={styles.header} testID="profile-title">Profile</Text>
 
       <View style={styles.card} testID="profile-card">
@@ -52,7 +58,7 @@ export default function ProfileScreen() {
       <Text style={styles.meta} testID="profile-meta">
         v1.1-firebase • {Platform.OS}
       </Text>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -6,6 +6,7 @@ import { Platform, View, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { LibraryProvider } from "@/contexts/LibraryContext";
+import { UserProvider } from "@/contexts/UserContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
 
@@ -17,6 +18,8 @@ function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="account" options={{ title: "Account" }} />
+      <Stack.Screen name="settings" options={{ title: "Settings" }} />
       <Stack.Screen 
         name="player" 
         options={{ 
@@ -57,10 +60,12 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <RootContainer style={styles.container}>
           <PlayerProvider>
-            <LibraryProvider>
-              <RootLayoutNav />
-              <MiniPlayer />
-            </LibraryProvider>
+            <UserProvider>
+              <LibraryProvider>
+                <RootLayoutNav />
+                <MiniPlayer />
+              </LibraryProvider>
+            </UserProvider>
           </PlayerProvider>
         </RootContainer>
       </QueryClientProvider>
