@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Switch, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Image, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2, ChevronRight, User as UserIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -49,12 +49,37 @@ export default function SettingsScreen() {
   ]), []);
 
   const [themeLocal, setThemeLocal] = useState<'light' | 'dark' | 'system'>(settings.theme);
+  const [confirmVisible, setConfirmVisible] = useState<boolean>(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [isClearing, setIsClearing] = useState<boolean>(false);
 
   const onSelectTheme = useCallback((t: 'light' | 'dark' | 'system') => {
     const safe = t ?? 'system';
     setThemeLocal(safe);
     void updateSetting('theme', safe);
   }, [updateSetting]);
+
+  const handleClear = useCallback(async () => {
+    if (isClearing) return;
+    try {
+      setIsClearing(true);
+      await clearStorage();
+      setConfirmVisible(false);
+      setStatusMsg('Cache and app storage cleared');
+      if (Platform.OS !== 'web') {
+        console.log('[Settings] Cleared storage on native device');
+      } else {
+        console.log('[Settings] Cleared storage on web');
+      }
+      setTimeout(() => setStatusMsg(null), 2500);
+    } catch (err) {
+      console.error('[Settings] clearStorage error', err);
+      setStatusMsg('Failed to clear storage. Please try again.');
+      setTimeout(() => setStatusMsg(null), 3000);
+    } finally {
+      setIsClearing(false);
+    }
+  }, [clearStorage, isClearing]);
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(12, insets.bottom) }]} testID="settings-screen">
@@ -317,7 +342,7 @@ export default function SettingsScreen() {
         <TouchableOpacity
           testID="btn-clear-storage"
           style={styles.secondaryButton}
-          onPress={() => void clearStorage()}
+          onPress={() => setConfirmVisible(true)}
           activeOpacity={0.9}
           accessibilityRole="button"
           accessibilityLabel="Clear cache and storage"
@@ -326,6 +351,42 @@ export default function SettingsScreen() {
           <Text style={styles.secondaryButtonText}>Clear cache & storage</Text>
         </TouchableOpacity>
       </View>
+
+      {confirmVisible ? (
+        <View style={styles.modalOverlay} testID="confirm-modal">
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Clear cache & storage?</Text>
+            <Text style={styles.modalBody}>This will remove offline data, preferences, and account session from this device.</Text>
+            <View style={styles.modalRow}>
+              <TouchableOpacity
+                testID="btn-cancel-clear"
+                style={[styles.modalButton, styles.modalBtnCancel]}
+                onPress={() => setConfirmVisible(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel"
+              >
+                <Text style={styles.modalBtnCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="btn-confirm-clear"
+                style={[styles.modalButton, styles.modalBtnDanger]}
+                onPress={handleClear}
+                disabled={isClearing}
+                accessibilityRole="button"
+                accessibilityLabel="Confirm clear storage"
+              >
+                <Text style={styles.modalBtnDangerText}>{isClearing ? 'Clearing…' : 'Clear'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
+      {statusMsg ? (
+        <View style={styles.toast} testID="toast-status">
+          <Text style={styles.toastText}>{statusMsg}</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -370,4 +431,16 @@ const styles = StyleSheet.create({
   userQuickAction: { marginTop: 8, height: 44, borderRadius: 10, backgroundColor: '#0D0D0F', borderWidth: 1, borderColor: '#1F1F22', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   userQuickLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 as unknown as number },
   userQuickLabel: { color: '#E5E7EB', fontSize: 14, fontWeight: '700' },
+  modalOverlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalCard: { width: '100%', maxWidth: 420, backgroundColor: '#111113', borderRadius: 16, borderWidth: 1, borderColor: '#26262B', padding: 16 },
+  modalTitle: { color: '#FFFFFF', fontSize: 18, fontWeight: '800', marginBottom: 4 },
+  modalBody: { color: '#9CA3AF', fontSize: 13, marginBottom: 12 },
+  modalRow: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 as unknown as number },
+  modalButton: { height: 40, paddingHorizontal: 14, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  modalBtnCancel: { backgroundColor: '#1A1A1A', borderWidth: 1, borderColor: '#26262B' },
+  modalBtnDanger: { backgroundColor: '#EF4444' },
+  modalBtnCancelText: { color: '#E5E7EB', fontSize: 14, fontWeight: '800' },
+  modalBtnDangerText: { color: '#0B0B0C', fontSize: 14, fontWeight: '800' },
+  toast: { position: 'absolute', bottom: 24, left: 16, right: 16, backgroundColor: '#0F172A', borderRadius: 12, borderWidth: 1, borderColor: '#1F2937', paddingVertical: 10, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
+  toastText: { color: '#E5E7EB', fontSize: 13, fontWeight: '700' },
 });
