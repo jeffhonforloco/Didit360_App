@@ -1,4 +1,4 @@
-import type { Track } from "@/types";
+import type { Track, Playlist } from "@/types";
 
 export const featuredContent: Track[] = [
   {
@@ -839,3 +839,169 @@ export const genres = [
   "Afro Beats",
   "High Life",
 ];
+
+// History data
+export const historyTracks: Track[] = [
+  {
+    id: "h1",
+    title: "Somebody's Nobody",
+    artist: "Alexander 23",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 195,
+    type: "song",
+  },
+  {
+    id: "h2",
+    title: "Sharks",
+    artist: "Imagine Dragons",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 210,
+    type: "song",
+  },
+  {
+    id: "h3",
+    title: "Disaster",
+    artist: "Conan Gray",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 225,
+    type: "song",
+  },
+  {
+    id: "h4",
+    title: "HANDSOME",
+    artist: "Warren Hue",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 180,
+    type: "song",
+  },
+  {
+    id: "h5",
+    title: "God Is a Woman",
+    artist: "Ariana Grande",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 198,
+    type: "song",
+  },
+  {
+    id: "h6",
+    title: "BREAK MY SOUL",
+    artist: "Beyonce",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 267,
+    type: "song",
+  },
+  {
+    id: "h7",
+    title: "The Bended Man",
+    artist: "Sunwich",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 234,
+    type: "song",
+  },
+];
+
+export const historyPodcasts: Track[] = [
+  {
+    id: "hp1",
+    title: "593: Dallas Taylor | The Psychology of Sound Design",
+    artist: "What a Day",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3362, // 56:42 mins
+    type: "podcast",
+    description: "What a Day",
+  },
+  {
+    id: "hp2",
+    title: "621: Reid Hoffman | Surprising Entrepreneurial Truths",
+    artist: "Invest Like The Best",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 3140, // 52:20 mins
+    type: "podcast",
+    description: "Invest Like The Best",
+  },
+  {
+    id: "hp3",
+    title: "688: A-Rod | Still Having a Ball After All",
+    artist: "Twenty Thousand Hertz",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 2956, // 49:26 mins
+    type: "podcast",
+    description: "Twenty Thousand Hertz",
+  },
+  {
+    id: "hp4",
+    title: "837: Tristan Harris | Reclaiming Our Future with ...",
+    artist: "Apple Talk",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 2906, // 48:26 mins
+    type: "podcast",
+    description: "Apple Talk",
+  },
+  {
+    id: "hp5",
+    title: "690: Jane McGonigal | How to See the Future and Be Ready..",
+    artist: "The Jordan Harbinger ...",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2749, // 45:49 mins
+    type: "podcast",
+    description: "The Jordan Harbinger Show",
+  },
+  {
+    id: "hp6",
+    title: "837: Amy Webb | Changing",
+    artist: "Hidden Brain",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 3288, // 54:48 mins
+    type: "podcast",
+    description: "Hidden Brain",
+  },
+];
+
+// Playlists data
+export const userPlaylists: Playlist[] = [
+  {
+    id: "pl1",
+    name: "Your Likes",
+    tracks: [...historyTracks.slice(0, 5)],
+    createdAt: "2024-01-15",
+  },
+  {
+    id: "pl2",
+    name: "My Favorite Pop Songs",
+    tracks: [...topCharts.slice(0, 6)],
+    createdAt: "2024-01-10",
+  },
+  {
+    id: "pl3",
+    name: "90s Old Song",
+    tracks: [...recentlyPlayed.slice(0, 4)],
+    createdAt: "2024-01-05",
+  },
+  {
+    id: "pl4",
+    name: "Legend Rock Song",
+    tracks: [...newReleases.slice(0, 3)],
+    createdAt: "2024-01-01",
+  },
+  {
+    id: "pl5",
+    name: "My Favorite Acoustic Song",
+    tracks: [...featuredContent],
+    createdAt: "2023-12-20",
+  },
+  {
+    id: "pl6",
+    name: "Memories of Love",
+    tracks: [...trendingNow.slice(0, 4)],
+    createdAt: "2023-12-15",
+  },
+];
+
+export const playlistSongCounts: Record<string, number> = {
+  pl1: 270,
+  pl2: 345,
+  pl3: 127,
+  pl4: 98,
+  pl5: 163,
+  pl6: 149,
+};

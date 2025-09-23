@@ -25,6 +25,7 @@ import {
 } from "lucide-react-native";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { router } from "expo-router";
 import type { Track, Playlist } from "@/types";
 
  type FilterId = "all" | "playlists" | "songs" | "podcasts" | "audiobooks";
@@ -157,7 +158,9 @@ export default function LibraryScreen() {
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Your Library</Text>
-        <TouchableOpacity style={styles.addButton} onPress={() => console.log("[Library] add new")}
+        <TouchableOpacity 
+          style={styles.addButton} 
+          onPress={() => router.push("/playlists")}
           testID="add-button"
           accessibilityRole="button"
         >
@@ -236,7 +239,11 @@ export default function LibraryScreen() {
             <Text style={styles.quickCount}>{downloads.length} items</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickItem} testID="recently-played">
+          <TouchableOpacity 
+            style={styles.quickItem} 
+            testID="recently-played"
+            onPress={() => router.push("/history")}
+          >
             <View style={[styles.quickIcon, { backgroundColor: "#3B82F6" }]}>
               <Clock size={20} color="#FFF" />
             </View>
@@ -248,7 +255,7 @@ export default function LibraryScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Your History</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push("/history")}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>
           </View>

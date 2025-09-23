@@ -1,133 +1,184 @@
-import React, { useState } from "react";
+import React from "react";
 import {
-  StyleSheet,
-  Text,
   View,
+  Text,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Image,
-  FlatList,
-  ScrollView,
+  SafeAreaView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  ArrowLeft,
-  MoreHorizontal,
-  Heart,
-  Plus,
-  Play,
-} from "lucide-react-native";
-import { router, useLocalSearchParams } from "expo-router";
+import { Stack, router, useLocalSearchParams } from "expo-router";
+import { ArrowLeft, Search, MoreHorizontal, Play, Shuffle, Share } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { allTracks } from "@/data/mockData";
+import { useUser } from "@/contexts/UserContext";
+import { userPlaylists, playlistSongCounts } from "@/data/mockData";
 import type { Track } from "@/types";
 
-export default function PlaylistScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const { playTrack } = usePlayer();
-  const [isLiked, setIsLiked] = useState(false);
+interface TrackItemProps {
+  track: Track;
+  index: number;
+  onPlay: (track: Track) => void;
+}
 
-  // Mock playlist data - in real app this would come from API
-  const playlist = {
-    id: id || '1',
-    title: 'Ariana Grande - Top Greatest Hits',
-    artist: 'Theresa Wilona',
-    type: 'Playlist',
-    year: '2022',
-    artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-    tracks: allTracks.slice(0, 10)
+function TrackItem({ track, index, onPlay }: TrackItemProps) {
+  const { settings } = useUser();
+  const accentColor = settings?.accentColor ?? "#FF0080";
+
+  return (
+    <TouchableOpacity
+      style={styles.trackItem}
+      onPress={() => onPlay(track)}
+      testID={`track-${track.id}`}
+    >
+      <Image source={{ uri: track.artwork }} style={styles.trackArtwork} />
+      <View style={styles.trackInfo}>
+        <Text style={styles.trackTitle} numberOfLines={1}>
+          {track.title}
+        </Text>
+        <Text style={styles.trackArtist} numberOfLines={1}>
+          {track.artist}
+        </Text>
+      </View>
+      <View style={styles.trackActions}>
+        <TouchableOpacity
+          style={[styles.playButton, { backgroundColor: accentColor }]}
+          onPress={() => onPlay(track)}
+          testID={`play-${track.id}`}
+        >
+          <Play size={16} color="white" fill="white" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.moreButton} testID={`more-${track.id}`}>
+          <MoreHorizontal size={20} color="#666" />
+        </TouchableOpacity>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+export default function PlaylistScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { playTrack } = usePlayer();
+  const { settings } = useUser();
+  const accentColor = settings?.accentColor ?? "#FF0080";
+
+  const playlist = userPlaylists.find(p => p.id === id);
+  const songCount = playlistSongCounts[id || ""] || playlist?.tracks.length || 0;
+
+  if (!playlist) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Playlist not found</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const handlePlayTrack = (track: Track) => {
+    console.log("Playing track:", track.title);
+    playTrack(track);
   };
 
   const handlePlayAll = () => {
     if (playlist.tracks.length > 0) {
+      console.log("Playing all tracks from playlist:", playlist.name);
       playTrack(playlist.tracks[0]);
     }
   };
 
-  const renderTrack = ({ item }: { item: Track }) => (
-    <TouchableOpacity
-      style={styles.trackItem}
-      onPress={() => playTrack(item)}
-      activeOpacity={0.8}
-    >
-      <Image source={{ uri: item.artwork }} style={styles.trackArtwork} />
-      <View style={styles.trackInfo}>
-        <Text style={styles.trackTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.trackArtist} numberOfLines={1}>
-          {item.artist}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.playButton}>
-        <Play size={16} color="#E91E63" fill="#E91E63" />
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.moreButton}>
-        <MoreHorizontal size={20} color="#999" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
+  const handleShuffle = () => {
+    if (playlist.tracks.length > 0) {
+      console.log("Shuffling playlist:", playlist.name);
+      const randomIndex = Math.floor(Math.random() * playlist.tracks.length);
+      playTrack(playlist.tracks[randomIndex]);
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={24} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MoreHorizontal size={24} color="#FFF" />
+    <SafeAreaView style={styles.container}>
+      <Stack.Screen
+        options={{
+          headerShown: false,
+        }}
+      />
+      
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+          testID="back-button"
+        >
+          <ArrowLeft size={24} color="white" />
+        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={styles.headerButton} testID="search-button">
+            <Search size={24} color="white" />
           </TouchableOpacity>
         </View>
+      </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={styles.playlistHeader}>
-            <Image source={{ uri: playlist.artwork }} style={styles.playlistArtwork} />
-            <Text style={styles.playlistTitle}>{playlist.title}</Text>
-            <Text style={styles.playlistMeta}>by {playlist.artist}</Text>
-            <Text style={styles.playlistInfo}>{playlist.type} | {playlist.year}</Text>
-            
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.likeButton}
-                onPress={() => setIsLiked(!isLiked)}
-              >
-                <Heart size={24} color={isLiked ? "#E91E63" : "#FFF"} fill={isLiked ? "#E91E63" : "none"} />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.addButton}>
-                <Plus size={24} color="#FFF" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.moreActionButton}>
-                <MoreHorizontal size={24} color="#FFF" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.playAllButton} onPress={handlePlayAll}>
-                <Play size={20} color="#FFF" fill="#FFF" />
-                <Text style={styles.playAllText}>Play</Text>
-              </TouchableOpacity>
-            </View>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.playlistHeader}>
+          <Image 
+            source={{ 
+              uri: playlist.tracks[0]?.artwork || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop" 
+            }} 
+            style={styles.playlistArtwork} 
+          />
+          <Text style={styles.playlistTitle}>{playlist.name}</Text>
+          <Text style={styles.playlistSubtitle}>
+            Playlist | {songCount} songs
+          </Text>
+          
+          <View style={styles.playlistActions}>
+            <TouchableOpacity style={styles.actionButton} testID="like-button">
+              <Text style={styles.actionIcon}>♡</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} testID="download-button">
+              <Text style={styles.actionIcon}>⬇</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} testID="share-button">
+              <Share size={20} color="white" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.moreButton} testID="more-playlist-button">
+              <MoreHorizontal size={20} color="white" />
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.songsSection}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Songs</Text>
-              <TouchableOpacity>
-                <Text style={styles.seeAllText}>See All</Text>
-              </TouchableOpacity>
-            </View>
-            
-            <FlatList
-              data={playlist.tracks}
-              renderItem={renderTrack}
-              keyExtractor={(item) => item.id}
-              scrollEnabled={false}
-              contentContainerStyle={styles.tracksList}
+          <View style={styles.playButtons}>
+            <TouchableOpacity
+              style={[styles.shuffleButton, { backgroundColor: accentColor }]}
+              onPress={handleShuffle}
+              testID="shuffle-button"
+            >
+              <Shuffle size={20} color="white" />
+              <Text style={styles.shuffleButtonText}>Shuffle</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.playAllButton}
+              onPress={handlePlayAll}
+              testID="play-all-button"
+            >
+              <Play size={20} color="white" fill="white" />
+              <Text style={styles.playAllButtonText}>Play</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.tracksContainer}>
+          {playlist.tracks.map((track, index) => (
+            <TrackItem
+              key={track.id}
+              track={track}
+              index={index}
+              onPlay={handlePlayTrack}
             />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -136,103 +187,117 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0A0A0A",
   },
-  safeArea: {
-    flex: 1,
-  },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  backButton: {
+    padding: 8,
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  content: {
+    flex: 1,
   },
   playlistHeader: {
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 24,
   },
   playlistArtwork: {
     width: 200,
     height: 200,
-    borderRadius: 16,
-    marginBottom: 20,
+    borderRadius: 12,
+    marginBottom: 16,
   },
   playlistTitle: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "#FFF",
+    color: "white",
     textAlign: "center",
     marginBottom: 8,
   },
-  playlistMeta: {
+  playlistSubtitle: {
     fontSize: 16,
-    color: "#999",
-    marginBottom: 4,
-  },
-  playlistInfo: {
-    fontSize: 14,
-    color: "#999",
+    color: "#666",
+    textAlign: "center",
     marginBottom: 24,
   },
-  actionButtons: {
+  playlistActions: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 20,
+    marginBottom: 24,
   },
-  likeButton: {
-    padding: 8,
+  actionButton: {
+    padding: 12,
+    marginHorizontal: 8,
   },
-  addButton: {
-    padding: 8,
+  actionIcon: {
+    fontSize: 20,
+    color: "white",
   },
-  moreActionButton: {
-    padding: 8,
+  moreButton: {
+    padding: 12,
+    marginHorizontal: 8,
   },
-  playAllButton: {
+  playButtons: {
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E91E63",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
-    gap: 8,
-  },
-  playAllText: {
-    color: "#FFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  songsSection: {
-    paddingHorizontal: 20,
-    paddingBottom: 120,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    width: "100%",
     marginBottom: 16,
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#FFF",
+  shuffleButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 25,
+    marginRight: 8,
   },
-  seeAllText: {
-    fontSize: 14,
-    color: "#E91E63",
+  shuffleButtonText: {
+    fontSize: 16,
     fontWeight: "600",
+    color: "white",
+    marginLeft: 8,
   },
-  tracksList: {
-    gap: 8,
+  playAllButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    borderRadius: 25,
+    backgroundColor: "#2A2A2A",
+    marginLeft: 8,
+  },
+  playAllButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "white",
+    marginLeft: 8,
+  },
+  tracksContainer: {
+    paddingHorizontal: 16,
   },
   trackItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1A1A1A",
   },
   trackArtwork: {
-    width: 48,
-    height: 48,
+    width: 50,
+    height: 50,
     borderRadius: 8,
     marginRight: 12,
   },
@@ -242,18 +307,32 @@ const styles = StyleSheet.create({
   trackTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#FFF",
+    color: "white",
     marginBottom: 4,
   },
   trackArtist: {
     fontSize: 14,
-    color: "#999",
+    color: "#666",
+  },
+  trackActions: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   playButton: {
-    padding: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
     marginRight: 8,
   },
-  moreButton: {
-    padding: 8,
+  errorContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  errorText: {
+    fontSize: 18,
+    color: "#666",
   },
 });
