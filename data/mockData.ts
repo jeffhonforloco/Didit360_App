@@ -175,7 +175,56 @@ export const podcasts: Track[] = [
     type: "podcast",
     description: "Daily dose of humor",
   },
+  {
+    id: "p5",
+    title: "Miss You",
+    artist: "Oliver Tree, Robin Schulz",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 185,
+    type: "podcast",
+    description: "A deep dive into modern relationships and emotional connections",
+  },
 ];
+
+export interface PodcastEpisode {
+  id: string;
+  title: string;
+  description: string;
+  transcript?: string;
+  hostInfo?: {
+    name: string;
+    bio: string;
+    image: string;
+    followers: string;
+  };
+  liveEvents?: {
+    title: string;
+    date: string;
+    image: string;
+  }[];
+}
+
+export const podcastEpisodes: Record<string, PodcastEpisode> = {
+  p5: {
+    id: "p5",
+    title: "Miss You",
+    description: "A deep dive into modern relationships and emotional connections",
+    transcript: "Don't remind me\nI'm minding my own damn business\nDon't try to find me\nI'm better left alone than in this\nIt doesn't surprise me\nDo you really think that I could care",
+    hostInfo: {
+      name: "Oliver Tree",
+      bio: "An internet-based vocalist, producer, writer, director and performance artist, oliver tree...",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=200&fit=crop",
+      followers: "24,419,528 monthly listeners"
+    },
+    liveEvents: [
+      {
+        title: "Jun 9 - Aug 25",
+        date: "4 events on tour",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=300&h=200&fit=crop"
+      }
+    ]
+  }
+};
 
 export const audiobooks: Track[] = [
   {
