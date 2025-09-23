@@ -32,6 +32,9 @@ import {
   Twitter,
   Link,
   Download,
+  BookOpen,
+  Clock,
+  Volume2,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -308,45 +311,96 @@ export default function PlayerScreen() {
                   </View>
                 </TouchableOpacity>
                 <View style={styles.timeRow}>
-                  <Text style={styles.time}>2:46</Text>
-                  <Text style={styles.time}>3:05</Text>
+                  <Text style={styles.time}>
+                    {currentTrack.type === "audiobook" ? "12:15" : "2:46"}
+                  </Text>
+                  <Text style={styles.time}>
+                    {currentTrack.type === "audiobook" ? "47:32" : "3:05"}
+                  </Text>
                 </View>
               </View>
 
-              <View style={styles.controls}>
-                <TouchableOpacity
-                  onPress={() => setShuffle(!shuffle)}
-                  style={styles.controlButton}
-                >
-                  <Shuffle size={24} color={shuffle ? "#FF0080" : "#FFF"} />
-                </TouchableOpacity>
+              {currentTrack.type === "audiobook" ? (
+                <View style={styles.audiobookControls}>
+                  <View style={styles.audiobookMainControls}>
+                    <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                      <SkipBack size={32} color="#FFF" fill="#FFF" />
+                    </TouchableOpacity>
 
-                <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
-                  <SkipBack size={32} color="#FFF" fill="#FFF" />
-                </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={togglePlayPause}
+                      style={styles.playButton}
+                    >
+                      {isPlaying ? (
+                        <Pause size={36} color="#FFF" fill="#FFF" />
+                      ) : (
+                        <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                      )}
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={togglePlayPause}
-                  style={styles.playButton}
-                >
-                  {isPlaying ? (
-                    <Pause size={36} color="#FFF" fill="#FFF" />
-                  ) : (
-                    <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
-                  )}
-                </TouchableOpacity>
+                    <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                      <SkipForward size={32} color="#FFF" fill="#FFF" />
+                    </TouchableOpacity>
+                  </View>
 
-                <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
-                  <SkipForward size={32} color="#FFF" fill="#FFF" />
-                </TouchableOpacity>
+                  <View style={styles.audiobookSecondaryControls}>
+                    <TouchableOpacity style={styles.audiobookControlButton}>
+                      <BookOpen size={20} color="#FFF" />
+                      <Text style={styles.audiobookControlText}>Bookmark</Text>
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  onPress={() => setRepeat(!repeat)}
-                  style={styles.controlButton}
-                >
-                  <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
-                </TouchableOpacity>
-              </View>
+                    <TouchableOpacity style={styles.audiobookControlButton}>
+                      <BookOpen size={20} color="#FFF" />
+                      <Text style={styles.audiobookControlText}>Chapter 2</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.audiobookControlButton}>
+                      <Clock size={20} color="#FFF" />
+                      <Text style={styles.audiobookControlText}>Speed 1x</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.audiobookControlButton}>
+                      <Volume2 size={20} color="#FFF" />
+                      <Text style={styles.audiobookControlText}>Download</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.controls}>
+                  <TouchableOpacity
+                    onPress={() => setShuffle(!shuffle)}
+                    style={styles.controlButton}
+                  >
+                    <Shuffle size={24} color={shuffle ? "#FF0080" : "#FFF"} />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                    <SkipBack size={32} color="#FFF" fill="#FFF" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={togglePlayPause}
+                    style={styles.playButton}
+                  >
+                    {isPlaying ? (
+                      <Pause size={36} color="#FFF" fill="#FFF" />
+                    ) : (
+                      <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                    <SkipForward size={32} color="#FFF" fill="#FFF" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => setRepeat(!repeat)}
+                    style={styles.controlButton}
+                  >
+                    <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -855,5 +909,31 @@ const styles = StyleSheet.create({
   },
   spacer: {
     width: 28,
+  },
+  audiobookControls: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  audiobookMainControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 30,
+  },
+  audiobookSecondaryControls: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    paddingHorizontal: 10,
+  },
+  audiobookControlButton: {
+    alignItems: "center",
+    padding: 8,
+  },
+  audiobookControlText: {
+    color: "#FFF",
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: "500",
   },
 });

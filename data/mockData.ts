@@ -226,42 +226,166 @@ export const podcastEpisodes: Record<string, PodcastEpisode> = {
   }
 };
 
+export interface AudiobookDetails {
+  id: string;
+  title: string;
+  author: string;
+  artwork: string;
+  duration: number;
+  rating: number;
+  genres: string[];
+  summary: string;
+  chapters: {
+    id: string;
+    title: string;
+    duration: number;
+    startTime: number;
+  }[];
+  content?: string;
+}
+
 export const audiobooks: Track[] = [
   {
     id: "a1",
-    title: "The Digital Revolution",
-    artist: "Dr. Sarah Tech",
-    artwork: "https://picsum.photos/400/400?random=19",
-    duration: 18000,
+    title: "Harry Potter and the Sorcerer's Stone",
+    artist: "J.K. Rowling",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 28620, // 477 minutes
     type: "audiobook",
-    description: "How technology changed our world",
+    description: "The first book in the beloved Harry Potter series",
   },
   {
     id: "a2",
-    title: "Mindful Living",
-    artist: "Zen Master Lee",
-    artwork: "https://picsum.photos/400/400?random=20",
-    duration: 14400,
+    title: "The Silence",
+    artist: "Mark Alpert",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600,
     type: "audiobook",
-    description: "A guide to peaceful existence",
+    description: "A thrilling science fiction novel",
   },
   {
     id: "a3",
-    title: "Space Odyssey",
-    artist: "Captain Nova",
-    artwork: "https://picsum.photos/400/400?random=21",
-    duration: 21600,
+    title: "The Speaker",
+    artist: "Traci Chee",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 19800,
     type: "audiobook",
-    description: "Journey through the cosmos",
+    description: "Book two of Sea of Ink and Gold",
   },
   {
     id: "a4",
-    title: "Ancient Wisdom",
-    artist: "Professor Stone",
-    artwork: "https://picsum.photos/400/400?random=22",
-    duration: 16200,
+    title: "Light Mage",
+    artist: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 25200,
     type: "audiobook",
-    description: "Lessons from history",
+    description: "A fantasy adventure",
+  },
+];
+
+export const audiobookDetails: Record<string, AudiobookDetails> = {
+  a1: {
+    id: "a1",
+    title: "Harry Potter and the Prisoner of Azkaban",
+    author: "J.K. Rowling",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 28620,
+    rating: 4.0,
+    genres: ["Fantasy", "Drama", "Fiction"],
+    summary: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: Owl Post", duration: 1260, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Aunt Marge's Big Mistake", duration: 1380, startTime: 1260 },
+      { id: "ch3", title: "Chapter 3: The Knight Bus", duration: 1200, startTime: 2640 },
+      { id: "ch4", title: "Chapter 4: The Leaky Cauldron", duration: 1440, startTime: 3840 },
+      { id: "ch5", title: "Chapter 5: The Dementor", duration: 1320, startTime: 5280 },
+    ],
+    content: `forehead. Harry is then left at the doorstep of his boring but brutish aunt and uncle, the Dursleys.
+
+For 10 years, Harry lives in the cupboard under the stairs and is subjected to cruel mistreatment by Aunt Petunia, Uncle Vernon and their son Dudley. On his 11th birthday, Harry receives a letter inviting him to study magic at the Hogwarts School of Witchcraft and Wizardry.
+
+Harry discovers that not only is he a wizard, but he is a famous one. He meets two best friends, Ron Weasley and Hermione Granger, and makes his first enemy, Draco Malfoy. At Hogwarts the three friends are all placed into the Gryffindor house. Harry has a knack for the school sport, Quidditch, and is recruited onto the Gryffindor team as its star Seeker.
+
+Perusing the restricted section in the library, Harry discovers that the Sorcerer's Stone produces the Elixir of Life, which gives its drinker the gift of immortality. After realizing that Voldemort might be after the stone, Albus Dumbledore had it moved to Hogwarts for safekeeping.
+
+Harry finds out that when she died, Lily Potter`
+  },
+};
+
+export const audiobookCategories = [
+  {
+    id: "art",
+    title: "Art",
+    color: "#C53030",
+  },
+  {
+    id: "business",
+    title: "Business",
+    color: "#C53030",
+  },
+  {
+    id: "comedy",
+    title: "Comedy",
+    color: "#C53030",
+  },
+  {
+    id: "drama",
+    title: "Drama",
+    color: "#C53030",
+  },
+];
+
+export const recommendedAudiobooks: Track[] = [
+  {
+    id: "r1",
+    title: "The Silence",
+    artist: "Mark Alpert",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600,
+    type: "audiobook",
+    description: "A thrilling science fiction novel",
+  },
+  {
+    id: "r2",
+    title: "The Speaker",
+    artist: "Traci Chee",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 19800,
+    type: "audiobook",
+    description: "Book two of Sea of Ink and Gold",
+  },
+];
+
+export const bestSellerAudiobooks: Track[] = [
+  {
+    id: "bs1",
+    title: "Light Mage",
+    artist: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 25200,
+    type: "audiobook",
+    description: "1000+ Listeners",
+  },
+];
+
+export const newReleaseAudiobooks: Track[] = [
+  {
+    id: "nr1",
+    title: "The Prisoner",
+    artist: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 22800,
+    type: "audiobook",
+    description: "New release fantasy novel",
+  },
+  {
+    id: "nr2",
+    title: "The Prisoner",
+    artist: "B.A. Paris",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 18000,
+    type: "audiobook",
+    description: "Psychological thriller",
   },
 ];
 
