@@ -21,8 +21,15 @@ import type { Track } from "@/types";
 interface CategoryTile {
   id: string;
   title: string;
-  colors: readonly [string, string];
+  colors?: readonly [string, string];
   image?: string;
+}
+
+interface SimpleItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
 }
 
 export default function HomeScreen() {
@@ -42,12 +49,10 @@ export default function HomeScreen() {
 
   const categories: CategoryTile[] = useMemo(
     () => [
-      { id: "c1", title: "Music", colors: ["#FF6B6B", "#F7CE68"] as const },
-      { id: "c2", title: "Audio Book", colors: ["#6A85F1", "#B892FF"] as const },
-      { id: "c3", title: "Podcast", colors: ["#00C6FF", "#0072FF"] as const },
-      { id: "c4", title: "Trending", colors: ["#F7971E", "#FFD200"] as const },
-      { id: "c5", title: "Live", colors: ["#8A2387", "#E94057"] as const },
-      { id: "c6", title: "News", colors: ["#11998E", "#38EF7D"] as const },
+      { id: "c1", title: "Podcasts", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&q=80&auto=format&fit=crop" },
+      { id: "c2", title: "Audio Book", image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=800&q=80&auto=format&fit=crop" },
+      { id: "c3", title: "AI creations", image: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=800&q=80&auto=format&fit=crop" },
+      { id: "c4", title: "NFT", image: "https://images.unsplash.com/photo-1639322537504-6427a16b0a28?w=800&q=80&auto=format&fit=crop" },
     ],
     []
   );
@@ -188,9 +193,14 @@ export default function HomeScreen() {
 
   const renderCategory = useCallback(({ item }: { item: CategoryTile }) => (
     <TouchableOpacity style={styles.categoryTile} onPress={() => console.log("Category", item.title)} activeOpacity={0.85} testID={`category-${item.id}`}>
-      <LinearGradient colors={item.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.categoryGradient}>
+      {item.image ? (
+        <Image source={{ uri: item.image }} style={styles.categoryImage} />
+      ) : (
+        <LinearGradient colors={item.colors ?? ["#333333", "#111111"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.categoryGradient} />
+      )}
+      <View style={styles.categoryLabelWrap}>
         <Text style={styles.categoryText}>{item.title}</Text>
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   ), []);
 
@@ -199,6 +209,18 @@ export default function HomeScreen() {
       <Text style={styles.genreText}>{item}</Text>
     </TouchableOpacity>
   ), []);
+
+  const aiCreations: SimpleItem[] = useMemo(() => [
+    { id: "ai1", title: "Save Your Tears", subtitle: "The Weeknd & Ari", image: "https://images.unsplash.com/photo-1542206395-9feb3edaa68a?w=1000&q=80&auto=format&fit=crop" },
+    { id: "ai2", title: "Without You", subtitle: "The Kid LAROI", image: "https://images.unsplash.com/photo-1520975922284-4b9a1b4805bf?w=1000&q=80&auto=format&fit=crop" },
+    { id: "ai3", title: "Synth Girl", subtitle: "Neon Dreams", image: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=1000&q=80&auto=format&fit=crop" },
+  ], []);
+
+  const recentNFTs: SimpleItem[] = useMemo(() => [
+    { id: "n1", title: "Save Your Tears", subtitle: "The Weeknd & Ari", image: "https://images.unsplash.com/photo-1608889175123-8f25e1df238a?w=1000&q=80&auto=format&fit=crop" },
+    { id: "n2", title: "Shades of Love", subtitle: "Ania Szarmach", image: "https://images.unsplash.com/photo-1618172193763-c511deb635ca?w=1000&q=80&auto=format&fit=crop" },
+    { id: "n3", title: "Cyber Kid", subtitle: "3D Artist", image: "https://images.unsplash.com/photo-1606112219348-204d7d8b94ee?w=1000&q=80&auto=format&fit=crop" },
+  ], []);
 
   return (
     <View style={styles.container}>
@@ -232,12 +254,12 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Browse Categories", "browse-categories")}
+          {renderSectionHeader("Browse", "browse-categories")}
           <FlatList
             data={categories}
             renderItem={renderCategory}
             keyExtractor={(item) => item.id}
-            numColumns={3}
+            numColumns={2}
             columnWrapperStyle={styles.categoryRow}
             scrollEnabled={false}
             contentContainerStyle={styles.categoriesContainer}
@@ -281,11 +303,17 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Trending Videos", "trending-videos")}
+          {renderSectionHeader("AI Creations", "ai-creations")}
           <FlatList
-            data={featuredContent}
-            renderItem={renderCard}
-            keyExtractor={(item) => `trending-${item.id}`}
+            data={aiCreations}
+            renderItem={({ item }) => (
+              <View style={[styles.simpleCard, { width: CARD_WIDTH }]}> 
+                <Image source={{ uri: item.image }} style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} />
+                <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                {item.subtitle ? <Text style={styles.cardArtist} numberOfLines={1}>{item.subtitle}</Text> : null}
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -293,11 +321,17 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Most Viewed", "most-viewed")}
+          {renderSectionHeader("Recent NFT's", "recent-nfts")}
           <FlatList
-            data={topCharts}
-            renderItem={renderCard}
-            keyExtractor={(item) => `most-${item.id}`}
+            data={recentNFTs}
+            renderItem={({ item }) => (
+              <View style={[styles.simpleCard, { width: CARD_WIDTH }]}> 
+                <Image source={{ uri: item.image }} style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} />
+                <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                {item.subtitle ? <Text style={styles.cardArtist} numberOfLines={1}>{item.subtitle}</Text> : null}
+              </View>
+            )}
+            keyExtractor={(item) => item.id}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -526,20 +560,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   categoryRow: {
-    paddingHorizontal: 4,
+    paddingHorizontal: 12,
     justifyContent: "space-between",
     marginBottom: 12,
   },
   categoryTile: {
     flex: 1,
-    marginHorizontal: 4,
-    height: 90,
+    marginHorizontal: 8,
+    height: 110,
+    borderRadius: 12,
+    overflow: "hidden",
   },
   categoryGradient: {
     flex: 1,
     borderRadius: 12,
+  },
+  categoryImage: {
+    width: "100%",
+    height: "100%",
+  },
+  categoryLabelWrap: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: "flex-end",
     padding: 12,
+    backgroundColor: "rgba(0,0,0,0.25)",
   },
   categoryText: {
     color: "#FFF",
@@ -560,5 +604,8 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 13,
     fontWeight: "600",
+  },
+  simpleCard: {
+    marginRight: 16,
   },
 });
