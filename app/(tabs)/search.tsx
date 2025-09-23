@@ -184,7 +184,7 @@ export default function SearchScreen() {
       case 'Playlists':
         return []; // TODO: Add playlist filtering
       case 'Profiles':
-        return filteredArtists; // Use artists as profiles for now
+        return filteredArtists;
       default:
         return [...filteredTracks, ...filteredArtists, ...filteredAlbums, ...filteredPodcasts].slice(0, 10);
     }
@@ -226,27 +226,28 @@ export default function SearchScreen() {
   );
 
   const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] | typeof searchAlbums[0] | typeof podcastShows[0] }) => {
-    if ('type' in item && item.type === 'artist') {
+    if ('name' in item && 'image' in item) {
+      const artist = item as typeof searchArtists[0];
       return (
         <TouchableOpacity
           style={styles.searchResult}
-          onPress={() => router.push(`/artist/${item.id}`)}
+          onPress={() => router.push(`/profile/${artist.id}`)}
           activeOpacity={0.8}
         >
-          <Image source={{ uri: item.image }} style={[styles.resultImage, styles.artistImage]} />
+          <Image source={{ uri: artist.image }} style={[styles.resultImage, styles.artistImage]} />
           <View style={styles.resultInfo}>
             <View style={styles.artistHeader}>
               <Text style={styles.resultTitle} numberOfLines={1}>
-                {item.name}
+                {artist.name}
               </Text>
-              {item.verified && (
+              {artist.verified && (
                 <View style={styles.verifiedBadge}>
                   <Text style={styles.verifiedText}>✓</Text>
                 </View>
               )}
             </View>
             <Text style={styles.resultArtist} numberOfLines={1}>
-              Artist
+              {activeFilter === 'Profiles' ? 'Profile' : 'Artist'}
             </Text>
           </View>
           <TouchableOpacity style={styles.followButton}>
@@ -449,7 +450,11 @@ export default function SearchScreen() {
                 <FlatList
                   data={results}
                   renderItem={renderSearchResult}
-                  keyExtractor={(item) => 'id' in item ? item.id : 'name' in item ? (item as typeof searchArtists[0]).name : (item as typeof podcastShows[0]).title}
+                  keyExtractor={(item) => {
+                    if ('id' in item) return item.id;
+                    if ('name' in item) return (item as typeof searchArtists[0]).name;
+                    return (item as typeof podcastShows[0]).title;
+                  }}
                   scrollEnabled={false}
                   style={styles.resultsList}
                 />

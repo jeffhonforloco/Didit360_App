@@ -246,6 +246,33 @@ export default function LibraryScreen() {
         </View>
 
         <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Your History</Text>
+            <TouchableOpacity>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+            {recentlyPlayed.slice(0, 5).map((track, index) => (
+              <TouchableOpacity
+                key={track.id}
+                style={styles.historyItem}
+                onPress={() => playTrack(track)}
+              >
+                <Image source={{ uri: track.artwork }} style={styles.historyArtwork} />
+                <Text style={styles.historyTitle} numberOfLines={2}>
+                  {track.title}
+                </Text>
+                <Text style={styles.historyArtist} numberOfLines={1}>
+                  {track.artist}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.section}>
           <Text style={styles.sectionTitle}>All Items</Text>
           <FlatList
             data={items}
@@ -408,12 +435,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 18,
   },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 18,
     fontWeight: "800",
     color: "#FFFFFF",
-    marginBottom: 12,
     letterSpacing: 0.2,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: "#E91E63",
+    fontWeight: "600",
+  },
+  historyScroll: {
+    marginBottom: 20,
+  },
+  historyItem: {
+    width: 120,
+    marginRight: 16,
+  },
+  historyArtwork: {
+    width: 120,
+    height: 120,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  historyTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    marginBottom: 4,
+    lineHeight: 18,
+  },
+  historyArtist: {
+    fontSize: 12,
+    color: "#9CA3AF",
   },
   gridRow: {
     justifyContent: "space-between",

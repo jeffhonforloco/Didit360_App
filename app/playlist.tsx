@@ -4,166 +4,137 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput,
+  Image,
   FlatList,
-  Modal,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import {
   ArrowLeft,
-  Search,
-  MoreVertical,
+  MoreHorizontal,
+  Heart,
+  Plus,
+  Play,
 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { useLibrary } from "@/contexts/LibraryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
-import type { Playlist } from "@/types";
+import { allTracks } from "@/data/mockData";
+import type { Track } from "@/types";
 
 export default function PlaylistScreen() {
-  const { playlistId } = useLocalSearchParams<{ playlistId?: string }>();
-  const { playlists, createPlaylist } = useLibrary();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const { playTrack } = usePlayer();
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
-  const [newPlaylistName, setNewPlaylistName] = useState<string>("");
+  const [isLiked, setIsLiked] = useState(false);
 
-  const currentPlaylist = playlistId ? playlists.find(p => p.id === playlistId) : null;
-  const displayPlaylists = currentPlaylist ? [currentPlaylist] : playlists;
+  // Mock playlist data - in real app this would come from API
+  const playlist = {
+    id: id || '1',
+    title: 'Ariana Grande - Top Greatest Hits',
+    artist: 'Theresa Wilona',
+    type: 'Playlist',
+    year: '2022',
+    artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
+    tracks: allTracks.slice(0, 10)
+  };
 
-  const filteredPlaylists = displayPlaylists.filter(playlist =>
-    playlist.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleCreatePlaylist = () => {
-    if (newPlaylistName.trim()) {
-      createPlaylist(newPlaylistName.trim(), []);
-      setNewPlaylistName("");
-      setShowCreateModal(false);
+  const handlePlayAll = () => {
+    if (playlist.tracks.length > 0) {
+      playTrack(playlist.tracks[0]);
     }
   };
 
-  const renderPlaylistItem = ({ item }: { item: Playlist }) => (
+  const renderTrack = ({ item }: { item: Track }) => (
     <TouchableOpacity
-      style={styles.playlistItem}
-      onPress={() => {
-        if (item.tracks.length > 0) {
-          playTrack(item.tracks[0]);
-        }
-      }}
+      style={styles.trackItem}
+      onPress={() => playTrack(item)}
       activeOpacity={0.8}
     >
-      <View style={styles.playlistArtwork}>
-        <Text style={styles.playlistInitial}>
-          {item.name.charAt(0).toUpperCase()}
+      <Image source={{ uri: item.artwork }} style={styles.trackArtwork} />
+      <View style={styles.trackInfo}>
+        <Text style={styles.trackTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.trackArtist} numberOfLines={1}>
+          {item.artist}
         </Text>
       </View>
-      <View style={styles.playlistInfo}>
-        <Text style={styles.playlistTitle} numberOfLines={1}>
-          {item.name}
-        </Text>
-        <Text style={styles.playlistSubtitle} numberOfLines={1}>
-          {item.tracks.length} songs
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.playlistMore}>
-        <MoreVertical size={20} color="#999" />
+      <TouchableOpacity style={styles.playButton}>
+        <Play size={16} color="#E91E63" fill="#E91E63" />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.moreButton}>
+        <MoreHorizontal size={20} color="#999" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
 
   return (
-    <LinearGradient
-      colors={["#1A1A1A", "#0A0A0A"]}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <ArrowLeft size={28} color="#FFF" />
+            <ArrowLeft size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Playlist</Text>
-          <View style={styles.placeholder} />
+          <TouchableOpacity>
+            <MoreHorizontal size={24} color="#FFF" />
+          </TouchableOpacity>
         </View>
 
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <Search size={20} color="#999" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor="#999"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-
-        {!currentPlaylist && (
-          <View style={styles.createButtonContainer}>
-            <TouchableOpacity
-              style={styles.createButton}
-              onPress={() => setShowCreateModal(true)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.createButtonText}>Add New Playlist</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <FlatList
-          data={filteredPlaylists}
-          renderItem={renderPlaylistItem}
-          keyExtractor={(item) => item.id}
-          style={styles.playlistList}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.playlistContent}
-        />
-      </SafeAreaView>
-
-      <Modal
-        visible={showCreateModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowCreateModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>CREATE PLAYLIST</Text>
-            <TextInput
-              style={styles.modalInput}
-              placeholder="Enter your playlist name"
-              placeholderTextColor="#999"
-              value={newPlaylistName}
-              onChangeText={setNewPlaylistName}
-              autoFocus
-            />
-            <View style={styles.modalButtons}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={styles.playlistHeader}>
+            <Image source={{ uri: playlist.artwork }} style={styles.playlistArtwork} />
+            <Text style={styles.playlistTitle}>{playlist.title}</Text>
+            <Text style={styles.playlistMeta}>by {playlist.artist}</Text>
+            <Text style={styles.playlistInfo}>{playlist.type} | {playlist.year}</Text>
+            
+            <View style={styles.actionButtons}>
               <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => setShowCreateModal(false)}
+                style={styles.likeButton}
+                onPress={() => setIsLiked(!isLiked)}
               >
-                <Text style={styles.modalButtonText}>Cancel</Text>
+                <Heart size={24} color={isLiked ? "#E91E63" : "#FFF"} fill={isLiked ? "#E91E63" : "none"} />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.modalButton, styles.modalButtonPrimary]}
-                onPress={handleCreatePlaylist}
-              >
-                <Text style={[styles.modalButtonText, styles.modalButtonTextPrimary]}>
-                  OK
-                </Text>
+              
+              <TouchableOpacity style={styles.addButton}>
+                <Plus size={24} color="#FFF" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.moreActionButton}>
+                <MoreHorizontal size={24} color="#FFF" />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.playAllButton} onPress={handlePlayAll}>
+                <Play size={20} color="#FFF" fill="#FFF" />
+                <Text style={styles.playAllText}>Play</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
-      </Modal>
-    </LinearGradient>
+
+          <View style={styles.songsSection}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Songs</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <FlatList
+              data={playlist.tracks}
+              renderItem={renderTrack}
+              keyExtractor={(item) => item.id}
+              scrollEnabled={false}
+              contentContainerStyle={styles.tracksList}
+            />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#0A0A0A",
   },
   safeArea: {
     flex: 1,
@@ -175,140 +146,114 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  placeholder: {
-    width: 28,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  searchInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#2A2A2A",
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: "#FFF",
-  },
-  createButtonContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 20,
-  },
-  createButton: {
-    backgroundColor: "#8B1538",
-    borderRadius: 8,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  createButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  playlistList: {
-    flex: 1,
-  },
-  playlistContent: {
-    paddingBottom: 120,
-  },
-  playlistItem: {
-    flexDirection: "row",
+  playlistHeader: {
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 20,
   },
   playlistArtwork: {
-    width: 56,
-    height: 56,
-    borderRadius: 8,
-    backgroundColor: "#8B1538",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  playlistInitial: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#FFF",
-  },
-  playlistInfo: {
-    flex: 1,
+    width: 200,
+    height: 200,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   playlistTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFF",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  playlistMeta: {
+    fontSize: 16,
+    color: "#999",
+    marginBottom: 4,
+  },
+  playlistInfo: {
+    fontSize: 14,
+    color: "#999",
+    marginBottom: 24,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+  },
+  likeButton: {
+    padding: 8,
+  },
+  addButton: {
+    padding: 8,
+  },
+  moreActionButton: {
+    padding: 8,
+  },
+  playAllButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E91E63",
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+    gap: 8,
+  },
+  playAllText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  songsSection: {
+    paddingHorizontal: 20,
+    paddingBottom: 120,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFF",
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: "#E91E63",
+    fontWeight: "600",
+  },
+  tracksList: {
+    gap: 8,
+  },
+  trackItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  trackArtwork: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  trackInfo: {
+    flex: 1,
+  },
+  trackTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: "#FFF",
     marginBottom: 4,
   },
-  playlistSubtitle: {
+  trackArtist: {
     fontSize: 14,
     color: "#999",
   },
-  playlistMore: {
+  playButton: {
     padding: 8,
+    marginRight: 8,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#2A2A2A",
-    borderRadius: 12,
-    padding: 24,
-    width: "80%",
-    maxWidth: 320,
-  },
-  modalTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFF",
-    textAlign: "center",
-    marginBottom: 20,
-  },
-  modalInput: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#FFF",
-    marginBottom: 24,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  modalButton: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginHorizontal: 8,
-    borderRadius: 8,
-  },
-  modalButtonPrimary: {
-    backgroundColor: "#8B1538",
-  },
-  modalButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#999",
-  },
-  modalButtonTextPrimary: {
-    color: "#FFF",
+  moreButton: {
+    padding: 8,
   },
 });
