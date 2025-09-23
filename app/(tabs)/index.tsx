@@ -56,10 +56,12 @@ export default function HomeScreen() {
   const renderHeader = useCallback(() => (
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
       <View style={styles.headerLeft}>
-        <Image
-          source={{ uri: profile?.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop" }}
-          style={styles.avatar}
-        />
+        {profile && (
+          <Image
+            source={{ uri: profile.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop" }}
+            style={styles.avatar}
+          />
+        )}
         <View>
           <Text style={styles.subtleText}>{profile ? "Welcome back" : "Welcome"} 👋</Text>
           <Text style={styles.headerName} numberOfLines={1}>{profile ? (profile.displayName || profile.email) : "Guest"}</Text>
