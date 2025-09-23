@@ -274,6 +274,180 @@ export const allTracks: Track[] = [
   ...audiobooks,
 ];
 
+export const trendingNow: Track[] = [
+  {
+    id: "t1",
+    title: "Shades of Love",
+    artist: "Ania Szarmach",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 195,
+    type: "song",
+  },
+  {
+    id: "t2",
+    title: "Without You",
+    artist: "The Kid LAROI",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 210,
+    type: "song",
+  },
+  {
+    id: "t3",
+    title: "Save Your Tears",
+    artist: "The Weeknd & Ariana Grande",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 225,
+    type: "song",
+  },
+  {
+    id: "t4",
+    title: "Kiss Me More",
+    artist: "Doja Cat Featuring SZA",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 198,
+    type: "song",
+  },
+  {
+    id: "t5",
+    title: "Drivers License",
+    artist: "Olivia Rodrigo",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 242,
+    type: "song",
+  },
+  {
+    id: "t6",
+    title: "Forever After All",
+    artist: "Luke Combs",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 186,
+    type: "song",
+  },
+];
+
+export const popularArtists = [
+  {
+    id: "a1",
+    name: "Ariana Grande",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    followers: "85.2M",
+    verified: true,
+  },
+  {
+    id: "a2",
+    name: "The Weeknd",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    followers: "92.1M",
+    verified: true,
+  },
+  {
+    id: "a3",
+    name: "Acidrap",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    followers: "45.8M",
+    verified: true,
+  },
+  {
+    id: "a4",
+    name: "Ryan Jones",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    followers: "12.3M",
+    verified: false,
+  },
+  {
+    id: "a5",
+    name: "Jamie Gray",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    followers: "28.7M",
+    verified: true,
+  },
+  {
+    id: "a6",
+    name: "Troye Sivan",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    followers: "34.5M",
+    verified: true,
+  },
+];
+
+export const podcastCategories = [
+  {
+    id: "pc1",
+    title: "Business",
+    color: "#8B5CF6",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
+  },
+  {
+    id: "pc2",
+    title: "Politics",
+    color: "#F59E0B",
+    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=200&h=200&fit=crop",
+  },
+  {
+    id: "pc3",
+    title: "Music",
+    color: "#3B82F6",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=200&h=200&fit=crop",
+  },
+  {
+    id: "pc4",
+    title: "Comedy",
+    color: "#F97316",
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop",
+  },
+];
+
+export const popularPodcasts: Track[] = [
+  {
+    id: "pp1",
+    title: "610: Bill Sullivan | Pleased to Meet Me",
+    artist: "Jordan Harbinger",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3600,
+    type: "podcast",
+    description: "The Jordan Harbinger Show",
+  },
+  {
+    id: "pp2",
+    title: "487: Mike Rowe | Dirty Jobs and Personal Responsibility",
+    artist: "Mike Rowe",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2700,
+    type: "podcast",
+    description: "SaaS & Scotch",
+  },
+  {
+    id: "pp3",
+    title: "938: Tom Bilyeu | Billion Dollar Advice",
+    artist: "Tom Bilyeu",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 4200,
+    type: "podcast",
+    description: "Impact Theory",
+  },
+];
+
+export const popularPodcastArtists = [
+  {
+    id: "ppa1",
+    name: "Dr. Death",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    category: "True Crime",
+  },
+  {
+    id: "ppa2",
+    name: "Apple Talk",
+    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    category: "Technology",
+  },
+  {
+    id: "ppa3",
+    name: "Wondery",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    category: "Entertainment",
+  },
+];
+
 export const genres = [
   "Pop",
   "Rock",

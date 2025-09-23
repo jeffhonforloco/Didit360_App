@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow } from "@/data/mockData";
 import type { Track } from "@/types";
 import { useUser } from "@/contexts/UserContext";
 
@@ -85,25 +85,42 @@ export default function HomeScreen() {
     </View>
   ), [insets.top, profile]);
 
-  const renderSectionHeader = useCallback((title: string, testID: string, route?: string) => (
-    <View style={styles.sectionHeader}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <TouchableOpacity 
-        style={styles.seeAll} 
-        onPress={() => {
-          if (route) {
-            router.push(route as any);
-          } else {
+  const renderSectionHeader = useCallback((title: string, testID: string, route?: string) => {
+    const handleSeeAll = () => {
+      if (route) {
+        router.push(route as any);
+      } else {
+        // Handle specific cases for the new screens
+        switch (title) {
+          case "Trending Now":
+            router.push("/trending-now");
+            break;
+          case "Popular Artists":
+            router.push("/popular-artists");
+            break;
+          case "Recent Podcast":
+            router.push("/podcasts-full");
+            break;
+          default:
             console.log("See all:", title);
-          }
-        }} 
-        testID={`${testID}-see-all`}
-      >
-        <Text style={styles.seeAllText}>See All</Text>
-        <ChevronRight color="#B3B3B3" size={16} />
-      </TouchableOpacity>
-    </View>
-  ), []);
+        }
+      }
+    };
+
+    return (
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <TouchableOpacity 
+          style={styles.seeAll} 
+          onPress={handleSeeAll}
+          testID={`${testID}-see-all`}
+        >
+          <Text style={styles.seeAllText}>See All</Text>
+          <ChevronRight color="#B3B3B3" size={16} />
+        </TouchableOpacity>
+      </View>
+    );
+  }, []);
 
   const renderFeaturedItem = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
@@ -245,7 +262,19 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Favorite Artists", "favorite-artists", "/categories/artists")}
+          {renderSectionHeader("Trending Now", "trending-now")}
+          <FlatList
+            data={trendingNow.slice(0, 6)}
+            renderItem={renderCard}
+            keyExtractor={(item) => `trending-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Popular Artists", "popular-artists")}
           <FlatList
             data={favoriteArtists}
             renderItem={renderFavoriteArtist}
