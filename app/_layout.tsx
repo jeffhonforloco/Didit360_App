@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { LibraryProvider } from "@/contexts/LibraryContext";
 import { UserProvider } from "@/contexts/UserContext";
+import { SearchContext } from "@/contexts/SearchContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -69,12 +70,14 @@ export default function RootLayout() {
         <RootContainer style={styles.container}>
           <ErrorBoundary>
             <UserProvider>
-              <PlayerProvider>
-                <LibraryProvider>
-                  <RootLayoutNav />
-                  <MiniPlayer />
-                </LibraryProvider>
-              </PlayerProvider>
+              <SearchContext>
+                <PlayerProvider>
+                  <LibraryProvider>
+                    <RootLayoutNav />
+                    <MiniPlayer />
+                  </LibraryProvider>
+                </PlayerProvider>
+              </SearchContext>
             </UserProvider>
           </ErrorBoundary>
         </RootContainer>
