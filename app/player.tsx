@@ -21,6 +21,7 @@ import {
   Repeat,
   Shuffle,
   List,
+  Mic2,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -143,6 +144,9 @@ export default function PlayerScreen() {
           </View>
 
           <View style={styles.bottomActions}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/lyrics")} testID="open-lyrics">
+              <Mic2 size={20} color="#999" />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton}>
               <Share2 size={20} color="#999" />
             </TouchableOpacity>

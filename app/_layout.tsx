@@ -33,6 +33,14 @@ function RootLayoutNav() {
           animation: "slide_from_bottom"
         }} 
       />
+      <Stack.Screen 
+        name="lyrics" 
+        options={{ 
+          presentation: "modal",
+          headerShown: false,
+          animation: "fade"
+        }} 
+      />
     </Stack>
   );
 }
