@@ -5,7 +5,7 @@ import { ExternalLink, Newspaper, Download, X } from "lucide-react-native";
 import * as WebBrowser from "expo-web-browser";
 import { useFocusEffect } from "@react-navigation/native";
 
-const NEWS_APP_URL = "https://didit360.news";
+const NEWS_APP_URL = "https://www.didit360news.com";
 const NEWS_STORE_IOS = "https://apps.apple.com/app/id0000000000";
 const NEWS_STORE_ANDROID = "https://play.google.com/store/apps/details?id=com.didit360.news";
 
