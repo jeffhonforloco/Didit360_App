@@ -18,7 +18,7 @@ import { router } from 'expo-router';
 import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban, Mic } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
-import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes } from "@/data/mockData";
+import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes, audiobooks } from "@/data/mockData";
 import type { Track } from "@/types";
 
 const browseCategories = [
@@ -32,6 +32,19 @@ const browseCategories = [
   { name: "Hip-Hop", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
   { name: "Jazz", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
   { name: "Romance", color: "#06B6D4", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+];
+
+const audiobookCategories = [
+  { name: "Lorem", color: "#10B981", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#8B5CF6", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#F59E0B", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#3B82F6", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#EC4899", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#F97316", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#10B981", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#6B7280", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#6B7280", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Lorem", color: "#06B6D4", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
 ];
 
 type FilterTab = 'Top' | 'Songs' | 'Artists' | 'Albums' | 'Podcasts' | 'Playlists' | 'Profiles';
@@ -225,6 +238,17 @@ export default function SearchScreen() {
     >
       <Text style={styles.categoryText}>{item.name}</Text>
       <Image source={{ uri: item.image }} style={styles.categoryImage} />
+    </TouchableOpacity>
+  );
+
+  const renderAudiobookCategory = ({ item }: { item: typeof audiobookCategories[0] }) => (
+    <TouchableOpacity
+      style={[styles.audiobookCard, { backgroundColor: item.color }]}
+      activeOpacity={0.8}
+      onPress={() => router.push('/categories/audiobooks')}
+    >
+      <Text style={styles.audiobookText}>{item.name}</Text>
+      <Image source={{ uri: item.image }} style={styles.audiobookImage} />
     </TouchableOpacity>
   );
 
@@ -508,6 +532,17 @@ export default function SearchScreen() {
               </View>
             )}
             <View style={styles.browse}>
+              <Text style={styles.browseTitle}>Browse All Audio Books</Text>
+              <FlatList
+                data={audiobookCategories}
+                renderItem={renderAudiobookCategory}
+                keyExtractor={(item, index) => `${item.name}-${index}`}
+                numColumns={2}
+                columnWrapperStyle={styles.categoryRow}
+                scrollEnabled={false}
+              />
+            </View>
+            <View style={styles.browse}>
               <Text style={styles.browseTitle}>Browse All</Text>
               <FlatList
                 data={browseCategories}
@@ -646,6 +681,31 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
     transform: [{ rotate: '15deg' }],
+  },
+  // Audiobook Cards
+  audiobookCard: {
+    flex: 0.48,
+    height: 120,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    justifyContent: 'space-between',
+    overflow: 'hidden',
+  },
+  audiobookText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFF',
+    zIndex: 2,
+  },
+  audiobookImage: {
+    position: 'absolute',
+    bottom: -15,
+    right: -15,
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    transform: [{ rotate: '12deg' }],
   },
   // Context Menu Styles
   contextMenuOverlay: {
