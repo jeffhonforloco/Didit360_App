@@ -1191,6 +1191,91 @@ export const genres = [
   "High Life",
 ];
 
+// Enhanced categories for Browse Categories
+export interface CategoryItem {
+  id: string;
+  title: string;
+  colors: readonly [string, string];
+  image?: string;
+  description?: string;
+  route?: string;
+}
+
+export const browseCategories: CategoryItem[] = [
+  {
+    id: "music",
+    title: "Music",
+    colors: ["#FF6B6B", "#F7CE68"] as const,
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    description: "Discover the latest hits and timeless classics",
+    route: "/categories/music",
+  },
+  {
+    id: "audiobook",
+    title: "Audiobooks",
+    colors: ["#6A85F1", "#B892FF"] as const,
+    image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=400&fit=crop",
+    description: "Immerse yourself in captivating stories",
+    route: "/categories/audiobooks",
+  },
+  {
+    id: "podcast",
+    title: "Podcasts",
+    colors: ["#00C6FF", "#0072FF"] as const,
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    description: "Stay informed and entertained",
+    route: "/categories/podcasts",
+  },
+  {
+    id: "trending",
+    title: "Trending",
+    colors: ["#F7971E", "#FFD200"] as const,
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    description: "What's hot right now",
+    route: "/trending-now",
+  },
+  {
+    id: "live",
+    title: "Live Performance",
+    colors: ["#8A2387", "#E94057"] as const,
+    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    description: "Experience live music and shows",
+    route: "/categories/live-performance",
+  },
+  {
+    id: "news",
+    title: "News & Talk",
+    colors: ["#11998E", "#38EF7D"] as const,
+    image: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=400&fit=crop",
+    description: "Stay updated with current events",
+    route: "/categories/news",
+  },
+  {
+    id: "genres",
+    title: "Genres",
+    colors: ["#667eea", "#764ba2"] as const,
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    description: "Explore music by genre",
+    route: "/categories/genres",
+  },
+  {
+    id: "artists",
+    title: "Artists",
+    colors: ["#f093fb", "#f5576c"] as const,
+    image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    description: "Discover your favorite artists",
+    route: "/categories/artists",
+  },
+  {
+    id: "playlists",
+    title: "Playlists",
+    colors: ["#4facfe", "#00f2fe"] as const,
+    image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    description: "Curated collections for every mood",
+    route: "/playlists",
+  },
+];
+
 // History data
 export const historyTracks: Track[] = [
   {

@@ -14,16 +14,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories } from "@/data/mockData";
 import type { Track } from "@/types";
+import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
 
-interface CategoryTile {
-  id: string;
-  title: string;
-  colors: readonly [string, string];
-  image?: string;
-}
+
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
@@ -41,17 +37,7 @@ export default function HomeScreen() {
     return Object.values(byArtist).slice(0, 8);
   }, []);
 
-  const categories: CategoryTile[] = useMemo(
-    () => [
-      { id: "c1", title: "Music", colors: ["#FF6B6B", "#F7CE68"] as const },
-      { id: "c2", title: "Audio Book", colors: ["#6A85F1", "#B892FF"] as const },
-      { id: "c3", title: "Podcast", colors: ["#00C6FF", "#0072FF"] as const },
-      { id: "c4", title: "Trending", colors: ["#F7971E", "#FFD200"] as const },
-      { id: "c5", title: "Live", colors: ["#8A2387", "#E94057"] as const },
-      { id: "c6", title: "News", colors: ["#11998E", "#38EF7D"] as const },
-    ],
-    []
-  );
+
 
   const renderHeader = useCallback(() => (
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
@@ -100,6 +86,9 @@ export default function HomeScreen() {
             break;
           case "Recent Podcast":
             router.push("/podcasts-full");
+            break;
+          case "Browse Categories":
+            router.push("/browse-categories");
             break;
           default:
             console.log("See all:", title);
@@ -220,13 +209,46 @@ export default function HomeScreen() {
     </TouchableOpacity>
   ), [playTrack]);
 
-  const renderCategory = useCallback(({ item }: { item: CategoryTile }) => (
-    <TouchableOpacity style={styles.categoryTile} onPress={() => console.log("Category", item.title)} activeOpacity={0.85} testID={`category-${item.id}`}>
-      <LinearGradient colors={item.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.categoryGradient}>
-        <Text style={styles.categoryText}>{item.title}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
-  ), []);
+  const renderCategory = useCallback(({ item }: { item: CategoryItem }) => {
+    const handleCategoryPress = () => {
+      if (item.route) {
+        router.push(item.route as any);
+      } else {
+        console.log("Category", item.title);
+      }
+    };
+
+    return (
+      <TouchableOpacity 
+        style={styles.categoryTile} 
+        onPress={handleCategoryPress} 
+        activeOpacity={0.85} 
+        testID={`category-${item.id}`}
+      >
+        <LinearGradient 
+          colors={item.colors} 
+          start={{ x: 0, y: 0 }} 
+          end={{ x: 1, y: 1 }} 
+          style={styles.categoryGradient}
+        >
+          {item.image && (
+            <Image 
+              source={{ uri: item.image }} 
+              style={styles.categoryImage} 
+            />
+          )}
+          <View style={styles.categoryContent}>
+            <Text style={styles.categoryText}>{item.title}</Text>
+            {item.description && (
+              <Text style={styles.categoryDescription} numberOfLines={2}>
+                {item.description}
+              </Text>
+            )}
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }, []);
 
   const renderGenre = useCallback(({ item }: { item: string }) => (
     <TouchableOpacity style={styles.genrePill} onPress={() => console.log("Genre", item)} testID={`genre-${item}`}>
@@ -288,10 +310,10 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Browse Categories", "browse-categories")}
           <FlatList
-            data={categories}
+            data={browseCategories.slice(0, 6)}
             renderItem={renderCategory}
             keyExtractor={(item) => item.id}
-            numColumns={3}
+            numColumns={2}
             columnWrapperStyle={styles.categoryRow}
             scrollEnabled={false}
             contentContainerStyle={styles.categoriesContainer}
@@ -582,23 +604,42 @@ const styles = StyleSheet.create({
   categoryRow: {
     paddingHorizontal: 4,
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   categoryTile: {
     flex: 1,
     marginHorizontal: 4,
-    height: 90,
+    height: 140,
   },
   categoryGradient: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 16,
+    overflow: "hidden",
+    position: "relative",
+  },
+  categoryImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.3,
+  },
+  categoryContent: {
+    flex: 1,
     justifyContent: "flex-end",
-    padding: 12,
+    padding: 16,
   },
   categoryText: {
     color: "#FFF",
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: "700",
+    marginBottom: 4,
+  },
+  categoryDescription: {
+    color: "#E0E0E0",
+    fontSize: 12,
+    lineHeight: 16,
   },
   genreList: {
     paddingVertical: 8,
