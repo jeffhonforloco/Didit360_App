@@ -13,10 +13,11 @@ import {
   Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from 'expo-router';
 import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
-import { allTracks, searchArtists } from "@/data/mockData";
+import { allTracks, searchArtists, searchAlbums } from "@/data/mockData";
 import type { Track } from "@/types";
 
 const browseCategories = [
@@ -149,6 +150,12 @@ export default function SearchScreen() {
       artist.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredAlbums = searchAlbums.filter(
+    (album) =>
+      album.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      album.artist.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const getFilteredResults = () => {
     switch (activeFilter) {
       case 'Songs':
@@ -156,9 +163,9 @@ export default function SearchScreen() {
       case 'Artists':
         return filteredArtists;
       case 'Albums':
-        return [];
+        return filteredAlbums;
       default:
-        return [...filteredTracks, ...filteredArtists].slice(0, 10);
+        return [...filteredTracks, ...filteredArtists, ...filteredAlbums].slice(0, 10);
     }
   };
 
@@ -197,11 +204,12 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
-  const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] }) => {
+  const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] | typeof searchAlbums[0] }) => {
     if ('type' in item && item.type === 'artist') {
       return (
         <TouchableOpacity
           style={styles.searchResult}
+          onPress={() => router.push(`/artist/${item.id}`)}
           activeOpacity={0.8}
         >
           <Image source={{ uri: item.image }} style={[styles.resultImage, styles.artistImage]} />
@@ -227,16 +235,46 @@ export default function SearchScreen() {
       );
     }
 
+    if ('type' in item && item.type === 'album') {
+      const album = item as typeof searchAlbums[0];
+      return (
+        <TouchableOpacity
+          style={styles.searchResult}
+          onPress={() => router.push(`/album/${album.id}`)}
+          activeOpacity={0.8}
+        >
+          <Image source={{ uri: album.artwork }} style={styles.resultImage} />
+          <View style={styles.resultInfo}>
+            <Text style={styles.resultTitle} numberOfLines={1}>
+              {album.title}
+            </Text>
+            <Text style={styles.resultArtist} numberOfLines={1}>
+              {album.artist} • {album.year}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.moreButton}>
+            <MoreHorizontal size={20} color="#999" />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      );
+    }
+
     const track = item as Track;
     return (
       <TouchableOpacity
         style={styles.searchResult}
-        onPress={() => playTrack(track)}
+        onPress={() => router.push(`/song/${track.id}`)}
         activeOpacity={0.8}
       >
         <View style={styles.resultImageContainer}>
           <Image source={{ uri: track.artwork }} style={styles.resultImage} />
-          <TouchableOpacity style={styles.playButton}>
+          <TouchableOpacity 
+            style={styles.playButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              playTrack(track);
+            }}
+          >
             <Play size={16} color="#FFF" fill="#FFF" />
           </TouchableOpacity>
         </View>
