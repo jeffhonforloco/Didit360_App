@@ -773,6 +773,122 @@ export const popularPodcasts: Track[] = [
   },
 ];
 
+// Liked Podcasts
+export const likedPodcasts: Track[] = [
+  {
+    id: "lp1",
+    title: "837: Tristan Harris | Reclaiming Our Future with ...",
+    artist: "Apple Talk",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 2906, // 48:26 mins
+    type: "podcast",
+    description: "Apple Talk",
+  },
+  {
+    id: "lp2",
+    title: "593: Dallas Taylor | The Psychology of Sound Design",
+    artist: "What a Day",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 3362, // 56:42 mins
+    type: "podcast",
+    description: "What a Day",
+  },
+  {
+    id: "lp3",
+    title: "621: Reid Hoffman | Surprising Entrepreneurial Truths",
+    artist: "Invest Like The Best",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 3140, // 52:20 mins
+    type: "podcast",
+    description: "Invest Like The Best",
+  },
+  {
+    id: "lp4",
+    title: "831: Desmond Shum | Wealth, Power, Corruption, and Ven...",
+    artist: "Les Braqueurs",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 2986, // 49:46 mins
+    type: "podcast",
+    description: "Les Braqueurs",
+  },
+  {
+    id: "lp5",
+    title: "396: Chris Voss | Hostage Negotiation Tactics for Ever...",
+    artist: "Jerome Garcin",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 3439, // 57:19 mins
+    type: "podcast",
+    description: "Jerome Garcin",
+  },
+  {
+    id: "lp6",
+    title: "458: Sam Cooper | How the West Was Infiltrated by Its ...",
+    artist: "Les Pieds Sur Terre",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 2315, // 38:35 mins
+    type: "podcast",
+    description: "Les Pieds Sur Terre",
+  },
+  {
+    id: "lp7",
+    title: "772: Vanessa Van Edwards | The Science of Succeeding ...",
+    artist: "Emotions",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 2749, // 45:49 mins
+    type: "podcast",
+    description: "Emotions",
+  },
+];
+
+// Queue Podcasts
+export const queuePodcasts: Track[] = [
+  {
+    id: "qp1",
+    title: "938: Steve Rambam | The Real Life of a Private Investi...",
+    artist: "Geraldine Mosna",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 2664, // 44:24 mins
+    type: "podcast",
+    description: "Geraldine Mosna",
+  },
+  {
+    id: "qp2",
+    title: "831: Desmond Shum | Wealth, Power, Corruption, and Ven...",
+    artist: "Les Braqueurs",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2986, // 49:46 mins
+    type: "podcast",
+    description: "Les Braqueurs",
+  },
+  {
+    id: "qp3",
+    title: "396: Chris Voss | Hostage Negotiation Tactics for Ever...",
+    artist: "Jerome Garcin",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 3439, // 57:19 mins
+    type: "podcast",
+    description: "Jerome Garcin",
+  },
+  {
+    id: "qp4",
+    title: "458: Sam Cooper | How the West Was Infiltrated by Its ...",
+    artist: "Les Pieds Sur Terre",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 2315, // 38:35 mins
+    type: "podcast",
+    description: "Les Pieds Sur Terre",
+  },
+  {
+    id: "qp5",
+    title: "772: Vanessa Van Edwards | The Science of Succeeding ...",
+    artist: "Emotions",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 2749, // 45:49 mins
+    type: "podcast",
+    description: "Emotions",
+  },
+];
+
 // Podcast Shows
 export const podcastShows = [
   {
@@ -897,6 +1013,114 @@ export const historyTracks: Track[] = [
     artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
     duration: 234,
     type: "song",
+  },
+];
+
+// Downloads data
+export const downloadedTracks: Track[] = [
+  {
+    id: "d1",
+    title: "Sharks",
+    artist: "Imagine Dragons",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 210,
+    type: "song",
+  },
+  {
+    id: "d2",
+    title: "Somebody's Nobody",
+    artist: "Alexander 23",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 195,
+    type: "song",
+  },
+  {
+    id: "d3",
+    title: "Fly Me To The Sun",
+    artist: "Romantic Echoes",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 225,
+    type: "song",
+  },
+  {
+    id: "d4",
+    title: "God Is a Woman",
+    artist: "Ariana Grande",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 198,
+    type: "song",
+  },
+  {
+    id: "d5",
+    title: "HANDSOME",
+    artist: "Warren Hue",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 180,
+    type: "song",
+  },
+  {
+    id: "d6",
+    title: "The Bended Man",
+    artist: "Sunwich",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 234,
+    type: "song",
+  },
+  {
+    id: "d7",
+    title: "BREAK MY SOUL",
+    artist: "Beyonce",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 267,
+    type: "song",
+  },
+];
+
+export const downloadedPodcasts: Track[] = [
+  {
+    id: "dp1",
+    title: "785: Luis Navia | 25 Years Inside the Narco Cartels",
+    artist: "The Breakfast Club",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 2782, // 46:42 mins
+    type: "podcast",
+    description: "The Breakfast Club",
+  },
+  {
+    id: "dp2",
+    title: "459: Dallas Taylor | The Psychology of Sound Design",
+    artist: "Dateline",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2531, // 42:51 mins
+    type: "podcast",
+    description: "Dateline",
+  },
+  {
+    id: "dp3",
+    title: "513: Daniel J. Levitin | How to Think Critically in the Post-T...",
+    artist: "The Joe Budden",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 2385, // 39:45 mins
+    type: "podcast",
+    description: "The Joe Budden",
+  },
+  {
+    id: "dp4",
+    title: "379: David Eagleman | How Our Brains Construct Reality",
+    artist: "Planet Money",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 3226, // 53:46 mins
+    type: "podcast",
+    description: "Planet Money",
+  },
+  {
+    id: "dp5",
+    title: "563: Susan Cain | Introverts Unite for a Quiet Revolution",
+    artist: "Be Antiracist",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2687, // 44:47 mins
+    type: "podcast",
+    description: "Be Antiracist",
   },
 ];
 

@@ -231,7 +231,11 @@ export default function LibraryScreen() {
             <Text style={styles.quickCount}>{favorites.length} songs</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.quickItem} testID="downloads">
+          <TouchableOpacity 
+            style={styles.quickItem} 
+            testID="downloads"
+            onPress={() => router.push("/downloads")}
+          >
             <View style={[styles.quickIcon, { backgroundColor: "#8B5CF6" }]}>
               <Download size={20} color="#FFF" />
             </View>
@@ -277,6 +281,22 @@ export default function LibraryScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Podcasts</Text>
+            <TouchableOpacity onPress={() => router.push("/podcasts")}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={styles.podcastPreview}
+            onPress={() => router.push("/podcasts")}
+          >
+            <Text style={styles.podcastPreviewText}>View your podcast library with tabs for Your Likes, Queue, and Downloaded episodes</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -560,5 +580,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#6EE7B7",
     borderRadius: 9999,
     padding: 6,
+  },
+  podcastPreview: {
+    backgroundColor: "#111113",
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+  podcastPreviewText: {
+    color: "#9CA3AF",
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import createContextHook from "@nkzw/create-context-hook";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Track, Playlist } from "@/types";
+import { downloadedTracks, downloadedPodcasts } from "@/data/mockData";
 
 interface LibraryState {
   playlists: Playlist[];
@@ -26,6 +27,15 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
   useEffect(() => {
     loadLibraryData();
   }, []);
+
+  useEffect(() => {
+    // Initialize with mock downloads data if empty
+    if (downloads.length === 0) {
+      const mockDownloads = [...downloadedTracks, ...downloadedPodcasts];
+      setDownloads(mockDownloads);
+      saveLibraryData("downloads", mockDownloads);
+    }
+  }, [downloads.length]);
 
   const loadLibraryData = async () => {
     try {
