@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createContextHook from "@nkzw/create-context-hook";
 
+export type StreamQuality = 'low' | 'normal' | 'high';
+export type DownloadQuality = 'normal' | 'high';
+export type AppLanguage = 'en' | 'fr' | 'es' | 'pt';
+
 export type AppSettings = {
   autoplay: boolean;
   notifications: boolean;
@@ -9,6 +13,13 @@ export type AppSettings = {
   downloadOverCellular: boolean;
   explicitContent: boolean;
   theme: 'light' | 'dark' | 'system';
+  dataSaver: boolean;
+  streamQuality: StreamQuality;
+  downloadQuality: DownloadQuality;
+  crossfadeSeconds: number;
+  showLyrics: boolean;
+  language: AppLanguage;
+  analytics: boolean;
 };
 
 export type UserProfile = {
@@ -23,6 +34,7 @@ interface UserState {
   isLoading: boolean;
   updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
+  resetSettings: () => Promise<void>;
   changePassword: (current: string, next: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -34,6 +46,13 @@ const DEFAULT_SETTINGS: AppSettings = {
   downloadOverCellular: false,
   explicitContent: true,
   theme: 'dark',
+  dataSaver: false,
+  streamQuality: 'high',
+  downloadQuality: 'high',
+  crossfadeSeconds: 4,
+  showLyrics: true,
+  language: 'en',
+  analytics: true,
 };
 
 const PROFILE_KEY = "user_profile";
@@ -89,6 +108,15 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     });
   }, []);
 
+  const resetSettings = useCallback(async () => {
+    try {
+      setSettings(DEFAULT_SETTINGS);
+      await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
+    } catch (err) {
+      console.error("[UserContext] resetSettings error", err);
+    }
+  }, []);
+
   const changePassword = useCallback(async (current: string, next: string) => {
     try {
       const stored = (await AsyncStorage.getItem(PASSWORD_KEY)) ?? '';
@@ -118,6 +146,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     isLoading,
     updateProfile,
     updateSetting,
+    resetSettings,
     changePassword,
     signOut,
   };
