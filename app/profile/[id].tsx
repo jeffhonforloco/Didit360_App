@@ -50,7 +50,7 @@ export default function ProfileScreen() {
   const renderPlaylist = ({ item }: { item: typeof profile.playlists[0] }) => (
     <TouchableOpacity 
       style={styles.playlistCard}
-      onPress={() => router.push(`/playlist/${item.id}`)}
+      onPress={() => router.push(`/playlist?id=${item.id}`)}
       activeOpacity={0.8}
     >
       <Image source={{ uri: item.artwork }} style={styles.playlistArtwork} />
