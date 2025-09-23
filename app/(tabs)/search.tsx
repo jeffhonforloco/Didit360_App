@@ -9,26 +9,29 @@ import {
   Image,
   FlatList,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Search, X } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Search, X, MoreHorizontal } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { allTracks, genres } from "@/data/mockData";
+import { allTracks } from "@/data/mockData";
 import type { Track } from "@/types";
 
-const genreColors = [
-  "#FF0080",
-  "#8B5CF6",
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#EC4899",
-  "#6366F1",
+const browseCategories = [
+  { name: "Charts", color: "#10B981", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Podcasts", color: "#8B5CF6", image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=100&h=100&fit=crop" },
+  { name: "New Releases", color: "#F59E0B", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=100&h=100&fit=crop" },
+  { name: "Only You", color: "#3B82F6", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Pop", color: "#EC4899", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "K-Pop", color: "#F97316", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Rock", color: "#10B981", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Hip-Hop", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Jazz", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+  { name: "Romance", color: "#06B6D4", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
 ];
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const { playTrack } = usePlayer();
+  const insets = useSafeAreaInsets();
 
   const filteredTracks = allTracks.filter(
     (track) =>
@@ -37,15 +40,13 @@ export default function SearchScreen() {
       track.album?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderGenre = ({ item, index }: { item: string; index: number }) => (
+  const renderCategory = ({ item }: { item: typeof browseCategories[0] }) => (
     <TouchableOpacity
-      style={[
-        styles.genreCard,
-        { backgroundColor: genreColors[index % genreColors.length] },
-      ]}
+      style={[styles.categoryCard, { backgroundColor: item.color }]}
       activeOpacity={0.8}
     >
-      <Text style={styles.genreText}>{item}</Text>
+      <Text style={styles.categoryText}>{item.name}</Text>
+      <Image source={{ uri: item.image }} style={styles.categoryImage} />
     </TouchableOpacity>
   );
 
@@ -72,14 +73,19 @@ export default function SearchScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Search</Text>
+    <View style={styles.container}>
+      <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Search</Text>
+          <TouchableOpacity>
+            <MoreHorizontal size={24} color="#FFF" />
+          </TouchableOpacity>
+        </View>
         <View style={styles.searchBar}>
           <Search size={20} color="#999" />
           <TextInput
             style={styles.searchInput}
-            placeholder="What do you want to listen to?"
+            placeholder="Artists, Songs, Podcasts, & More"
             placeholderTextColor="#666"
             value={searchQuery}
             onChangeText={setSearchQuery}
@@ -111,17 +117,17 @@ export default function SearchScreen() {
           <View style={styles.browse}>
             <Text style={styles.browseTitle}>Browse All</Text>
             <FlatList
-              data={genres}
-              renderItem={renderGenre}
-              keyExtractor={(item) => item}
+              data={browseCategories}
+              renderItem={renderCategory}
+              keyExtractor={(item) => item.name}
               numColumns={2}
-              columnWrapperStyle={styles.genreRow}
+              columnWrapperStyle={styles.categoryRow}
               scrollEnabled={false}
             />
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -133,13 +139,12 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 32,
     fontWeight: "bold",
     color: "#FFF",
-    marginBottom: 16,
   },
   searchBar: {
     flexDirection: "row",
@@ -201,20 +206,36 @@ const styles = StyleSheet.create({
     color: "#FFF",
     marginBottom: 16,
   },
-  genreRow: {
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  categoryRow: {
     justifyContent: "space-between",
   },
-  genreCard: {
+  categoryCard: {
     flex: 0.48,
     height: 100,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    justifyContent: "flex-end",
+    justifyContent: "space-between",
+    overflow: 'hidden',
   },
-  genreText: {
+  categoryText: {
     fontSize: 18,
     fontWeight: "700",
     color: "#FFF",
+  },
+  categoryImage: {
+    position: 'absolute',
+    bottom: -10,
+    right: -10,
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    transform: [{ rotate: '15deg' }],
   },
 });

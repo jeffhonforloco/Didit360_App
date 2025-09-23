@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   Image,
   useWindowDimensions,
+  FlatList,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,19 +24,25 @@ import {
   Shuffle,
   List,
   Mic2,
+  ArrowLeft,
+  RotateCcw,
+  Bell,
+  Settings,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
+import type { Track } from "@/types";
 
 
 export default function PlayerScreen() {
   const { width } = useWindowDimensions();
-  const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious } = usePlayer();
+  const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious, queue, playTrack } = usePlayer();
   const { toggleFavorite, isFavorite } = useLibrary();
   const [progress, setProgress] = useState(0.3);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
+  const [currentView, setCurrentView] = useState<'player' | 'queue' | 'details'>('player');
 
   if (!currentTrack) {
     router.back();
@@ -42,6 +50,141 @@ export default function PlayerScreen() {
   }
 
   const isLiked = isFavorite(currentTrack.id);
+
+  const renderQueueItem = ({ item, index }: { item: Track; index: number }) => (
+    <TouchableOpacity
+      style={styles.queueItem}
+      onPress={() => playTrack(item)}
+      activeOpacity={0.8}
+    >
+      <Image source={{ uri: item.artwork }} style={styles.queueItemImage} />
+      <View style={styles.queueItemInfo}>
+        <Text style={styles.queueItemTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.queueItemArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.queueItemMore}>
+        <MoreVertical size={20} color="#999" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  const renderSuggestionItem = ({ item, index }: { item: Track; index: number }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => playTrack(item)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.suggestionNumber}>
+        <Text style={styles.suggestionNumberText}>{String(index + 1).padStart(2, '0')}</Text>
+      </View>
+      <Image source={{ uri: item.artwork }} style={styles.suggestionImage} />
+      <View style={styles.suggestionInfo}>
+        <Text style={styles.suggestionTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.suggestionArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.suggestionMore}>
+        <MoreVertical size={20} color="#999" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+
+  if (currentView === 'queue') {
+    return (
+      <LinearGradient
+        colors={["#1A1A1A", "#0A0A0A"]}
+        style={styles.container}
+      >
+        <SafeAreaView style={styles.safeArea} edges={["top"]}>
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => setCurrentView('player')}>
+              <ArrowLeft size={28} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Music List</Text>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.headerAction}>
+                <RotateCcw size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerAction}>
+                <Bell size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.headerAction}>
+                <Settings size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <FlatList
+            data={queue}
+            renderItem={renderQueueItem}
+            keyExtractor={(item) => item.id}
+            style={styles.queueList}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.queueContent}
+          />
+        </SafeAreaView>
+      </LinearGradient>
+    );
+  }
+
+  if (currentView === 'details') {
+    const suggestions = queue.slice(0, 3);
+    
+    return (
+      <View style={styles.container}>
+        <Image 
+          source={{ uri: currentTrack.artwork }} 
+          style={styles.detailsBackground}
+          blurRadius={20}
+        />
+        <LinearGradient
+          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)', '#0A0A0A']}
+          style={styles.detailsOverlay}
+        >
+          <SafeAreaView style={styles.safeArea} edges={["top"]}>
+            <View style={styles.detailsHeader}>
+              <TouchableOpacity onPress={() => setCurrentView('player')}>
+                <ArrowLeft size={28} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView 
+              style={styles.detailsContent}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.detailsScrollContent}
+            >
+              <View style={styles.detailsInfo}>
+                <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
+                <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
+                <Text style={styles.detailsDescription}>
+                  It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
+                </Text>
+                <TouchableOpacity>
+                  <Text style={styles.showMore}>Show more ⌄</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.suggestionsSection}>
+                <Text style={styles.suggestionsTitle}>Suggestion</Text>
+                {suggestions.map((item, index) => (
+                  <View key={item.id}>
+                    {renderSuggestionItem({ item, index })}
+                  </View>
+                ))}
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        </LinearGradient>
+      </View>
+    );
+  }
 
   return (
     <LinearGradient
@@ -53,7 +196,9 @@ export default function PlayerScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <ChevronDown size={28} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Now Playing</Text>
+          <TouchableOpacity onPress={() => setCurrentView('details')}>
+            <Text style={styles.headerTitle}>Now Playing</Text>
+          </TouchableOpacity>
           <TouchableOpacity>
             <MoreVertical size={24} color="#FFF" />
           </TouchableOpacity>
@@ -150,7 +295,10 @@ export default function PlayerScreen() {
             <TouchableOpacity style={styles.actionButton}>
               <Share2 size={20} color="#999" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity 
+              style={styles.actionButton} 
+              onPress={() => setCurrentView('queue')}
+            >
               <List size={20} color="#999" />
             </TouchableOpacity>
           </View>
@@ -282,5 +430,141 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     marginLeft: 4,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerAction: {
+    marginLeft: 16,
+  },
+  queueList: {
+    flex: 1,
+  },
+  queueContent: {
+    paddingBottom: 120,
+  },
+  queueItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  queueItemImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    marginRight: 12,
+  },
+  queueItemInfo: {
+    flex: 1,
+  },
+  queueItemTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  queueItemArtist: {
+    fontSize: 14,
+    color: '#999',
+  },
+  queueItemMore: {
+    padding: 8,
+  },
+  detailsBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+  },
+  detailsOverlay: {
+    flex: 1,
+  },
+  detailsHeader: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+  },
+  detailsContent: {
+    flex: 1,
+  },
+  detailsScrollContent: {
+    paddingBottom: 120,
+  },
+  detailsInfo: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  detailsTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFF',
+    marginBottom: 8,
+  },
+  detailsArtist: {
+    fontSize: 18,
+    color: '#999',
+    marginBottom: 20,
+  },
+  detailsDescription: {
+    fontSize: 16,
+    color: '#CCC',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  showMore: {
+    fontSize: 16,
+    color: '#999',
+  },
+  suggestionsSection: {
+    paddingHorizontal: 20,
+  },
+  suggestionsTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFF',
+    marginBottom: 20,
+  },
+  suggestionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  suggestionNumber: {
+    width: 32,
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  suggestionNumberText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#999',
+  },
+  suggestionImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    marginRight: 12,
+  },
+  suggestionInfo: {
+    flex: 1,
+  },
+  suggestionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    marginBottom: 4,
+  },
+  suggestionArtist: {
+    fontSize: 14,
+    color: '#999',
+  },
+  suggestionMore: {
+    padding: 8,
   },
 });
