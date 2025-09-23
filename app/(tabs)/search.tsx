@@ -11,10 +11,11 @@ import {
   Modal,
   Pressable,
   Animated,
+  Keyboard,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from 'expo-router';
-import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban } from "lucide-react-native";
+import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban, Mic } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes } from "@/data/mockData";
@@ -132,6 +133,7 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Top');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     track: Track | null;
@@ -199,7 +201,8 @@ export default function SearchScreen() {
 
   const handleRecentSearchPress = (query: string) => {
     setSearchQuery(query);
-    searchInputRef.current?.focus();
+    setIsSearchFocused(false);
+    Keyboard.dismiss();
   };
 
   const showContextMenu = useCallback((track: Track, event: any) => {
@@ -416,22 +419,28 @@ export default function SearchScreen() {
             <MoreHorizontal size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
-        <View style={styles.searchBar}>
+        <View style={[styles.searchBar, isSearchFocused && styles.searchBarFocused]}>
           <Search size={20} color="#999" />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder="Artists, Songs, Podcasts, & More"
-            placeholderTextColor="#666"
+            placeholder={isSearchFocused ? "Abcdefghijklm" : "Artists, Songs, Podcasts, & More"}
+            placeholderTextColor={isSearchFocused ? "#E91E63" : "#666"}
             value={searchQuery}
             onChangeText={handleSearch}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
           />
-          {searchQuery.length > 0 && (
+          {searchQuery.length > 0 ? (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
               <X size={20} color="#999" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.micButton}>
+              <Mic size={20} color="#999" />
             </TouchableOpacity>
           )}
         </View>
@@ -461,6 +470,21 @@ export default function SearchScreen() {
               );
             })()
             }
+          </View>
+        ) : isSearchFocused && recentSearches.length > 0 ? (
+          <View style={styles.recentSearches}>
+            <View style={styles.recentSearchesHeader}>
+              <Text style={styles.recentSearchesTitle}>Recent Searches</Text>
+              <TouchableOpacity onPress={clearSearchHistory}>
+                <Text style={styles.clearAllText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={recentSearches}
+              renderItem={renderRecentSearch}
+              keyExtractor={(item, index) => `${item}-${index}`}
+              scrollEnabled={false}
+            />
           </View>
         ) : (
           <View>
@@ -529,6 +553,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  searchBarFocused: {
+    borderColor: "#E91E63",
+    backgroundColor: "#0A0A0A",
   },
   searchInput: {
     flex: 1,
@@ -811,5 +841,8 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     lineHeight: 24,
+  },
+  micButton: {
+    padding: 4,
   },
 });
