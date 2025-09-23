@@ -540,6 +540,75 @@ export const searchArtists = [
   },
 ];
 
+// Jordan Harbinger Show Episodes
+export const jordanHarbingerEpisodes: Track[] = [
+  {
+    id: "jh1",
+    title: "691: Shaquille O'Neal | Circling Back on Flat Earth Theory",
+    artist: "Jordan Harbinger",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 2906, // 48:26 mins
+    type: "podcast",
+    description: "The Jordan Harbinger Show",
+  },
+  {
+    id: "jh2",
+    title: "692: Jane McGonigal | How to See the Future Coming and Feel Ready for Anything",
+    artist: "Jordan Harbinger",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3240, // 54 mins
+    type: "podcast",
+    description: "The Jordan Harbinger Show",
+  },
+];
+
+// Twenty Thousand Hertz Episodes
+export const twentyThousandHertzEpisodes: Track[] = [
+  {
+    id: "tth1",
+    title: "688: A-Rod | Still Having a Ball After All",
+    artist: "Twenty Thousand Hertz",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2956, // 49:26 mins
+    type: "podcast",
+    description: "Twenty Thousand Hertz",
+  },
+];
+
+// Hidden Brain Episodes
+export const hiddenBrainEpisodes: Track[] = [
+  {
+    id: "hb1",
+    title: "837: Amy Webb | Changing Lives with Synthetic Biology",
+    artist: "Hidden Brain",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 3288, // 54:48 mins
+    type: "podcast",
+    description: "Hidden Brain",
+  },
+];
+
+// SaaS & Scotch Episodes
+export const saasScotchEpisodes: Track[] = [
+  {
+    id: "ss1",
+    title: "593: Chris Voss | Hostage Negotiation Tactics for Everyday Life",
+    artist: "SaaS & Scotch",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 2617, // 43:37 mins
+    type: "podcast",
+    description: "SaaS & Scotch",
+  },
+];
+
+// All podcast episodes combined
+export const allPodcastEpisodes: Track[] = [
+  ...jordanHarbingerEpisodes,
+  ...twentyThousandHertzEpisodes,
+  ...hiddenBrainEpisodes,
+  ...saasScotchEpisodes,
+];
+
 export const allTracks: Track[] = [
   ...featuredContent,
   ...recentlyPlayed,
@@ -548,6 +617,7 @@ export const allTracks: Track[] = [
   ...podcasts,
   ...audiobooks,
   ...searchTracks,
+  ...allPodcastEpisodes,
 ];
 
 export const trendingNow: Track[] = [
@@ -700,6 +770,34 @@ export const popularPodcasts: Track[] = [
     duration: 4200,
     type: "podcast",
     description: "Impact Theory",
+  },
+];
+
+// Podcast Shows
+export const podcastShows = [
+  {
+    id: "show1",
+    title: "The Jordan Harbinger Show",
+    host: "Jordan Harbinger",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, view more...",
+    episodes: jordanHarbingerEpisodes,
+  },
+  {
+    id: "show2",
+    title: "Apple Talk",
+    host: "Apple Talk",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    description: "Technology discussions and insights from the world of Apple.",
+    episodes: [],
+  },
+  {
+    id: "show3",
+    title: "Dr. Death",
+    host: "Dr. Death",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    description: "True crime podcast exploring medical malpractice cases.",
+    episodes: [],
   },
 ];
 

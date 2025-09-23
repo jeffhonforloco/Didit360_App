@@ -17,7 +17,7 @@ import { router } from 'expo-router';
 import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
-import { allTracks, searchArtists, searchAlbums } from "@/data/mockData";
+import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes } from "@/data/mockData";
 import type { Track } from "@/types";
 
 const browseCategories = [
@@ -33,7 +33,7 @@ const browseCategories = [
   { name: "Romance", color: "#06B6D4", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
 ];
 
-type FilterTab = 'Top' | 'Songs' | 'Artists' | 'Albums';
+type FilterTab = 'Top' | 'Songs' | 'Artists' | 'Albums' | 'Podcasts' | 'Playlists' | 'Profiles';
 
 interface ContextMenuProps {
   visible: boolean;
@@ -77,7 +77,11 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
     }
   }, [visible, fadeAnim, scaleAnim]);
 
-  const menuItems = [
+  const menuItems = track.type === 'podcast' ? [
+    { icon: Heart, label: 'Mark as Played', onPress: () => console.log('Mark as Played', track.title) },
+    { icon: User, label: 'Go to Podcast', onPress: () => console.log('Go to Podcast', track.artist) },
+    { icon: Share2, label: 'Share', onPress: () => console.log('Share', track.title) },
+  ] : [
     { icon: Heart, label: 'Like', onPress: () => console.log('Like', track.title) },
     { icon: Plus, label: 'Add to Playlist', onPress: () => console.log('Add to Playlist', track.title) },
     { icon: Ban, label: "Don't Play This", onPress: () => console.log("Don't Play This", track.title) },
@@ -156,6 +160,17 @@ export default function SearchScreen() {
       album.artist.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredPodcasts = [...allPodcastEpisodes, ...podcastShows].filter(
+    (item) => {
+      if ('title' in item) {
+        return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               (item as any).host?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               (item as any).artist?.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return false;
+    }
+  );
+
   const getFilteredResults = () => {
     switch (activeFilter) {
       case 'Songs':
@@ -164,8 +179,14 @@ export default function SearchScreen() {
         return filteredArtists;
       case 'Albums':
         return filteredAlbums;
+      case 'Podcasts':
+        return filteredPodcasts;
+      case 'Playlists':
+        return []; // TODO: Add playlist filtering
+      case 'Profiles':
+        return filteredArtists; // Use artists as profiles for now
       default:
-        return [...filteredTracks, ...filteredArtists, ...filteredAlbums].slice(0, 10);
+        return [...filteredTracks, ...filteredArtists, ...filteredAlbums, ...filteredPodcasts].slice(0, 10);
     }
   };
 
@@ -204,7 +225,7 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
-  const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] | typeof searchAlbums[0] }) => {
+  const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] | typeof searchAlbums[0] | typeof podcastShows[0] }) => {
     if ('type' in item && item.type === 'artist') {
       return (
         <TouchableOpacity
@@ -259,6 +280,31 @@ export default function SearchScreen() {
       );
     }
 
+    // Handle podcast shows
+    if ('host' in item) {
+      const show = item as typeof podcastShows[0];
+      return (
+        <TouchableOpacity
+          style={styles.searchResult}
+          onPress={() => router.push(`/podcast-show/${show.id}`)}
+          activeOpacity={0.8}
+        >
+          <Image source={{ uri: show.artwork }} style={styles.resultImage} />
+          <View style={styles.resultInfo}>
+            <Text style={styles.resultTitle} numberOfLines={1}>
+              {show.title}
+            </Text>
+            <Text style={styles.resultArtist} numberOfLines={1}>
+              {show.host} • Podcast
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.moreButton}>
+            <MoreHorizontal size={20} color="#999" />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      );
+    }
+
     const track = item as Track;
     return (
       <TouchableOpacity
@@ -286,7 +332,7 @@ export default function SearchScreen() {
             {track.type === "song"
               ? `${track.artist} • Song`
               : track.type === "podcast"
-              ? `${track.artist} • Podcast`
+              ? `${track.artist} • ${Math.floor(track.duration / 60)} mins`
               : `${track.artist} • Audiobook`}
           </Text>
         </View>
@@ -338,7 +384,7 @@ export default function SearchScreen() {
 
   const renderFilterTabs = () => (
     <View style={styles.filterTabs}>
-      {(['Top', 'Songs', 'Artists', 'Albums'] as FilterTab[]).map((filter) => (
+      {(['Top', 'Songs', 'Artists', 'Albums', 'Podcasts', 'Playlists', 'Profiles'] as FilterTab[]).map((filter) => (
         <TouchableOpacity
           key={filter}
           style={[
@@ -403,7 +449,7 @@ export default function SearchScreen() {
                 <FlatList
                   data={results}
                   renderItem={renderSearchResult}
-                  keyExtractor={(item) => 'id' in item ? item.id : (item as typeof searchArtists[0]).name}
+                  keyExtractor={(item) => 'id' in item ? item.id : 'name' in item ? (item as typeof searchArtists[0]).name : (item as typeof podcastShows[0]).title}
                   scrollEnabled={false}
                   style={styles.resultsList}
                 />
