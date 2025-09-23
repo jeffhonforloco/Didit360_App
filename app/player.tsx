@@ -10,11 +10,11 @@ import {
   ScrollView,
   Modal,
   Platform,
+  ImageBackground,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import {
-  ChevronDown,
   MoreVertical,
   Heart,
   Share2,
@@ -22,10 +22,8 @@ import {
   SkipForward,
   Play,
   Pause,
-  Repeat,
   Shuffle,
   List,
-  Mic2,
   ArrowLeft,
   RotateCcw,
   Bell,
@@ -34,7 +32,6 @@ import {
   Twitter,
   Link,
   Download,
-  Plus,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -174,185 +171,186 @@ export default function PlayerScreen() {
     
     return (
       <View style={styles.container}>
-        <Image 
+        <ImageBackground 
           source={{ uri: currentTrack.artwork }} 
           style={styles.detailsBackground}
-          blurRadius={20}
-        />
-        <LinearGradient
-          colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)', '#0A0A0A']}
-          style={styles.detailsOverlay}
+          blurRadius={30}
+          resizeMode="cover"
         >
-          <SafeAreaView style={styles.safeArea} edges={["top"]}>
-            <View style={styles.detailsHeader}>
-              <TouchableOpacity onPress={() => setCurrentView('player')}>
-                <ArrowLeft size={28} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-            
-            <ScrollView 
-              style={styles.detailsContent}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.detailsScrollContent}
-            >
-              <View style={styles.detailsInfo}>
-                <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
-                <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
-                <Text style={styles.detailsDescription}>
-                  It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
-                </Text>
-                <TouchableOpacity>
-                  <Text style={styles.showMore}>Show more ⌄</Text>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            style={styles.detailsOverlay}
+          >
+            <SafeAreaView style={styles.safeArea} edges={["top"]}>
+              <View style={styles.detailsHeader}>
+                <TouchableOpacity onPress={() => setCurrentView('player')}>
+                  <ArrowLeft size={28} color="#FFF" />
                 </TouchableOpacity>
+                <View style={styles.progressIndicator}>
+                  <View style={styles.progressDot} />
+                  <View style={[styles.progressDot, styles.progressDotActive]} />
+                  <View style={styles.progressDot} />
+                </View>
+                <View style={styles.spacer} />
               </View>
               
-              <View style={styles.suggestionsSection}>
-                <Text style={styles.suggestionsTitle}>Suggestion</Text>
-                {suggestions.map((item, index) => (
-                  <View key={item.id}>
-                    {renderSuggestionItem({ item, index })}
-                  </View>
-                ))}
-              </View>
-            </ScrollView>
-          </SafeAreaView>
-        </LinearGradient>
+              <ScrollView 
+                style={styles.detailsContent}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.detailsScrollContent}
+              >
+                <View style={styles.detailsInfo}>
+                  <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
+                  <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
+                  <Text style={styles.detailsDescription}>
+                    It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
+                  </Text>
+                  <TouchableOpacity>
+                    <Text style={styles.showMore}>Show more ⌄</Text>
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.suggestionsSection}>
+                  <Text style={styles.suggestionsTitle}>Suggestion</Text>
+                  {suggestions.map((item, index) => (
+                    <View key={item.id}>
+                      {renderSuggestionItem({ item, index })}
+                    </View>
+                  ))}
+                </View>
+              </ScrollView>
+            </SafeAreaView>
+          </LinearGradient>
+        </ImageBackground>
       </View>
     );
   }
 
   return (
-    <LinearGradient
-      colors={["#1A1A1A", "#0A0A0A"]}
-      style={styles.container}
-    >
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <ChevronDown size={28} color="#FFF" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setCurrentView('details')}>
-            <Text style={styles.headerTitle}>Now Playing</Text>
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <MoreVertical size={24} color="#FFF" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.artworkContainer}>
-          <Image
-            source={{ uri: currentTrack.artwork }}
-            style={[styles.artwork, { width: width - 80, height: width - 80 }]}
-          />
-        </View>
-
-        <View style={styles.infoContainer}>
-          <View style={styles.titleRow}>
-            <View style={styles.titleContainer}>
-              <Text style={styles.title} numberOfLines={1}>
-                {currentTrack.title}
-              </Text>
-              <Text style={styles.artist} numberOfLines={1}>
-                {currentTrack.artist}
-              </Text>
-            </View>
-            <View style={styles.titleActions}>
-              <TouchableOpacity 
-                style={styles.titleAction}
-                onPress={() => setShowAddToPlaylistModal(true)}
-              >
-                <Plus size={20} color="#999" />
+    <View style={styles.container}>
+      <ImageBackground 
+        source={{ uri: currentTrack.artwork }} 
+        style={styles.playerBackground}
+        blurRadius={30}
+        resizeMode="cover"
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+          style={styles.playerOverlay}
+        >
+          <SafeAreaView style={styles.safeArea} edges={["top"]}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => router.back()}>
+                <ArrowLeft size={28} color="#FFF" />
               </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.titleAction}
-                onPress={handleDownload}
-              >
-                <Download size={20} color="#999" />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => toggleFavorite(currentTrack)}>
-                <Heart
-                  size={24}
-                  color={isLiked ? "#FF0080" : "#FFF"}
-                  fill={isLiked ? "#FF0080" : "transparent"}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <View style={styles.progressContainer}>
-            <TouchableOpacity 
-              style={styles.sliderContainer}
-              activeOpacity={1}
-              onPress={(e) => {
-                // Calculate progress based on touch position
-                const { locationX } = e.nativeEvent;
-                const containerWidth = width - 40; // Account for padding
-                const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                setProgress(newProgress);
-              }}
-            >
-              <View style={styles.sliderTrack}>
-                <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+              <View style={styles.progressIndicator}>
+                <View style={[styles.progressDot, styles.progressDotActive]} />
+                <View style={styles.progressDot} />
+                <View style={styles.progressDot} />
               </View>
-            </TouchableOpacity>
-            <View style={styles.timeRow}>
-              <Text style={styles.time}>1:23</Text>
-              <Text style={styles.time}>3:45</Text>
+              <TouchableOpacity>
+                <MoreVertical size={24} color="#FFF" />
+              </TouchableOpacity>
             </View>
-          </View>
 
-          <View style={styles.controls}>
-            <TouchableOpacity
-              onPress={() => setShuffle(!shuffle)}
-              style={styles.controlButton}
-            >
-              <Shuffle size={20} color={shuffle ? "#FF0080" : "#999"} />
-            </TouchableOpacity>
+            <View style={styles.artworkContainer}>
+              <View style={styles.artworkWrapper}>
+                <Image
+                  source={{ uri: currentTrack.artwork }}
+                  style={styles.artwork}
+                />
+              </View>
+            </View>
 
-            <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
-              <SkipBack size={32} color="#FFF" fill="#FFF" />
-            </TouchableOpacity>
+            <View style={styles.infoContainer}>
+              <View style={styles.titleSection}>
+                <Text style={styles.title} numberOfLines={2}>
+                  {currentTrack.title}
+                </Text>
+                <Text style={styles.artist} numberOfLines={1}>
+                  {currentTrack.artist}
+                </Text>
+              </View>
 
-            <TouchableOpacity
-              onPress={togglePlayPause}
-              style={styles.playButton}
-            >
-              {isPlaying ? (
-                <Pause size={32} color="#000" fill="#000" />
-              ) : (
-                <Play size={32} color="#000" fill="#000" style={styles.playIcon} />
-              )}
-            </TouchableOpacity>
+              <View style={styles.actionRow}>
+                <TouchableOpacity style={styles.actionIcon} onPress={() => setShowShareModal(true)}>
+                  <Share2 size={24} color="#FFF" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionIcon} onPress={() => setCurrentView('queue')}>
+                  <List size={24} color="#FFF" />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionIcon} onPress={() => toggleFavorite(currentTrack)}>
+                  <Heart
+                    size={24}
+                    color={isLiked ? "#FF0080" : "#FFF"}
+                    fill={isLiked ? "#FF0080" : "transparent"}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionIcon} onPress={handleDownload}>
+                  <Download size={24} color="#FFF" />
+                </TouchableOpacity>
+              </View>
 
-            <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
-              <SkipForward size={32} color="#FFF" fill="#FFF" />
-            </TouchableOpacity>
+              <View style={styles.progressContainer}>
+                <TouchableOpacity 
+                  style={styles.sliderContainer}
+                  activeOpacity={1}
+                  onPress={(e) => {
+                    const { locationX } = e.nativeEvent;
+                    const containerWidth = width - 40;
+                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+                    setProgress(newProgress);
+                  }}
+                >
+                  <View style={styles.sliderTrack}>
+                    <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
+                    <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.timeRow}>
+                  <Text style={styles.time}>2:46</Text>
+                  <Text style={styles.time}>3:05</Text>
+                </View>
+              </View>
 
-            <TouchableOpacity
-              onPress={() => setRepeat(!repeat)}
-              style={styles.controlButton}
-            >
-              <Repeat size={20} color={repeat ? "#FF0080" : "#999"} />
-            </TouchableOpacity>
-          </View>
+              <View style={styles.controls}>
+                <TouchableOpacity
+                  onPress={() => setShuffle(!shuffle)}
+                  style={styles.controlButton}
+                >
+                  <Shuffle size={24} color={shuffle ? "#FF0080" : "#FFF"} />
+                </TouchableOpacity>
 
-          <View style={styles.bottomActions}>
-            <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/lyrics")} testID="open-lyrics">
-              <Mic2 size={20} color="#999" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => setShowShareModal(true)}>
-              <Share2 size={20} color="#999" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton} 
-              onPress={() => setCurrentView('queue')}
-            >
-              <List size={20} color="#999" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
+                <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                  <SkipBack size={32} color="#FFF" fill="#FFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={togglePlayPause}
+                  style={styles.playButton}
+                >
+                  {isPlaying ? (
+                    <Pause size={36} color="#FFF" fill="#FFF" />
+                  ) : (
+                    <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                  )}
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                  <SkipForward size={32} color="#FFF" fill="#FFF" />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setRepeat(!repeat)}
+                  style={styles.controlButton}
+                >
+                  <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </LinearGradient>
+      </ImageBackground>
 
       {/* Share Modal */}
       <Modal
@@ -452,15 +450,22 @@ export default function PlayerScreen() {
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
   safeArea: {
+    flex: 1,
+  },
+  playerBackground: {
+    flex: 1,
+  },
+  playerOverlay: {
     flex: 1,
   },
   header: {
@@ -470,6 +475,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
   },
+  progressIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  progressDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: 4,
+  },
+  progressDotActive: {
+    backgroundColor: '#FFF',
+  },
   headerTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -478,33 +497,56 @@ const styles = StyleSheet.create({
   artworkContainer: {
     alignItems: "center",
     paddingHorizontal: 40,
-    marginTop: 20,
+    marginTop: 40,
+    marginBottom: 40,
+  },
+  artworkWrapper: {
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   artwork: {
-    borderRadius: 8,
+    width: '100%',
+    height: '100%',
   },
   infoContainer: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 40,
   },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 24,
+  titleSection: {
+    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "700",
     color: "#FFF",
-    marginBottom: 4,
+    textAlign: 'center',
+    marginBottom: 8,
   },
   artist: {
     fontSize: 18,
-    color: "#999",
+    color: "rgba(255,255,255,0.7)",
+    textAlign: 'center',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginBottom: 40,
+  },
+  actionIcon: {
+    padding: 8,
   },
   progressContainer: {
-    marginBottom: 32,
+    marginBottom: 40,
   },
   sliderContainer: {
     height: 40,
@@ -513,7 +555,7 @@ const styles = StyleSheet.create({
   },
   sliderTrack: {
     height: 4,
-    backgroundColor: '#333',
+    backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 2,
     position: 'relative',
   },
@@ -539,30 +581,35 @@ const styles = StyleSheet.create({
   timeRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: -8,
+    marginTop: 8,
   },
   time: {
-    fontSize: 12,
-    color: "#999",
+    fontSize: 14,
+    color: "rgba(255,255,255,0.7)",
+    fontWeight: '500',
   },
   controls: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 32,
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    marginBottom: 40,
   },
   controlButton: {
     padding: 12,
-    marginHorizontal: 12,
   },
   playButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: "#FFF",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#FF0080",
     justifyContent: "center",
     alignItems: "center",
-    marginHorizontal: 20,
+    shadowColor: '#FF0080',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   bottomActions: {
     flexDirection: "row",
@@ -621,13 +668,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   detailsBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
+    flex: 1,
   },
   detailsOverlay: {
     flex: 1,
@@ -811,5 +852,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFF',
     textAlign: 'center',
+  },
+  spacer: {
+    width: 28,
   },
 });
