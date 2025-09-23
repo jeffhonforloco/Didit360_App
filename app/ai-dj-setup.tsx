@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,22 +9,54 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { X, Music, Clock, Zap, Globe } from "lucide-react-native";
+import { X, Clock, Zap, Globe } from "lucide-react-native";
 import { router } from "expo-router";
 import Slider from "@react-native-community/slider";
+import { useMixMind } from "@/contexts/MixMindContext";
 
-export default function AIDJSetupScreen() {
-  const [duration, setDuration] = useState(30);
-  const [energy, setEnergy] = useState(0.5);
-  const [diversity, setDiversity] = useState(0.7);
-  const [explicitContent, setExplicitContent] = useState(true);
-  const [includeNewReleases, setIncludeNewReleases] = useState(true);
-  const [includeClassics, setIncludeClassics] = useState(false);
+export default function MixMindSetupScreen() {
+  const { settings, saveSettings } = useMixMind();
+  const [duration, setDuration] = useState(settings.duration);
+  const [energy, setEnergy] = useState(settings.energy);
+  const [diversity, setDiversity] = useState(settings.diversity);
+  const [explicitContent, setExplicitContent] = useState(settings.explicitContent);
+  const [includeNewReleases, setIncludeNewReleases] = useState(settings.includeNewReleases);
+  const [includeClassics, setIncludeClassics] = useState(settings.includeClassics);
+  const [smartTransitions, setSmartTransitions] = useState(settings.smartTransitions);
+  const [adaptiveEQ, setAdaptiveEQ] = useState(settings.adaptiveEQ);
+  const [voicePrompts, setVoicePrompts] = useState(settings.voicePrompts);
+
+  useEffect(() => {
+    setDuration(settings.duration);
+    setEnergy(settings.energy);
+    setDiversity(settings.diversity);
+    setExplicitContent(settings.explicitContent);
+    setIncludeNewReleases(settings.includeNewReleases);
+    setIncludeClassics(settings.includeClassics);
+    setSmartTransitions(settings.smartTransitions);
+    setAdaptiveEQ(settings.adaptiveEQ);
+    setVoicePrompts(settings.voicePrompts);
+  }, [settings]);
+
+  const handleSave = async () => {
+    await saveSettings({
+      duration,
+      energy,
+      diversity,
+      explicitContent,
+      includeNewReleases,
+      includeClassics,
+      smartTransitions,
+      adaptiveEQ,
+      voicePrompts,
+    });
+    router.back();
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>AI DJ Settings</Text>
+        <Text style={styles.title}>MixMind Settings</Text>
         <TouchableOpacity onPress={() => router.back()}>
           <X size={24} color="#FFF" />
         </TouchableOpacity>
@@ -136,9 +168,52 @@ export default function AIDJSetupScreen() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>AI Features</Text>
+          
+          <View style={styles.toggle}>
+            <View style={styles.toggleInfo}>
+              <Text style={styles.toggleLabel}>Smart Transitions</Text>
+              <Text style={styles.toggleDescription}>AI-powered harmonic mixing and BPM matching</Text>
+            </View>
+            <Switch
+              value={smartTransitions}
+              onValueChange={setSmartTransitions}
+              trackColor={{ false: "#333", true: "#FF0080" }}
+              thumbColor={Platform.OS === "ios" ? "#FFF" : smartTransitions ? "#FFF" : "#999"}
+            />
+          </View>
+
+          <View style={styles.toggle}>
+            <View style={styles.toggleInfo}>
+              <Text style={styles.toggleLabel}>Adaptive EQ</Text>
+              <Text style={styles.toggleDescription}>Automatically adjust EQ for optimal sound</Text>
+            </View>
+            <Switch
+              value={adaptiveEQ}
+              onValueChange={setAdaptiveEQ}
+              trackColor={{ false: "#333", true: "#FF0080" }}
+              thumbColor={Platform.OS === "ios" ? "#FFF" : adaptiveEQ ? "#FFF" : "#999"}
+            />
+          </View>
+
+          <View style={styles.toggle}>
+            <View style={styles.toggleInfo}>
+              <Text style={styles.toggleLabel}>Voice Prompts</Text>
+              <Text style={styles.toggleDescription}>Enable voice input for creating mixes</Text>
+            </View>
+            <Switch
+              value={voicePrompts}
+              onValueChange={setVoicePrompts}
+              trackColor={{ false: "#333", true: "#FF0080" }}
+              thumbColor={Platform.OS === "ios" ? "#FFF" : voicePrompts ? "#FFF" : "#999"}
+            />
+          </View>
+        </View>
+
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={() => router.back()}
+          onPress={handleSave}
         >
           <Text style={styles.saveButtonText}>Save Settings</Text>
         </TouchableOpacity>
@@ -211,6 +286,15 @@ const styles = StyleSheet.create({
   toggleLabel: {
     fontSize: 16,
     color: "#FFF",
+  },
+  toggleInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  toggleDescription: {
+    fontSize: 13,
+    color: "#999",
+    marginTop: 2,
   },
   saveButton: {
     backgroundColor: "#FF0080",

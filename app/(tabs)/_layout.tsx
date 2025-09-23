@@ -72,7 +72,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ai-dj"
         options={{
-          title: "AI DJ",
+          title: "MixMind",
           tabBarIcon: ({ color }) => <Sparkles size={24} color={color} />,
           href: profile ? undefined : null,
         }}
