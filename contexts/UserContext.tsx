@@ -5,6 +5,7 @@ import createContextHook from "@nkzw/create-context-hook";
 export type StreamQuality = 'low' | 'normal' | 'high';
 export type DownloadQuality = 'normal' | 'high';
 export type AppLanguage = 'en' | 'fr' | 'es' | 'pt';
+export type AccentColor = '#FF0080' | '#8B5CF6' | '#3B82F6' | '#10B981' | '#F59E0B' | '#EF4444';
 
 export type AppSettings = {
   autoplay: boolean;
@@ -20,6 +21,9 @@ export type AppSettings = {
   showLyrics: boolean;
   language: AppLanguage;
   analytics: boolean;
+  gaplessPlayback: boolean;
+  normalizeVolume: boolean;
+  accentColor: AccentColor;
 };
 
 export type UserProfile = {
@@ -37,6 +41,7 @@ interface UserState {
   resetSettings: () => Promise<void>;
   changePassword: (current: string, next: string) => Promise<void>;
   signOut: () => Promise<void>;
+  clearStorage: () => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -53,6 +58,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   showLyrics: true,
   language: 'en',
   analytics: true,
+  gaplessPlayback: true,
+  normalizeVolume: true,
+  accentColor: '#FF0080',
 };
 
 const PROFILE_KEY = "user_profile";
@@ -140,6 +148,16 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     }
   }, []);
 
+  const clearStorage = useCallback(async () => {
+    try {
+      await AsyncStorage.clear();
+      setProfile(null);
+      setSettings(DEFAULT_SETTINGS);
+    } catch (err) {
+      console.error('[UserContext] clearStorage error', err);
+    }
+  }, []);
+
   return {
     profile,
     settings,
@@ -149,5 +167,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     resetSettings,
     changePassword,
     signOut,
+    clearStorage,
   };
 });

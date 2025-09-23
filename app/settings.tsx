@@ -1,12 +1,12 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
 import { useUser } from "@/contexts/UserContext";
-import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw } from "lucide-react-native";
+import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2 } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 
 export default function SettingsScreen() {
-  const { settings, updateSetting, resetSettings } = useUser();
+  const { settings, updateSetting, resetSettings, clearStorage } = useUser();
   const insets = useSafeAreaInsets();
 
   const onToggle = useCallback((key: keyof typeof settings) => (value: boolean) => {
@@ -17,6 +17,15 @@ export default function SettingsScreen() {
     { key: 'light' as const, label: 'Light', Icon: Sun },
     { key: 'dark' as const, label: 'Dark', Icon: Moon },
     { key: 'system' as const, label: 'System', Icon: Monitor },
+  ]), []);
+
+  const accentOptions = useMemo(() => ([
+    { key: '#FF0080' as const, label: 'Pink' },
+    { key: '#8B5CF6' as const, label: 'Purple' },
+    { key: '#3B82F6' as const, label: 'Blue' },
+    { key: '#10B981' as const, label: 'Green' },
+    { key: '#F59E0B' as const, label: 'Amber' },
+    { key: '#EF4444' as const, label: 'Red' },
   ]), []);
 
   const streamOptions = useMemo(() => ([
@@ -76,13 +85,21 @@ export default function SettingsScreen() {
               step={1}
               value={settings.crossfadeSeconds}
               onValueChange={(v: number) => void updateSetting('crossfadeSeconds', Math.max(0, Math.min(12, v)))}
-              minimumTrackTintColor="#FF0080"
+              minimumTrackTintColor={settings.accentColor}
               maximumTrackTintColor="#2A2A2E"
-              thumbTintColor="#FF4DA6"
+              thumbTintColor={settings.accentColor}
               style={styles.slider}
             />
             <Text style={styles.sliderValue}>{settings.crossfadeSeconds}s</Text>
           </View>
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Gapless playback</Text>
+          <Switch value={settings.gaplessPlayback} onValueChange={onToggle('gaplessPlayback')} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Normalize volume</Text>
+          <Switch value={settings.normalizeVolume} onValueChange={onToggle('normalizeVolume')} />
         </View>
         <View style={styles.row}>
           <Text style={styles.rowLabel}>Show lyrics</Text>
@@ -193,20 +210,6 @@ export default function SettingsScreen() {
         </View>
       </View>
 
-      <View style={[styles.card, styles.footerCard]} testID="card-actions">
-        <TouchableOpacity
-          testID="btn-reset-settings"
-          style={styles.primaryButton}
-          onPress={() => void resetSettings()}
-          activeOpacity={0.9}
-          accessibilityRole="button"
-          accessibilityLabel="Reset settings to defaults"
-        >
-          <RotateCcw color="#0B0B0C" size={18} />
-          <Text style={styles.primaryButtonText}>Reset to defaults</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.card} testID="card-appearance">
         <Text style={styles.cardTitle}>Appearance</Text>
         <View style={styles.themeRow}>
@@ -228,7 +231,57 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Palette color="#9CA3AF" size={16} />
+            <Text style={styles.sectionTitle}>Accent color</Text>
+          </View>
+          <View style={styles.themeRow}>
+            {accentOptions.map(({ key, label }) => {
+              const selected = settings.accentColor === key;
+              return (
+                <TouchableOpacity
+                  key={key}
+                  testID={`accent-${label.toLowerCase()}`}
+                  style={[styles.colorSwatch, selected ? [{ borderColor: key }, styles.colorSwatchActive] : undefined]}
+                  onPress={() => void updateSetting('accentColor', key)}
+                  activeOpacity={0.9}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Set accent ${label}`}
+                >
+                  <View style={[styles.colorDot, { backgroundColor: key }]} />
+                  <Text style={styles.colorLabel}>{label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
         <Text style={styles.helpText}>Theme applies to supported screens. Full theming can be added later.</Text>
+      </View>
+
+      <View style={[styles.card, styles.footerCard]} testID="card-actions">
+        <TouchableOpacity
+          testID="btn-reset-settings"
+          style={[styles.primaryButton, { backgroundColor: settings.accentColor }]}
+          onPress={() => void resetSettings()}
+          activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel="Reset settings to defaults"
+        >
+          <RotateCcw color="#0B0B0C" size={18} />
+          <Text style={styles.primaryButtonText}>Reset to defaults</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          testID="btn-clear-storage"
+          style={styles.secondaryButton}
+          onPress={() => void clearStorage()}
+          activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel="Clear cache and storage"
+        >
+          <Trash2 color="#E5E7EB" size={18} />
+          <Text style={styles.secondaryButtonText}>Clear cache & storage</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -256,6 +309,12 @@ const styles = StyleSheet.create({
   slider: { width: 160, height: 30 },
   sliderValue: { color: '#E5E7EB', fontSize: 13, fontWeight: '700', width: 34, textAlign: 'right' },
   footerCard: { alignItems: 'stretch' },
-  primaryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: '#FF0080', gap: 8 as unknown as number },
+  primaryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: '#FF0080', gap: 8 as unknown as number, marginBottom: 10 },
   primaryButtonText: { color: '#0B0B0C', fontSize: 15, fontWeight: '800' },
+  secondaryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 44, borderRadius: 12, backgroundColor: '#1A1A1A', gap: 8 as unknown as number },
+  secondaryButtonText: { color: '#E5E7EB', fontSize: 15, fontWeight: '800' },
+  colorSwatch: { flexDirection: 'row', alignItems: 'center', gap: 8 as unknown as number, height: 36, paddingHorizontal: 10, borderRadius: 999, borderWidth: 2, borderColor: '#2A2A2E', backgroundColor: '#0D0D0F' },
+  colorSwatchActive: { backgroundColor: '#0F0F12' },
+  colorDot: { width: 18, height: 18, borderRadius: 9 },
+  colorLabel: { color: '#E5E7EB', fontSize: 13, fontWeight: '700' },
 });

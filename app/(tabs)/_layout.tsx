@@ -1,31 +1,36 @@
 import { Tabs } from "expo-router";
 import { Home, Search, Library, Sparkles, Newspaper, User } from "lucide-react-native";
-import React from "react";
+import React, { useMemo } from "react";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useUser } from "@/contexts/UserContext";
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { currentTrack } = usePlayer();
-  
+  const { settings } = useUser();
+
   const tabBarPadding = currentTrack ? 60 : 0;
+  const activeTint = settings?.accentColor ?? "#FF0080";
+
+  const tabBarStyle = useMemo(() => ({
+    backgroundColor: "#0A0A0A",
+    borderTopColor: "#1A1A1A",
+    borderTopWidth: 1,
+    paddingBottom: Platform.OS === "ios" ? insets.bottom : 10,
+    paddingTop: 10,
+    height: Platform.OS === "ios" ? 80 + insets.bottom + tabBarPadding : 60 + tabBarPadding,
+    position: "absolute" as const,
+  }), [insets.bottom, tabBarPadding]);
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: "#FF0080",
+        tabBarActiveTintColor: activeTint,
         tabBarInactiveTintColor: "#666",
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: "#0A0A0A",
-          borderTopColor: "#1A1A1A",
-          borderTopWidth: 1,
-          paddingBottom: Platform.OS === "ios" ? insets.bottom : 10,
-          paddingTop: 10,
-          height: Platform.OS === "ios" ? 80 + insets.bottom + tabBarPadding : 60 + tabBarPadding,
-          position: "absolute",
-        },
+        tabBarStyle,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",
