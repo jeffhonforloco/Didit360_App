@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Search, Library, Sparkles } from "lucide-react-native";
+import { Home, Search, Library, Sparkles, Newspaper } from "lucide-react-native";
 import React from "react";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -51,6 +51,13 @@ export default function TabLayout() {
         options={{
           title: "Library",
           tabBarIcon: ({ color }) => <Library size={24} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="news"
+        options={{
+          title: "News",
+          tabBarIcon: ({ color }) => <Newspaper size={24} color={color} />,
         }}
       />
       <Tabs.Screen
