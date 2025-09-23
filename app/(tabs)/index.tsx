@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -8,25 +8,88 @@ import {
   Image,
   FlatList,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres } from "@/data/mockData";
 import type { Track } from "@/types";
+
+interface CategoryTile {
+  id: string;
+  title: string;
+  colors: readonly [string, string];
+  image?: string;
+}
 
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const CARD_WIDTH = width * 0.4;
+  const SMALL_CARD = width * 0.32;
   const { playTrack } = usePlayer();
 
-  const renderFeaturedItem = ({ item }: { item: Track }) => (
+  const favoriteArtists = useMemo(() => {
+    const byArtist: Record<string, Track> = {};
+    [...featuredContent, ...topCharts, ...newReleases].forEach((t) => {
+      if (!byArtist[t.artist]) byArtist[t.artist] = t;
+    });
+    return Object.values(byArtist).slice(0, 8);
+  }, []);
+
+  const categories: CategoryTile[] = useMemo(
+    () => [
+      { id: "c1", title: "Music", colors: ["#FF6B6B", "#F7CE68"] as const },
+      { id: "c2", title: "Audio Book", colors: ["#6A85F1", "#B892FF"] as const },
+      { id: "c3", title: "Podcast", colors: ["#00C6FF", "#0072FF"] as const },
+      { id: "c4", title: "Trending", colors: ["#F7971E", "#FFD200"] as const },
+      { id: "c5", title: "Live", colors: ["#8A2387", "#E94057"] as const },
+      { id: "c6", title: "News", colors: ["#11998E", "#38EF7D"] as const },
+    ],
+    []
+  );
+
+  const renderHeader = useCallback(() => (
+    <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
+      <View style={styles.headerLeft}>
+        <Image
+          source={{ uri: "https://i.pravatar.cc/100?img=12" }}
+          style={styles.avatar}
+        />
+        <View>
+          <Text style={styles.subtleText}>Good Morning 👋</Text>
+          <Text style={styles.headerName} numberOfLines={1}>Andrew Ainsley</Text>
+        </View>
+      </View>
+      <View style={styles.headerRight}>
+        <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => console.log("Search pressed")}> 
+          <Search color="#FFF" size={20} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => console.log("Bell pressed")}> 
+          <Bell color="#FFF" size={20} />
+        </TouchableOpacity>
+      </View>
+    </View>
+  ), [insets.top]);
+
+  const renderSectionHeader = useCallback((title: string, testID: string) => (
+    <View style={styles.sectionHeader}>
+      <Text style={styles.sectionTitle}>{title}</Text>
+      <TouchableOpacity style={styles.seeAll} onPress={() => console.log("See all:", title)} testID={`${testID}-see-all`}>
+        <Text style={styles.seeAllText}>See All</Text>
+        <ChevronRight color="#B3B3B3" size={16} />
+      </TouchableOpacity>
+    </View>
+  ), []);
+
+  const renderFeaturedItem = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
       style={[styles.featuredCard, { width: width - 40 }]}
       onPress={() => playTrack(item)}
       activeOpacity={0.8}
+      testID={`featured-${item.id}`}
     >
       <LinearGradient
         colors={["#FF0080", "#8B5CF6"]}
@@ -42,19 +105,20 @@ export default function HomeScreen() {
           <Text style={styles.featuredArtist} numberOfLines={1}>
             {item.artist}
           </Text>
-          <TouchableOpacity style={styles.playButton}>
+          <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)} testID={`featured-play-${item.id}`}>
             <Play size={20} color="#000" fill="#FFF" />
           </TouchableOpacity>
         </View>
       </LinearGradient>
     </TouchableOpacity>
-  );
+  ), [playTrack, width]);
 
-  const renderCard = ({ item }: { item: Track }) => (
+  const renderCard = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
       style={[styles.card, { width: CARD_WIDTH }]}
       onPress={() => playTrack(item)}
       activeOpacity={0.8}
+      testID={`card-${item.id}`}
     >
       <Image 
         source={{ uri: item.artwork }} 
@@ -67,13 +131,34 @@ export default function HomeScreen() {
         {item.artist}
       </Text>
     </TouchableOpacity>
-  );
+  ), [CARD_WIDTH, playTrack]);
 
-  const renderRecentItem = ({ item }: { item: Track }) => (
+  const renderSmallCard = useCallback(({ item }: { item: Track }) => (
+    <TouchableOpacity
+      style={[styles.card, { width: SMALL_CARD }]}
+      onPress={() => playTrack(item)}
+      activeOpacity={0.8}
+      testID={`small-card-${item.id}`}
+    >
+      <Image 
+        source={{ uri: item.artwork }} 
+        style={[styles.cardImage, { width: SMALL_CARD, height: SMALL_CARD }]} 
+      />
+      <Text style={styles.cardTitle} numberOfLines={1}>
+        {item.title}
+      </Text>
+      <Text style={styles.cardArtist} numberOfLines={1}>
+        {item.artist}
+      </Text>
+    </TouchableOpacity>
+  ), [SMALL_CARD, playTrack]);
+
+  const renderRecentItem = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
       style={styles.recentItem}
       onPress={() => playTrack(item)}
       activeOpacity={0.8}
+      testID={`recent-${item.id}`}
     >
       <Image source={{ uri: item.artwork }} style={styles.recentImage} />
       <View style={styles.recentInfo}>
@@ -84,24 +169,37 @@ export default function HomeScreen() {
           {item.artist}
         </Text>
       </View>
-      <TouchableOpacity style={styles.moreButton}>
+      <TouchableOpacity style={styles.moreButton} onPress={() => console.log("More pressed", item.id)}>
         <MoreVertical size={20} color="#666" />
       </TouchableOpacity>
     </TouchableOpacity>
-  );
+  ), [playTrack]);
+
+  const renderFavoriteArtist = useCallback(({ item }: { item: Track }) => (
+    <TouchableOpacity style={styles.artistCard} onPress={() => playTrack(item)} activeOpacity={0.9} testID={`artist-${item.artist}`}>
+      <Image source={{ uri: item.artwork }} style={styles.artistImage} />
+      <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
+    </TouchableOpacity>
+  ), [playTrack]);
+
+  const renderCategory = useCallback(({ item }: { item: CategoryTile }) => (
+    <TouchableOpacity style={styles.categoryTile} onPress={() => console.log("Category", item.title)} activeOpacity={0.85} testID={`category-${item.id}`}>
+      <LinearGradient colors={item.colors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.categoryGradient}>
+        <Text style={styles.categoryText}>{item.title}</Text>
+      </LinearGradient>
+    </TouchableOpacity>
+  ), []);
+
+  const renderGenre = useCallback(({ item }: { item: string }) => (
+    <TouchableOpacity style={styles.genrePill} onPress={() => console.log("Genre", item)} testID={`genre-${item}`}>
+      <Text style={styles.genreText}>{item}</Text>
+    </TouchableOpacity>
+  ), []);
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.header, { paddingTop: 20 + insets.top }]}>
-          <Image
-            source={{ uri: "https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/g7ru96a03yi3watz8pn4f" }}
-            style={styles.logoImage}
-            resizeMode="contain"
-            accessibilityLabel="Didit360 logo"
-            testID="header-logo"
-          />
-        </View>
+      <ScrollView showsVerticalScrollIndicator={false} testID="home-scroll">
+        {renderHeader()}
 
         <View style={styles.section}>
           <FlatList
@@ -118,21 +216,84 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recently Played</Text>
+          {renderSectionHeader("Favorite Artists", "favorite-artists")}
           <FlatList
-            data={recentlyPlayed}
-            renderItem={renderRecentItem}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
+            data={favoriteArtists}
+            renderItem={renderFavoriteArtist}
+            keyExtractor={(item) => `fav-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
           />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Charts</Text>
+          {renderSectionHeader("Browse Categories", "browse-categories")}
+          <FlatList
+            data={categories}
+            renderItem={renderCategory}
+            keyExtractor={(item) => item.id}
+            numColumns={3}
+            columnWrapperStyle={styles.categoryRow}
+            scrollEnabled={false}
+            contentContainerStyle={styles.categoriesContainer}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Live Performance", "live-performance")}
+          <FlatList
+            data={topCharts.slice(0, 6)}
+            renderItem={renderSmallCard}
+            keyExtractor={(item) => `live-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Your Top Mix", "top-mix")}
+          <FlatList
+            data={newReleases.slice(0, 6)}
+            renderItem={renderSmallCard}
+            keyExtractor={(item) => `mix-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Recently Added", "recently-added")}
+          <FlatList
+            data={recentlyPlayed}
+            renderItem={renderCard}
+            keyExtractor={(item) => `recently-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Trending Videos", "trending-videos")}
+          <FlatList
+            data={featuredContent}
+            renderItem={renderCard}
+            keyExtractor={(item) => `trending-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Most Viewed", "most-viewed")}
           <FlatList
             data={topCharts}
             renderItem={renderCard}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `most-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -140,35 +301,35 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>New Releases</Text>
+          {renderSectionHeader("Browse Genres", "browse-genres")}
           <FlatList
-            data={newReleases}
-            renderItem={renderCard}
-            keyExtractor={(item) => item.id}
+            data={genres}
+            renderItem={renderGenre}
+            keyExtractor={(item) => `genre-${item}`}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
+            contentContainerStyle={[styles.horizontalList, styles.genreList]}
           />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Voxsaga Podcasts</Text>
+          {renderSectionHeader("Recent Podcast", "recent-podcast")}
           <FlatList
             data={podcasts}
             renderItem={renderCard}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `pod-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
           />
         </View>
 
-        <View style={[styles.section, { marginBottom: 120 }]}>
-          <Text style={styles.sectionTitle}>Auralora Audiobooks</Text>
+        <View style={[styles.section, { marginBottom: 120 }]}> 
+          {renderSectionHeader("Latest Books", "latest-books")}
           <FlatList
             data={audiobooks}
             renderItem={renderCard}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => `ab-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -182,17 +343,43 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0A0A0A",
+    backgroundColor: "#0B0A14",
   },
   header: {
     paddingHorizontal: 20,
     paddingBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  logo: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#FF0080",
-    marginBottom: 8,
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  headerRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  iconSpacer: {
+    marginLeft: 16,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    marginRight: 12,
+  },
+  subtleText: {
+    fontSize: 12,
+    color: "#B3B3B3",
+    marginBottom: 2,
+  },
+  headerName: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    maxWidth: 200,
   },
   logoImage: {
     width: 40,
@@ -200,20 +387,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 8,
   },
-  greeting: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#FFF",
-  },
   section: {
     marginTop: 24,
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: "700",
     color: "#FFF",
-    marginBottom: 16,
-    paddingHorizontal: 20,
+  },
+  seeAll: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  seeAllText: {
+    fontSize: 13,
+    color: "#B3B3B3",
+    marginRight: 6,
   },
   horizontalList: {
     paddingHorizontal: 20,
@@ -306,5 +502,59 @@ const styles = StyleSheet.create({
   },
   moreButton: {
     padding: 8,
+  },
+  artistCard: {
+    width: 140,
+    marginRight: 16,
+  },
+  artistImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  artistName: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  categoriesContainer: {
+    paddingHorizontal: 16,
+  },
+  categoryRow: {
+    paddingHorizontal: 4,
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  categoryTile: {
+    flex: 1,
+    marginHorizontal: 4,
+    height: 90,
+  },
+  categoryGradient: {
+    flex: 1,
+    borderRadius: 12,
+    justifyContent: "flex-end",
+    padding: 12,
+  },
+  categoryText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  genreList: {
+    paddingVertical: 8,
+  },
+  genrePill: {
+    backgroundColor: "#17162A",
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  genreText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "600",
   },
 });
