@@ -1,6 +1,6 @@
 import "./polyfills";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { Platform, View, StyleSheet } from "react-native";
@@ -10,6 +10,7 @@ import { LibraryProvider } from "@/contexts/LibraryContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,6 +51,11 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
+  const pathname = usePathname();
+  useEffect(() => {
+    (globalThis as any).__CURRENT_ROUTE = pathname;
+  }, [pathname]);
+
   useEffect(() => {
     SplashScreen.hideAsync();
   }, []);
@@ -60,14 +66,16 @@ export default function RootLayout() {
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
         <RootContainer style={styles.container}>
-          <PlayerProvider>
-            <UserProvider>
-              <LibraryProvider>
-                <RootLayoutNav />
-                <MiniPlayer />
-              </LibraryProvider>
-            </UserProvider>
-          </PlayerProvider>
+          <ErrorBoundary>
+            <PlayerProvider>
+              <UserProvider>
+                <LibraryProvider>
+                  <RootLayoutNav />
+                  <MiniPlayer />
+                </LibraryProvider>
+              </UserProvider>
+            </PlayerProvider>
+          </ErrorBoundary>
         </RootContainer>
       </QueryClientProvider>
     </trpc.Provider>
