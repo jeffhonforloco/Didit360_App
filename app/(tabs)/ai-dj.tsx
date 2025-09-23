@@ -8,6 +8,7 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Sparkles, Play, RefreshCw, Settings } from "lucide-react-native";
@@ -29,6 +30,19 @@ interface GeneratedSet {
   tracks: GeneratedTrack[];
 }
 
+interface AITrackResponse {
+  id?: string;
+  title?: string;
+  artist?: string;
+  artwork?: string;
+}
+
+interface AISetResponse {
+  title?: string;
+  description?: string;
+  tracks?: AITrackResponse[];
+}
+
 const presetMoods = [
   { id: "energetic", label: "Energetic", emoji: "⚡" },
   { id: "chill", label: "Chill", emoji: "😌" },
@@ -43,35 +57,122 @@ export default function AIDJScreen() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generatedSet, setGeneratedSet] = useState<GeneratedSet | null>(null);
+  const [djStyle, setDjStyle] = useState<string>("");
   const { playTrack } = usePlayer();
 
   const suggestionCategories = useMemo(() => Object.keys(aiDjPrompts) as AIDJPromptCategoryKey[], []);
 
+  const djStyleExamples = useMemo(
+    () => [
+      "like Black Coffee (deep, smooth transitions)",
+      "like Peggy Gou (groovy, retro house)",
+      "like David Guetta (festival big-room)",
+      "like Amelie Lens (driving techno)",
+      "like Kaytranada (bounce, soulful edits)",
+      "like DJ Snake (global bass energy)",
+    ],
+    [],
+  );
+
+  const buildPrompt = useCallback(() => {
+    const moodText = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? ""} mood` : "";
+    const base = [prompt, moodText].filter(Boolean).join(". ");
+    const withDj = djStyle.trim() ? `${base}. DJ style: ${djStyle.trim()}` : base;
+    return withDj.trim();
+  }, [prompt, selectedMood, djStyle]);
+
+  const callAIForSet = useCallback(async (): Promise<GeneratedSet | null> => {
+    try {
+      const finalPrompt = buildPrompt();
+      console.log("[AI-DJ] callAIForSet prompt:", finalPrompt);
+      const res = await fetch("https://toolkit.rork.com/text/llm/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are an expert DJ and music programmer. Return a tight JSON only. Include 8 tracks matching the vibe. Prefer clean titles. Schema: {title, description, tracks:[{title, artist, artwork}]}.",
+            },
+            {
+              role: "user",
+              content: `Create a DJ playlist with smooth transitions. ${finalPrompt}. Output JSON only. Use royalty-free placeholder artwork URLs from picsum.photos with different random params.`,
+            },
+          ],
+        }),
+      });
+
+      if (!res.ok) {
+        console.log("[AI-DJ] AI http error", res.status);
+        return null;
+      }
+      const data = (await res.json()) as { completion?: string };
+      const text = data?.completion ?? "";
+      let parsed: AISetResponse | null = null;
+      try {
+        const jsonStart = text.indexOf("{");
+        const jsonEnd = text.lastIndexOf("}");
+        const jsonStr = jsonStart >= 0 && jsonEnd > jsonStart ? text.slice(jsonStart, jsonEnd + 1) : text;
+        parsed = JSON.parse(jsonStr) as AISetResponse;
+      } catch (e) {
+        console.log("[AI-DJ] JSON parse error", e, text);
+        return null;
+      }
+
+      const tracks: GeneratedTrack[] = (parsed?.tracks ?? []).slice(0, 10).map((t, i) => ({
+        id: t?.id ?? `ai-${i + 1}`,
+        title: t?.title ?? `Untitled ${i + 1}`,
+        artist: t?.artist ?? "Unknown Artist",
+        artwork:
+          t?.artwork ?? `https://picsum.photos/400/400?random=${100 + i}&grayscale=0`,
+      }));
+
+      if (tracks.length === 0) return null;
+
+      const set: GeneratedSet = {
+        title: (parsed?.title ?? "AI Mix").toString(),
+        description: (parsed?.description ?? finalPrompt).toString(),
+        tracks,
+      };
+      return set;
+    } catch (e) {
+      console.log("[AI-DJ] callAIForSet error", e);
+      return null;
+    }
+  }, [buildPrompt]);
+
   const handleGenerate = useCallback(async () => {
     try {
-      if (!prompt && !selectedMood) return;
-      console.log("[AI-DJ] Generating with", { prompt, selectedMood });
+      if (!prompt && !selectedMood && !djStyle) return;
+      console.log("[AI-DJ] Generating with", { prompt, selectedMood, djStyle });
       setIsGenerating(true);
-      setTimeout(() => {
+      const aiSet = await callAIForSet();
+      if (aiSet) {
+        setGeneratedSet(aiSet);
+        console.log("[AI-DJ] Generated set (AI)", aiSet);
+      } else {
         const titleBase = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? "AI"} Mix` : "Custom AI Mix";
-        const newSet: GeneratedSet = {
+        const fallback: GeneratedSet = {
           title: titleBase,
-          description: prompt || `Perfect for your ${selectedMood ?? "custom"} vibe` ,
+          description: buildPrompt() || `Perfect for your ${selectedMood ?? "custom"} vibe` ,
           tracks: [
             { id: "ai-1", title: "Electric Dreams", artist: "Synthwave Collective", artwork: "https://picsum.photos/400/400?random=101" },
             { id: "ai-2", title: "Neon Nights", artist: "Digital Pulse", artwork: "https://picsum.photos/400/400?random=102" },
             { id: "ai-3", title: "Future Echoes", artist: "Cyber Symphony", artwork: "https://picsum.photos/400/400?random=103" },
+            { id: "ai-4", title: "Velvet Transitions", artist: "Club Alchemy", artwork: "https://picsum.photos/400/400?random=104" },
+            { id: "ai-5", title: "Groove Mosaic", artist: "Night Architects", artwork: "https://picsum.photos/400/400?random=105" },
           ],
         };
-        setGeneratedSet(newSet);
-        console.log("[AI-DJ] Generated set", newSet);
-        setIsGenerating(false);
-      }, 900);
+        setGeneratedSet(fallback);
+        Alert.alert("AI DJ", "Couldn’t reach AI right now. Using a fallback mix.");
+      }
+      setIsGenerating(false);
     } catch (e) {
       console.error("[AI-DJ] Generation error", e);
       setIsGenerating(false);
     }
-  }, [prompt, selectedMood]);
+  }, [prompt, selectedMood, djStyle, callAIForSet, buildPrompt]);
 
   const handlePlaySet = useCallback(() => {
     if (generatedSet && generatedSet.tracks.length > 0) {
@@ -106,7 +207,7 @@ export default function AIDJScreen() {
         </LinearGradient>
 
         <View style={styles.promptSection}>
-          <Text style={styles.sectionTitle}>Whats your vibe?</Text>
+          <Text style={styles.sectionTitle}>What’s your vibe?</Text>
           <TextInput
             style={styles.promptInput}
             placeholder="e.g., Upbeat songs for a morning run..."
@@ -117,6 +218,29 @@ export default function AIDJScreen() {
             numberOfLines={3}
             testID="ai-dj-prompt-input"
           />
+          <View style={styles.djRow}>
+            <Text style={styles.sectionTitleSmall}>Optional: DJ style</Text>
+            <TextInput
+              style={styles.promptInput}
+              placeholder="e.g., like Black Coffee (deep, smooth transitions)"
+              placeholderTextColor="#666"
+              value={djStyle}
+              onChangeText={setDjStyle}
+              testID="ai-dj-style-input"
+            />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionRow}>
+              {djStyleExamples.map((s, idx) => (
+                <TouchableOpacity
+                  key={`dj-${idx}`}
+                  style={styles.suggestionChip}
+                  onPress={() => setDjStyle(s)}
+                  testID={`ai-dj-style-chip-${idx}`}
+                >
+                  <Text style={styles.suggestionText}>{s}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         </View>
 
         <View style={styles.suggestionsSection}>
@@ -173,7 +297,7 @@ export default function AIDJScreen() {
         <TouchableOpacity
           style={[styles.generateButton, isGenerating && styles.generateButtonDisabled]}
           onPress={handleGenerate}
-          disabled={isGenerating || (!prompt && !selectedMood)}
+          disabled={isGenerating || (!prompt && !selectedMood && !djStyle)}
           testID="ai-dj-generate"
         >
           {isGenerating ? (
@@ -278,6 +402,15 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#FFF",
     marginBottom: 12,
+  },
+  sectionTitleSmall: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#AAA",
+    marginBottom: 8,
+  },
+  djRow: {
+    marginTop: 12,
   },
   promptInput: {
     backgroundColor: "#1A1A1A",
