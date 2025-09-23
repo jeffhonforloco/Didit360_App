@@ -17,6 +17,7 @@ import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
 import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres } from "@/data/mockData";
 import type { Track } from "@/types";
+import { useUser } from "@/contexts/UserContext";
 
 interface CategoryTile {
   id: string;
@@ -31,6 +32,7 @@ export default function HomeScreen() {
   const CARD_WIDTH = width * 0.4;
   const SMALL_CARD = width * 0.32;
   const { playTrack } = usePlayer();
+  const { profile } = useUser();
 
   const favoriteArtists = useMemo(() => {
     const byArtist: Record<string, Track> = {};
@@ -56,27 +58,31 @@ export default function HomeScreen() {
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
       <View style={styles.headerLeft}>
         <Image
-          source={{ uri: "https://i.pravatar.cc/100?img=12" }}
+          source={{ uri: profile?.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop" }}
           style={styles.avatar}
         />
         <View>
-          <Text style={styles.subtleText}>Good Morning 👋</Text>
-          <Text style={styles.headerName} numberOfLines={1}>Andrew Ainsley</Text>
+          <Text style={styles.subtleText}>{profile ? "Welcome back" : "Welcome"} 👋</Text>
+          <Text style={styles.headerName} numberOfLines={1}>{profile ? (profile.displayName || profile.email) : "Guest"}</Text>
         </View>
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => console.log("Search pressed")}> 
           <Search color="#FFF" size={20} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => console.log("Bell pressed")}> 
-          <Bell color="#FFF" size={20} />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.iconSpacer} testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')}> 
-          <SettingsIcon color="#FFF" size={20} />
-        </TouchableOpacity>
+        {profile ? (
+          <>
+            <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => console.log("Bell pressed")}> 
+              <Bell color="#FFF" size={20} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconSpacer} testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')}> 
+              <SettingsIcon color="#FFF" size={20} />
+            </TouchableOpacity>
+          </>
+        ) : null}
       </View>
     </View>
-  ), [insets.top]);
+  ), [insets.top, profile]);
 
   const renderSectionHeader = useCallback((title: string, testID: string) => (
     <View style={styles.sectionHeader}>
@@ -204,6 +210,14 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false} testID="home-scroll">
         {renderHeader()}
+        {!profile && (
+          <View style={styles.guestBanner}>
+            <Text style={styles.guestText}>You are listening as a guest. Enjoy a few minutes, then create an account to continue.</Text>
+            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
+              <Text style={styles.guestBtnText}>Sign up free</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View style={styles.section}>
           <FlatList
@@ -561,4 +575,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
   },
+  guestBanner: { marginHorizontal: 20, backgroundColor: "#111113", borderRadius: 12, borderWidth: 1, borderColor: "#1F2937", padding: 12, marginTop: 8 },
+  guestText: { color: "#E5E7EB", fontSize: 12, marginBottom: 8 },
+  guestBtn: { backgroundColor: "#FF0080", height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 14 },
+  guestBtnText: { color: "#0B0B0C", fontWeight: "800" },
 });

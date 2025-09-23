@@ -22,6 +22,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="account" options={{ title: "Account" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
+      <Stack.Screen name="auth" options={{ presentation: "modal", headerShown: false, animation: "slide_from_bottom" }} />
       <Stack.Screen 
         name="player" 
         options={{ 
@@ -67,14 +68,14 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <RootContainer style={styles.container}>
           <ErrorBoundary>
-            <PlayerProvider>
-              <UserProvider>
+            <UserProvider>
+              <PlayerProvider>
                 <LibraryProvider>
                   <RootLayoutNav />
                   <MiniPlayer />
                 </LibraryProvider>
-              </UserProvider>
-            </PlayerProvider>
+              </PlayerProvider>
+            </UserProvider>
           </ErrorBoundary>
         </RootContainer>
       </QueryClientProvider>
