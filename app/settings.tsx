@@ -1,12 +1,14 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, Switch, TouchableOpacity, Image } from "react-native";
 import { useUser } from "@/contexts/UserContext";
-import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2 } from "lucide-react-native";
+import { Moon, Sun, Monitor, Globe, SlidersHorizontal, Database, Music, Activity, RotateCcw, Palette, Trash2, ChevronRight, User as UserIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Slider from "@react-native-community/slider";
+import Slider from "@/components/SliderCompat";
+import { router } from "expo-router";
+
 
 export default function SettingsScreen() {
-  const { settings, updateSetting, resetSettings, clearStorage } = useUser();
+  const { settings, updateSetting, resetSettings, clearStorage, profile } = useUser();
   const insets = useSafeAreaInsets();
 
   const onToggle = useCallback((key: keyof typeof settings) => (value: boolean) => {
@@ -57,6 +59,35 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(12, insets.bottom) }]} testID="settings-screen">
       <Text style={styles.title}>Settings</Text>
+
+      <View style={[styles.card, styles.userHeader]} testID="settings-user-header">
+        <View style={styles.userRow}>
+          <View style={styles.userAvatarWrap}>
+            <Image
+              source={{ uri: (profile?.avatarUrl ?? 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop') }}
+              style={styles.userAvatar}
+            />
+          </View>
+          <View style={styles.userMeta}>
+            <Text style={styles.userName} numberOfLines={1}>{profile?.displayName ?? 'didit360'}</Text>
+            <Text style={styles.userSubtitle} numberOfLines={1}>{profile?.email ?? 'View Profile'}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={styles.userQuickAction}
+          onPress={() => router.push('/(tabs)/profile')}
+          activeOpacity={0.9}
+          testID="btn-view-profile"
+          accessibilityRole="button"
+          accessibilityLabel="View Profile"
+        >
+          <View style={styles.userQuickLeft}>
+            <UserIcon color="#E5E7EB" size={18} />
+            <Text style={styles.userQuickLabel}>View Profile</Text>
+          </View>
+          <ChevronRight color="#6B7280" size={18} />
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.card} testID="card-playback">
         <Text style={styles.cardTitle}>Playback</Text>
@@ -175,6 +206,18 @@ export default function SettingsScreen() {
         <View style={styles.row}>
           <Text style={styles.rowLabel}>Notifications</Text>
           <Switch value={settings.notifications} onValueChange={onToggle("notifications")} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Connect to devices</Text>
+          <Switch value={settings.connectToDevices} onValueChange={onToggle("connectToDevices")} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Show local device only</Text>
+          <Switch value={settings.showLocalDeviceOnly} onValueChange={onToggle("showLocalDeviceOnly")} />
+        </View>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>Car mode</Text>
+          <Switch value={settings.carMode} onValueChange={onToggle("carMode")} />
         </View>
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -317,4 +360,14 @@ const styles = StyleSheet.create({
   colorSwatchActive: { backgroundColor: '#0F0F12' },
   colorDot: { width: 18, height: 18, borderRadius: 9 },
   colorLabel: { color: '#E5E7EB', fontSize: 13, fontWeight: '700' },
+  userHeader: { padding: 12 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 12 as unknown as number, marginBottom: 4 },
+  userAvatarWrap: { width: 48, height: 48, borderRadius: 10, overflow: 'hidden', backgroundColor: '#0F0F12' },
+  userAvatar: { width: '100%', height: '100%' },
+  userMeta: { flex: 1 },
+  userName: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
+  userSubtitle: { color: '#9CA3AF', fontSize: 12, fontWeight: '600' },
+  userQuickAction: { marginTop: 8, height: 44, borderRadius: 10, backgroundColor: '#0D0D0F', borderWidth: 1, borderColor: '#1F1F22', paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  userQuickLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 as unknown as number },
+  userQuickLabel: { color: '#E5E7EB', fontSize: 14, fontWeight: '700' },
 });

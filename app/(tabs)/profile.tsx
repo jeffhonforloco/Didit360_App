@@ -1,21 +1,27 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { User, Settings, LogOut, ChevronRight } from "lucide-react-native";
+import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car } from "lucide-react-native";
 import { router, type Href } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
 
 export default function ProfileScreen() {
+  const { profile, signOut } = useUser();
+
   const items = useMemo(
     () => [
       { key: "account", title: "Account", icon: User },
+      { key: "data", title: "Data Saver", icon: Activity },
+      { key: "languages", title: "Languages", icon: Globe },
+      { key: "playback", title: "Playback", icon: Music },
+      { key: "explicit", title: "Explicit Content", icon: ShieldAlert },
+      { key: "devices", title: "Devices", icon: Smartphone },
+      { key: "car", title: "Car", icon: Car },
       { key: "settings", title: "Settings", icon: Settings },
       { key: "logout", title: "Sign out", icon: LogOut, danger: true },
     ],
     []
   );
-
-  const { signOut } = useUser();
 
   const onPress = (key: string) => {
     if (key === "logout") {
@@ -26,12 +32,28 @@ export default function ProfileScreen() {
       return;
     }
     if (key === "account") router.push("/account" as Href);
-    else if (key === "settings") router.push("/settings" as Href);
+    else router.push("/settings" as Href);
   };
+
+  const avatarSrc = profile?.avatarUrl ?? "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop";
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]} testID="profile-screen">
-      <Text style={styles.header} testID="profile-title">Profile</Text>
+      <Text style={styles.header} testID="profile-title">Settings</Text>
+
+      <View style={[styles.card, styles.userHeader]} testID="profile-header-card">
+        <View style={styles.userRow}>
+          <View style={styles.avatarWrap}>
+            <Image source={{ uri: avatarSrc }} style={styles.avatar} />
+          </View>
+          <View style={styles.userMeta}>
+            <Text style={styles.userName} numberOfLines={1}>{profile?.displayName ?? 'didit360'}</Text>
+            <TouchableOpacity onPress={() => router.push('/account' as Href)} activeOpacity={0.9} testID="btn-view-profile">
+              <Text style={styles.userView}>View Profile</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
 
       <View style={styles.card} testID="profile-card">
         {items.map((item, idx) => {
@@ -56,7 +78,7 @@ export default function ProfileScreen() {
       </View>
 
       <Text style={styles.meta} testID="profile-meta">
-        v1.1-firebase • {Platform.OS}
+        v1.1 • {Platform.OS}
       </Text>
     </SafeAreaView>
   );
@@ -75,6 +97,26 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 14,
   },
+  userHeader: {
+    padding: 12,
+    marginBottom: 12,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12 as unknown as number,
+  },
+  avatarWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#111113',
+  },
+  avatar: { width: '100%', height: '100%' },
+  userMeta: { flex: 1 },
+  userName: { color: '#FFFFFF', fontSize: 18, fontWeight: '800' },
+  userView: { color: '#9CA3AF', fontSize: 12, fontWeight: '700', marginTop: 2 },
   card: {
     backgroundColor: "#121214",
     borderRadius: 12,

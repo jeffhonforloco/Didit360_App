@@ -24,6 +24,9 @@ export type AppSettings = {
   gaplessPlayback: boolean;
   normalizeVolume: boolean;
   accentColor: AccentColor;
+  connectToDevices: boolean;
+  showLocalDeviceOnly: boolean;
+  carMode: boolean;
 };
 
 export type UserProfile = {
@@ -61,6 +64,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   gaplessPlayback: true,
   normalizeVolume: true,
   accentColor: '#FF0080',
+  connectToDevices: false,
+  showLocalDeviceOnly: false,
+  carMode: false,
 };
 
 const PROFILE_KEY = "user_profile";
