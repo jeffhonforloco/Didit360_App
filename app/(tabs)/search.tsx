@@ -313,7 +313,10 @@ export default function SearchScreen() {
     return (
       <TouchableOpacity
         style={styles.searchResult}
-        onPress={() => router.push(`/song/${track.id}`)}
+        onPress={() => {
+          playTrack(track);
+          router.push(`/song/${track.id}`);
+        }}
         activeOpacity={0.8}
       >
         <View style={styles.resultImageContainer}>
@@ -325,7 +328,7 @@ export default function SearchScreen() {
               playTrack(track);
             }}
           >
-            <Play size={16} color="#FFF" fill="#FFF" />
+            <Play size={20} color="#E91E63" fill="#E91E63" />
           </TouchableOpacity>
         </View>
         <View style={styles.resultInfo}>
@@ -415,7 +418,7 @@ export default function SearchScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Search</Text>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/settings')}>
             <MoreHorizontal size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -747,7 +750,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    opacity: 0,
+    opacity: 1,
   },
   moreButton: {
     padding: 8,
