@@ -8,7 +8,6 @@ import {
   Image,
   FlatList,
   useWindowDimensions,
-  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -67,7 +66,7 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => console.log("Search pressed")}> 
+        <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => router.push('/search')}> 
           <Search color="#FFF" size={20} />
         </TouchableOpacity>
         {profile ? (
@@ -84,10 +83,20 @@ export default function HomeScreen() {
     </View>
   ), [insets.top, profile]);
 
-  const renderSectionHeader = useCallback((title: string, testID: string) => (
+  const renderSectionHeader = useCallback((title: string, testID: string, route?: string) => (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <TouchableOpacity style={styles.seeAll} onPress={() => console.log("See all:", title)} testID={`${testID}-see-all`}>
+      <TouchableOpacity 
+        style={styles.seeAll} 
+        onPress={() => {
+          if (route) {
+            router.push(route as any);
+          } else {
+            console.log("See all:", title);
+          }
+        }} 
+        testID={`${testID}-see-all`}
+      >
         <Text style={styles.seeAllText}>See All</Text>
         <ChevronRight color="#B3B3B3" size={16} />
       </TouchableOpacity>
@@ -234,7 +243,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Favorite Artists", "favorite-artists")}
+          {renderSectionHeader("Favorite Artists", "favorite-artists", "/categories/artists")}
           <FlatList
             data={favoriteArtists}
             renderItem={renderFavoriteArtist}
@@ -259,7 +268,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Live Performance", "live-performance")}
+          {renderSectionHeader("Live Performance", "live-performance", "/categories/live-performance")}
           <FlatList
             data={topCharts.slice(0, 6)}
             renderItem={renderSmallCard}
@@ -271,7 +280,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Your Top Mix", "top-mix")}
+          {renderSectionHeader("Your Top Mix", "top-mix", "/categories/top-mix")}
           <FlatList
             data={newReleases.slice(0, 6)}
             renderItem={renderSmallCard}
@@ -283,7 +292,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Recently Added", "recently-added")}
+          {renderSectionHeader("Recently Added", "recently-added", "/categories/recently-added")}
           <FlatList
             data={recentlyPlayed}
             renderItem={renderCard}
@@ -295,7 +304,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Trending Videos", "trending-videos")}
+          {renderSectionHeader("Trending Videos", "trending-videos", "/categories/trending-videos")}
           <FlatList
             data={featuredContent}
             renderItem={renderCard}
@@ -307,7 +316,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Most Viewed", "most-viewed")}
+          {renderSectionHeader("Most Viewed", "most-viewed", "/categories/most-viewed")}
           <FlatList
             data={topCharts}
             renderItem={renderCard}
@@ -319,7 +328,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Browse Genres", "browse-genres")}
+          {renderSectionHeader("Browse Genres", "browse-genres", "/categories/genres")}
           <FlatList
             data={genres}
             renderItem={renderGenre}
@@ -331,7 +340,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Recent Podcast", "recent-podcast")}
+          {renderSectionHeader("Recent Podcast", "recent-podcast", "/categories/podcasts")}
           <FlatList
             data={podcasts}
             renderItem={renderCard}
@@ -343,7 +352,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={[styles.section, { marginBottom: 120 }]}> 
-          {renderSectionHeader("Latest Books", "latest-books")}
+          {renderSectionHeader("Latest Books", "latest-books", "/categories/audiobooks")}
           <FlatList
             data={audiobooks}
             renderItem={renderCard}
