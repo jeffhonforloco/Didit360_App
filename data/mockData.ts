@@ -601,12 +601,123 @@ export const saasScotchEpisodes: Track[] = [
   },
 ];
 
+// More podcast shows with episodes
+export const appleTalkEpisodes: Track[] = [
+  {
+    id: "at1",
+    title: "968: The Future of Apple Intelligence",
+    artist: "Apple Talk",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2400,
+    type: "podcast",
+    description: "Apple Talk",
+  },
+  {
+    id: "at2",
+    title: "967: iOS 18 Deep Dive Review",
+    artist: "Apple Talk",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 2700,
+    type: "podcast",
+    description: "Apple Talk",
+  },
+];
+
+export const drDeathEpisodes: Track[] = [
+  {
+    id: "dd1",
+    title: "837: The Surgeon's Secret",
+    artist: "Dr. Death",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3200,
+    type: "podcast",
+    description: "Dr. Death",
+  },
+  {
+    id: "dd2",
+    title: "836: Medical Malpractice Exposed",
+    artist: "Dr. Death",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 2900,
+    type: "podcast",
+    description: "Dr. Death",
+  },
+];
+
+export const investLikeTheBestEpisodes: Track[] = [
+  {
+    id: "iltb1",
+    title: "493: Warren Buffett's Investment Philosophy",
+    artist: "Invest Like The Best",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 3600,
+    type: "podcast",
+    description: "Invest Like The Best",
+  },
+  {
+    id: "iltb2",
+    title: "492: The Future of Venture Capital",
+    artist: "Invest Like The Best",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 2800,
+    type: "podcast",
+    description: "Invest Like The Best",
+  },
+];
+
+export const breakfastClubEpisodes: Track[] = [
+  {
+    id: "bc1",
+    title: "682: Celebrity Interview Special",
+    artist: "The Breakfast Club",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 4200,
+    type: "podcast",
+    description: "The Breakfast Club",
+  },
+  {
+    id: "bc2",
+    title: "681: Hip-Hop Culture Discussion",
+    artist: "The Breakfast Club",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 3900,
+    type: "podcast",
+    description: "The Breakfast Club",
+  },
+];
+
+export const whatADayEpisodes: Track[] = [
+  {
+    id: "wad1",
+    title: "934: Today's Political Landscape",
+    artist: "What a Day",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 1800,
+    type: "podcast",
+    description: "What a Day",
+  },
+  {
+    id: "wad2",
+    title: "933: Breaking News Analysis",
+    artist: "What a Day",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 1650,
+    type: "podcast",
+    description: "What a Day",
+  },
+];
+
 // All podcast episodes combined
 export const allPodcastEpisodes: Track[] = [
   ...jordanHarbingerEpisodes,
   ...twentyThousandHertzEpisodes,
   ...hiddenBrainEpisodes,
   ...saasScotchEpisodes,
+  ...appleTalkEpisodes,
+  ...drDeathEpisodes,
+  ...investLikeTheBestEpisodes,
+  ...breakfastClubEpisodes,
+  ...whatADayEpisodes,
 ];
 
 export const allTracks: Track[] = [

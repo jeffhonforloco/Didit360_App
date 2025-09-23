@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Search, ChevronDown } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { featuredContent, topCharts, newReleases } from "@/data/mockData";
+import { featuredContent, topCharts, newReleases, allPodcastEpisodes } from "@/data/mockData";
 import type { Track } from "@/types";
 
 type TabType = "singers" | "podcasters";
@@ -33,6 +33,8 @@ export default function ArtistsScreen() {
 
   const artists = useMemo<Artist[]>(() => {
     const byArtist: Record<string, Artist> = {};
+    
+    // Process songs
     [...featuredContent, ...topCharts, ...newReleases].forEach((track) => {
       if (!byArtist[track.artist]) {
         byArtist[track.artist] = {
@@ -40,10 +42,24 @@ export default function ArtistsScreen() {
           name: track.artist,
           artwork: track.artwork,
           songCount: 0,
-          type: track.type === "podcast" ? "podcaster" : "singer"
+          type: "singer"
         };
       }
       byArtist[track.artist].songCount++;
+    });
+    
+    // Process podcasts
+    allPodcastEpisodes.forEach((episode) => {
+      if (!byArtist[episode.artist]) {
+        byArtist[episode.artist] = {
+          id: episode.artist,
+          name: episode.artist,
+          artwork: episode.artwork,
+          songCount: 0,
+          type: "podcaster"
+        };
+      }
+      byArtist[episode.artist].songCount++;
     });
     
     const artistList = Object.values(byArtist);
@@ -86,7 +102,7 @@ export default function ArtistsScreen() {
         {item.name}
       </Text>
       <Text style={styles.artistInfo} numberOfLines={1}>
-        {item.songCount} Songs
+        {item.songCount} {item.type === "podcaster" ? "Episodes" : "Songs"}
       </Text>
     </TouchableOpacity>
   ), [handleArtistPress]);
