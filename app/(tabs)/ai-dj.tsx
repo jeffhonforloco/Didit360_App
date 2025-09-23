@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,20 @@ import { Sparkles, Play, RefreshCw, Settings } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { aiDjPrompts, type AIDJPromptCategoryKey } from "@/data/aiDjPrompts";
+
+interface GeneratedTrack {
+  id: string;
+  title: string;
+  artist: string;
+  artwork: string;
+}
+
+interface GeneratedSet {
+  title: string;
+  description: string;
+  tracks: GeneratedTrack[];
+}
 
 const presetMoods = [
   { id: "energetic", label: "Energetic", emoji: "⚡" },
@@ -22,64 +36,60 @@ const presetMoods = [
   { id: "party", label: "Party", emoji: "🎉" },
   { id: "romantic", label: "Romantic", emoji: "💕" },
   { id: "workout", label: "Workout", emoji: "💪" },
-];
+] as const;
 
 export default function AIDJScreen() {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState<string>("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedSet, setGeneratedSet] = useState<any>(null);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generatedSet, setGeneratedSet] = useState<GeneratedSet | null>(null);
   const { playTrack } = usePlayer();
 
-  const handleGenerate = async () => {
-    if (!prompt && !selectedMood) return;
-    
-    setIsGenerating(true);
-    
-    // Simulate AI generation
-    setTimeout(() => {
-      setGeneratedSet({
-        title: selectedMood ? `${presetMoods.find(m => m.id === selectedMood)?.label} Mix` : "Custom AI Mix",
-        description: prompt || `Perfect for your ${selectedMood} mood`,
-        tracks: [
-          {
-            id: "ai-1",
-            title: "Electric Dreams",
-            artist: "Synthwave Collective",
-            artwork: "https://picsum.photos/400/400?random=101",
-          },
-          {
-            id: "ai-2",
-            title: "Neon Nights",
-            artist: "Digital Pulse",
-            artwork: "https://picsum.photos/400/400?random=102",
-          },
-          {
-            id: "ai-3",
-            title: "Future Echoes",
-            artist: "Cyber Symphony",
-            artwork: "https://picsum.photos/400/400?random=103",
-          },
-        ],
-      });
-      setIsGenerating(false);
-    }, 2000);
-  };
+  const suggestionCategories = useMemo(() => Object.keys(aiDjPrompts) as AIDJPromptCategoryKey[], []);
 
-  const handlePlaySet = () => {
-    if (generatedSet && generatedSet.tracks.length > 0) {
-      playTrack(generatedSet.tracks[0]);
+  const handleGenerate = useCallback(async () => {
+    try {
+      if (!prompt && !selectedMood) return;
+      console.log("[AI-DJ] Generating with", { prompt, selectedMood });
+      setIsGenerating(true);
+      setTimeout(() => {
+        const titleBase = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? "AI"} Mix` : "Custom AI Mix";
+        const newSet: GeneratedSet = {
+          title: titleBase,
+          description: prompt || `Perfect for your ${selectedMood ?? "custom"} vibe` ,
+          tracks: [
+            { id: "ai-1", title: "Electric Dreams", artist: "Synthwave Collective", artwork: "https://picsum.photos/400/400?random=101" },
+            { id: "ai-2", title: "Neon Nights", artist: "Digital Pulse", artwork: "https://picsum.photos/400/400?random=102" },
+            { id: "ai-3", title: "Future Echoes", artist: "Cyber Symphony", artwork: "https://picsum.photos/400/400?random=103" },
+          ],
+        };
+        setGeneratedSet(newSet);
+        console.log("[AI-DJ] Generated set", newSet);
+        setIsGenerating(false);
+      }, 900);
+    } catch (e) {
+      console.error("[AI-DJ] Generation error", e);
+      setIsGenerating(false);
     }
-  };
+  }, [prompt, selectedMood]);
+
+  const handlePlaySet = useCallback(() => {
+    if (generatedSet && generatedSet.tracks.length > 0) {
+      console.log("[AI-DJ] Playing first track of set", generatedSet.tracks[0]);
+      playTrack(generatedSet.tracks[0] as unknown as any);
+    }
+  }, [generatedSet, playTrack]);
+
+  const appendPrompt = useCallback((text: string) => {
+    setPrompt((p) => (p ? `${p}\n${text}` : text));
+  }, []);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>AI DJ</Text>
-          <Text style={styles.subtitle}>
-            Let AI create the perfect mix for you
-          </Text>
+          <Text style={styles.title} testID="ai-dj-title">AI DJ</Text>
+          <Text style={styles.subtitle} testID="ai-dj-subtitle">Let AI create the perfect mix for you</Text>
         </View>
 
         <LinearGradient
@@ -91,13 +101,12 @@ export default function AIDJScreen() {
           <Sparkles size={48} color="#FFF" />
           <Text style={styles.aiTitle}>Intelligent Music Curation</Text>
           <Text style={styles.aiDescription}>
-            Describe your mood, activity, or music preference and let our AI DJ
-            create a personalized set just for you
+            Describe your mood, activity, or music preference and let our AI DJ create a personalized set just for you
           </Text>
         </LinearGradient>
 
         <View style={styles.promptSection}>
-          <Text style={styles.sectionTitle}>What's your vibe?</Text>
+          <Text style={styles.sectionTitle}>Whats your vibe?</Text>
           <TextInput
             style={styles.promptInput}
             placeholder="e.g., Upbeat songs for a morning run..."
@@ -106,7 +115,40 @@ export default function AIDJScreen() {
             onChangeText={setPrompt}
             multiline
             numberOfLines={3}
+            testID="ai-dj-prompt-input"
           />
+        </View>
+
+        <View style={styles.suggestionsSection}>
+          {suggestionCategories.map((cat) => {
+            const items = aiDjPrompts[cat] ?? [];
+            if (!items || items.length === 0) return null;
+            const title = cat
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (m) => m.toUpperCase());
+            return (
+              <View key={cat} style={styles.suggestionBlock}>
+                <Text style={styles.suggestionTitle}>{title}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionRow}>
+                  {items.map((s, idx) => (
+                    <TouchableOpacity
+                      key={`${cat}-${idx}`}
+                      style={styles.suggestionChip}
+                      onPress={() => {
+                        const text = (s ?? "").toString().trim();
+                        if (!text) return;
+                        if (text.length > 280) return;
+                        appendPrompt(text);
+                      }}
+                      testID={`ai-dj-chip-${cat}-${idx}`}
+                    >
+                      <Text style={styles.suggestionText}>{s}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            );
+          })}
         </View>
 
         <View style={styles.moodSection}>
@@ -115,19 +157,12 @@ export default function AIDJScreen() {
             {presetMoods.map((mood) => (
               <TouchableOpacity
                 key={mood.id}
-                style={[
-                  styles.moodCard,
-                  selectedMood === mood.id && styles.moodCardActive,
-                ]}
+                style={[styles.moodCard, selectedMood === mood.id && styles.moodCardActive]}
                 onPress={() => setSelectedMood(mood.id)}
+                testID={`ai-dj-mood-${mood.id}`}
               >
                 <Text style={styles.moodEmoji}>{mood.emoji}</Text>
-                <Text
-                  style={[
-                    styles.moodLabel,
-                    selectedMood === mood.id && styles.moodLabelActive,
-                  ]}
-                >
+                <Text style={[styles.moodLabel, selectedMood === mood.id && styles.moodLabelActive]}>
                   {mood.label}
                 </Text>
               </TouchableOpacity>
@@ -139,6 +174,7 @@ export default function AIDJScreen() {
           style={[styles.generateButton, isGenerating && styles.generateButtonDisabled]}
           onPress={handleGenerate}
           disabled={isGenerating || (!prompt && !selectedMood)}
+          testID="ai-dj-generate"
         >
           {isGenerating ? (
             <ActivityIndicator color="#FFF" />
@@ -151,20 +187,15 @@ export default function AIDJScreen() {
         </TouchableOpacity>
 
         {generatedSet && (
-          <View style={styles.resultSection}>
+          <View style={styles.resultSection} testID="ai-dj-result">
             <Text style={styles.resultTitle}>{generatedSet.title}</Text>
-            <Text style={styles.resultDescription}>
-              {generatedSet.description}
-            </Text>
-            
+            <Text style={styles.resultDescription}>{generatedSet.description}</Text>
+
             <View style={styles.trackList}>
-              {generatedSet.tracks.map((track: any, index: number) => (
+              {generatedSet.tracks.map((track, index) => (
                 <View key={track.id} style={styles.trackItem}>
                   <Text style={styles.trackNumber}>{index + 1}</Text>
-                  <Image
-                    source={{ uri: track.artwork }}
-                    style={styles.trackImage}
-                  />
+                  <Image source={{ uri: track.artwork }} style={styles.trackImage} />
                   <View style={styles.trackInfo}>
                     <Text style={styles.trackTitle}>{track.title}</Text>
                     <Text style={styles.trackArtist}>{track.artist}</Text>
@@ -174,21 +205,20 @@ export default function AIDJScreen() {
             </View>
 
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.playButton} onPress={handlePlaySet}>
+              <TouchableOpacity style={styles.playButton} onPress={handlePlaySet} testID="ai-dj-play">
                 <Play size={20} color="#000" fill="#FFF" />
                 <Text style={styles.playButtonText}>Play Mix</Text>
               </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.regenerateButton} onPress={handleGenerate}>
+
+              <TouchableOpacity style={styles.regenerateButton} onPress={handleGenerate} testID="ai-dj-regenerate">
                 <RefreshCw size={20} color="#FFF" />
               </TouchableOpacity>
             </View>
           </View>
         )}
 
-        <TouchableOpacity
-          style={styles.advancedButton}
-          onPress={() => router.push("/ai-dj-setup")}
+        <TouchableOpacity style={styles.advancedButton} onPress={() => router.push("/ai-dj-setup")}
+          testID="ai-dj-advanced"
         >
           <Settings size={20} color="#999" />
           <Text style={styles.advancedButtonText}>Advanced Settings</Text>
@@ -241,7 +271,7 @@ const styles = StyleSheet.create({
   },
   promptSection: {
     paddingHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -257,6 +287,35 @@ const styles = StyleSheet.create({
     color: "#FFF",
     minHeight: 80,
     textAlignVertical: "top",
+  },
+  suggestionsSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+  },
+  suggestionBlock: {
+    marginBottom: 16,
+  },
+  suggestionTitle: {
+    color: "#AAA",
+    fontSize: 13,
+    marginBottom: 8,
+    fontWeight: "600",
+  },
+  suggestionRow: {
+    flexGrow: 0,
+  },
+  suggestionChip: {
+    backgroundColor: "#151515",
+    borderWidth: 1,
+    borderColor: "#2A2A2A",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  suggestionText: {
+    color: "#DDD",
+    fontSize: 13,
   },
   moodSection: {
     paddingHorizontal: 20,
