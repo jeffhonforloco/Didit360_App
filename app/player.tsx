@@ -8,6 +8,8 @@ import {
   useWindowDimensions,
   FlatList,
   ScrollView,
+  Modal,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -28,6 +30,11 @@ import {
   RotateCcw,
   Bell,
   Settings,
+  Facebook,
+  Twitter,
+  Link,
+  Download,
+  Plus,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -38,11 +45,14 @@ import type { Track } from "@/types";
 export default function PlayerScreen() {
   const { width } = useWindowDimensions();
   const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious, queue, playTrack } = usePlayer();
-  const { toggleFavorite, isFavorite } = useLibrary();
+  const { toggleFavorite, isFavorite, playlists, addToPlaylist } = useLibrary();
   const [progress, setProgress] = useState(0.3);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
   const [currentView, setCurrentView] = useState<'player' | 'queue' | 'details'>('player');
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
+  const [showDownloadProgress, setShowDownloadProgress] = useState(false);
 
   if (!currentTrack) {
     router.back();
@@ -50,6 +60,31 @@ export default function PlayerScreen() {
   }
 
   const isLiked = isFavorite(currentTrack.id);
+
+  const handleShare = (platform: string) => {
+    console.log(`Sharing to ${platform}:`, currentTrack.title);
+    if (Platform.OS === 'web') {
+      if (platform === 'copy') {
+        navigator.clipboard.writeText(`Check out "${currentTrack.title}" by ${currentTrack.artist}`);
+        console.log('Link copied to clipboard');
+      }
+    }
+    setShowShareModal(false);
+  };
+
+  const handleDownload = () => {
+    setShowDownloadProgress(true);
+    setTimeout(() => {
+      setShowDownloadProgress(false);
+      console.log(`"${currentTrack.title}" has been downloaded`);
+    }, 2000);
+  };
+
+  const handleAddToPlaylist = (playlistId: string) => {
+    addToPlaylist(playlistId, currentTrack);
+    setShowAddToPlaylistModal(false);
+    console.log(`"${currentTrack.title}" added to playlist`);
+  };
 
   const renderQueueItem = ({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
@@ -221,13 +256,27 @@ export default function PlayerScreen() {
                 {currentTrack.artist}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => toggleFavorite(currentTrack)}>
-              <Heart
-                size={24}
-                color={isLiked ? "#FF0080" : "#FFF"}
-                fill={isLiked ? "#FF0080" : "transparent"}
-              />
-            </TouchableOpacity>
+            <View style={styles.titleActions}>
+              <TouchableOpacity 
+                style={styles.titleAction}
+                onPress={() => setShowAddToPlaylistModal(true)}
+              >
+                <Plus size={20} color="#999" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.titleAction}
+                onPress={handleDownload}
+              >
+                <Download size={20} color="#999" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => toggleFavorite(currentTrack)}>
+                <Heart
+                  size={24}
+                  color={isLiked ? "#FF0080" : "#FFF"}
+                  fill={isLiked ? "#FF0080" : "transparent"}
+                />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.progressContainer}>
@@ -292,7 +341,7 @@ export default function PlayerScreen() {
             <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/lyrics")} testID="open-lyrics">
               <Mic2 size={20} color="#999" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity style={styles.actionButton} onPress={() => setShowShareModal(true)}>
               <Share2 size={20} color="#999" />
             </TouchableOpacity>
             <TouchableOpacity 
@@ -304,6 +353,105 @@ export default function PlayerScreen() {
           </View>
         </View>
       </SafeAreaView>
+
+      {/* Share Modal */}
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.shareModal}>
+            <Text style={styles.shareTitle}>SHARE TO</Text>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('facebook')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Facebook size={24} color="#1877F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Facebook</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('google')}
+            >
+              <View style={[styles.shareIconContainer, { backgroundColor: '#DB4437' }]}>
+                <Text style={styles.googleIcon}>G+</Text>
+              </View>
+              <Text style={styles.shareOptionText}>Google +</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('twitter')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Twitter size={24} color="#1DA1F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Twitter</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('copy')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Link size={24} color="#999" />
+              </View>
+              <Text style={styles.shareOptionText}>Copy Link</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add to Playlist Modal */}
+      <Modal
+        visible={showAddToPlaylistModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowAddToPlaylistModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.playlistModal}>
+            <Text style={styles.playlistModalTitle}>Add this song to My Playlist</Text>
+            <FlatList
+              data={playlists}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.playlistOption}
+                  onPress={() => handleAddToPlaylist(item.id)}
+                >
+                  <Text style={styles.playlistOptionText}>{item.name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowAddToPlaylistModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Download Progress Modal */}
+      <Modal
+        visible={showDownloadProgress}
+        transparent
+        animationType="fade"
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.downloadModal}>
+            <Text style={styles.downloadText}>Downloading music for this song...</Text>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -566,5 +714,102 @@ const styles = StyleSheet.create({
   },
   suggestionMore: {
     padding: 8,
+  },
+  titleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  titleAction: {
+    padding: 8,
+    marginRight: 8,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+  },
+  shareModal: {
+    backgroundColor: '#2A2A2A',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  shareTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  shareOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  shareIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1877F2',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  shareOptionText: {
+    fontSize: 16,
+    color: '#FFF',
+    fontWeight: '500',
+  },
+  googleIcon: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  playlistModal: {
+    backgroundColor: '#2A2A2A',
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    maxHeight: '60%',
+  },
+  playlistModalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#8B1538',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  playlistOption: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  playlistOptionText: {
+    fontSize: 16,
+    color: '#FFF',
+  },
+  cancelButton: {
+    marginTop: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '600',
+  },
+  downloadModal: {
+    backgroundColor: '#8B1538',
+    borderRadius: 12,
+    padding: 20,
+    margin: 20,
+    alignItems: 'center',
+  },
+  downloadText: {
+    fontSize: 16,
+    color: '#FFF',
+    textAlign: 'center',
   },
 });
