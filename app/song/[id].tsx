@@ -14,18 +14,36 @@ import { ArrowLeft, MoreHorizontal, Heart, Play, Plus } from 'lucide-react-nativ
 import { usePlayer } from '@/contexts/PlayerContext';
 import { allTracks } from '@/data/mockData';
 import type { Track } from '@/types';
+import { trpc } from '@/lib/trpc';
+import { useUser } from '@/contexts/UserContext';
 
 export default function SongDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { playTrack } = usePlayer();
-  
-  const song = allTracks.find(track => track.id === id);
-  
-  if (!song) {
+  const { settings } = useUser();
+  const trackQuery = trpc.catalog.getTrack.useQuery({ id: id ?? '' }, { enabled: !!id });
+  const rightsQuery = trpc.catalog.rights.isStreamable.useQuery(
+    { entityType: 'track', id: id ?? '', country: 'US', explicitOk: settings.explicitContent },
+    { enabled: !!id }
+  );
+
+  const isLoading = trackQuery.isLoading || rightsQuery.isLoading;
+  const error = trackQuery.error || rightsQuery.error;
+  const song = trackQuery.data;
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}> 
+        <Text style={styles.errorText} testID="track-loading">Loading…</Text>
+      </View>
+    );
+  }
+
+  if (error || !song) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>Song not found</Text>
+        <Text style={styles.errorText} testID="track-error">Unable to load track</Text>
       </View>
     );
   }
@@ -90,6 +108,12 @@ export default function SongDetailScreen() {
             {song.type === 'song' ? 'Song' : song.type === 'podcast' ? 'Podcast' : 'Audiobook'} | {formatDuration(song.duration)} mins
           </Text>
 
+          {rightsQuery.data && !rightsQuery.data.streamable && (
+            <View style={styles.blockBanner} testID="not-streamable">
+              <Text style={styles.blockText}>Not streamable in your region or settings</Text>
+            </View>
+          )}
+
           <View style={styles.actions}>
             <TouchableOpacity style={styles.actionButton}>
               <Heart size={24} color="#FFF" />
@@ -101,8 +125,10 @@ export default function SongDetailScreen() {
               <MoreHorizontal size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.playButton}
+              style={[styles.playButton, rightsQuery.data && !rightsQuery.data.streamable ? { opacity: 0.4 } : null]}
+              disabled={rightsQuery.data ? !rightsQuery.data.streamable : true}
               onPress={() => playTrack(song)}
+              testID="play-track"
             >
               <Play size={20} color="#FFF" fill="#FFF" />
               <Text style={styles.playText}>Play</Text>
@@ -261,5 +287,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginTop: 100,
+  },
+  blockBanner: {
+    marginTop: 12,
+    marginBottom: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239,68,68,0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.35)'
+  },
+  blockText: {
+    color: '#FECACA',
+    fontSize: 14,
+    textAlign: 'center',
   },
 });

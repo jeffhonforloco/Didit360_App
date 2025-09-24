@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,11 +15,12 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from 'expo-router';
-import { Search, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban, Mic } from "lucide-react-native";
+import { Search as SearchIcon, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban, Mic } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
 import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes, audiobooks } from "@/data/mockData";
 import type { Track } from "@/types";
+import { trpc, trpcClient } from "@/lib/trpc";
 
 const browseCategories = [
   { name: "Charts", color: "#10B981", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
@@ -337,9 +338,20 @@ export default function SearchScreen() {
     return (
       <TouchableOpacity
         style={styles.searchResult}
-        onPress={() => {
-          playTrack(track);
-          router.push(`/song/${track.id}`);
+        onPress={async () => {
+          try {
+            const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: 'track', id: track.id, country: 'US', explicitOk: true });
+            if (rights.streamable) {
+              playTrack(track);
+              router.push(`/song/${track.id}`);
+            } else {
+              console.log('[Search] Track not streamable', rights.reasons);
+              alert('This track is not streamable in your region or settings.');
+            }
+          } catch (e) {
+            console.log('[Search] rights check error', e);
+            alert('Unable to verify streamability. Please try again.');
+          }
         }}
         activeOpacity={0.8}
       >
@@ -347,9 +359,20 @@ export default function SearchScreen() {
           <Image source={{ uri: track.artwork }} style={styles.resultImage} />
           <TouchableOpacity 
             style={styles.playButton}
-            onPress={(e) => {
+            onPress={async (e) => {
               e.stopPropagation();
-              playTrack(track);
+              try {
+                const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: 'track', id: track.id, country: 'US', explicitOk: true });
+                if (rights.streamable) {
+                  playTrack(track);
+                } else {
+                  console.log('[Search] Track not streamable', rights.reasons);
+                  alert('This track is not streamable in your region or settings.');
+                }
+              } catch (err) {
+                console.log('[Search] rights check error', err);
+                alert('Unable to verify streamability.');
+              }
             }}
           >
             <Play size={20} color="#E91E63" fill="#E91E63" />
@@ -437,6 +460,13 @@ export default function SearchScreen() {
     </View>
   );
 
+  const backendResults = trpc.catalog.search.useQuery(
+    { q: searchQuery || "", type: 'all', limit: 20 },
+    { enabled: searchQuery.trim().length > 0 }
+  );
+
+  const isUsingBackend = useMemo(() => searchQuery.trim().length > 0, [searchQuery]);
+
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
@@ -447,7 +477,7 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
         <View style={[styles.searchBar, isSearchFocused && styles.searchBarFocused]}>
-          <Search size={20} color="#999" />
+          <SearchIcon size={20} color="#999" />
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
@@ -478,6 +508,58 @@ export default function SearchScreen() {
           <View style={styles.results}>
             {renderFilterTabs()}
             {(() => {
+              if (isUsingBackend) {
+                if (backendResults.isLoading) {
+                  return <Text style={styles.resultsTitle} testID="search-loading">Searching…</Text>;
+                }
+                if (backendResults.error) {
+                  return <Text style={styles.resultsTitle} testID="search-error">Search error</Text>;
+                }
+                const data = backendResults.data ?? [];
+                if (data.length === 0) return renderNotFound();
+                return (
+                  <FlatList
+                    data={data}
+                    keyExtractor={(item) => item.id}
+                    scrollEnabled={false}
+                    style={styles.resultsList}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={styles.searchResult}
+                        testID={`result-${item.type}-${item.id}`}
+                        onPress={() => {
+                          if (item.type === 'track') router.push(`/song/${item.id}`);
+                          else if (item.type === 'artist') router.push(`/profile/${item.id}`);
+                          else if (item.type === 'release') router.push(`/album/${item.id}`);
+                          else if (item.type === 'podcast') router.push(`/podcast-show/${item.id}`);
+                          else if (item.type === 'episode') router.push(`/podcast-episode/${item.id}`);
+                          else {
+                            console.log('[Search] Unsupported navigate for type', item.type);
+                          }
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        {item.artwork ? (
+                          <Image source={{ uri: item.artwork }} style={styles.resultImage} />
+                        ) : (
+                          <View style={[styles.resultImage, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}>
+                            <Text style={{ color: '#666' }}>{item.type}</Text>
+                          </View>
+                        )}
+                        <View style={styles.resultInfo}>
+                          <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
+                          {item.subtitle ? (
+                            <Text style={styles.resultArtist} numberOfLines={1}>{item.subtitle}</Text>
+                          ) : null}
+                        </View>
+                        <TouchableOpacity style={styles.moreButton}>
+                          <MoreHorizontal size={20} color="#999" />
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    )}
+                  />
+                );
+              }
               const results = getFilteredResults();
               if (results.length === 0) {
                 return renderNotFound();
