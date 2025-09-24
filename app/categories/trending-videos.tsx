@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Play } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { featuredContent } from "@/data/mockData";
+import { videoTracks } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function TrendingVideosScreen() {
@@ -57,7 +57,7 @@ export default function TrendingVideosScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <FlatList
-          data={featuredContent}
+          data={videoTracks}
           renderItem={renderTrack}
           keyExtractor={(item) => `trending-${item.id}`}
           scrollEnabled={false}

@@ -51,11 +51,11 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
 
   const toggleControls = () => {
     setShowControls(!showControls);
-    setTimeout(() => {
-      if (showControls) {
+    if (!showControls) {
+      setTimeout(() => {
         setShowControls(false);
-      }
-    }, 3000);
+      }, 3000);
+    }
   };
 
   if (!track.videoUrl) {
@@ -133,15 +133,22 @@ const styles = StyleSheet.create({
     backgroundColor: "#000",
     borderRadius: 12,
     overflow: "hidden",
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
   videoContainer: {
     position: "relative",
     width: "100%",
     aspectRatio: 16 / 9,
+    minHeight: 200,
   },
   video: {
     width: "100%",
     height: "100%",
+    backgroundColor: "#000",
   },
   controlsOverlay: {
     position: "absolute",
@@ -149,7 +156,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
     justifyContent: "space-between",
   },
   topControls: {
@@ -168,14 +175,23 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   controlButton: {
-    padding: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    borderRadius: 20,
+    padding: 12,
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
   },
   playButton: {
-    padding: 16,
-    backgroundColor: "rgba(0, 0, 0, 0.7)",
-    borderRadius: 40,
+    padding: 20,
+    backgroundColor: "rgba(255, 0, 128, 0.9)",
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowColor: '#FF0080',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
   },
 });
 

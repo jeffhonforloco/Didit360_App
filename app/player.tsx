@@ -257,23 +257,25 @@ export default function PlayerScreen() {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.artworkContainer}>
-              {currentTrack.isVideo || currentTrack.type === "video" ? (
+            {currentTrack.isVideo || currentTrack.type === "video" ? (
+              <View style={styles.videoPlayerContainer}>
                 <VideoPlayer
                   track={currentTrack}
                   isPlaying={isPlaying}
                   onPlayPause={togglePlayPause}
-                  style={styles.videoPlayerContainer}
+                  style={styles.fullVideoPlayer}
                 />
-              ) : (
+              </View>
+            ) : (
+              <View style={styles.artworkContainer}>
                 <View style={styles.artworkWrapper}>
                   <Image
                     source={{ uri: currentTrack.artwork }}
                     style={styles.artwork}
                   />
                 </View>
-              )}
-            </View>
+              </View>
+            )}
 
             <View style={styles.infoContainer}>
               <View style={styles.titleSection}>
@@ -304,31 +306,33 @@ export default function PlayerScreen() {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.progressContainer}>
-                <TouchableOpacity 
-                  style={styles.sliderContainer}
-                  activeOpacity={1}
-                  onPress={(e) => {
-                    const { locationX } = e.nativeEvent;
-                    const containerWidth = width - 40;
-                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                    setProgress(newProgress);
-                  }}
-                >
-                  <View style={styles.sliderTrack}>
-                    <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                    <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+              {!(currentTrack.isVideo || currentTrack.type === "video") && (
+                <View style={styles.progressContainer}>
+                  <TouchableOpacity 
+                    style={styles.sliderContainer}
+                    activeOpacity={1}
+                    onPress={(e) => {
+                      const { locationX } = e.nativeEvent;
+                      const containerWidth = width - 40;
+                      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+                      setProgress(newProgress);
+                    }}
+                  >
+                    <View style={styles.sliderTrack}>
+                      <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
+                      <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.timeRow}>
+                    <Text style={styles.time}>
+                      {currentTrack.type === "audiobook" ? "12:15" : "2:46"}
+                    </Text>
+                    <Text style={styles.time}>
+                      {currentTrack.type === "audiobook" ? "47:32" : "3:05"}
+                    </Text>
                   </View>
-                </TouchableOpacity>
-                <View style={styles.timeRow}>
-                  <Text style={styles.time}>
-                    {currentTrack.type === "audiobook" ? "12:15" : "2:46"}
-                  </Text>
-                  <Text style={styles.time}>
-                    {currentTrack.type === "audiobook" ? "47:32" : "3:05"}
-                  </Text>
                 </View>
-              </View>
+              )}
 
               {currentTrack.type === "audiobook" ? (
                 <View style={styles.audiobookControls}>
@@ -375,7 +379,7 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
                   </View>
                 </View>
-              ) : (
+              ) : !(currentTrack.isVideo || currentTrack.type === "video") ? (
                 <View style={styles.controls}>
                   <TouchableOpacity
                     onPress={() => setShuffle(!shuffle)}
@@ -410,7 +414,7 @@ export default function PlayerScreen() {
                     <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
                   </TouchableOpacity>
                 </View>
-              )}
+              ) : null}
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -580,7 +584,16 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   videoPlayerContainer: {
-    width: 320,
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  fullVideoPlayer: {
+    width: '100%',
+    maxWidth: 400,
     borderRadius: 12,
     overflow: 'hidden',
     shadowColor: '#000',
