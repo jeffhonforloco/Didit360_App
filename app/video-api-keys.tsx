@@ -11,22 +11,26 @@ interface KeysForm {
   muxTokenSecret: string;
   cfAccountId: string;
   cfToken: string;
+  nvidiaNimKey: string;
+  nvidiaApiBase: string;
 }
 
 export default function VideoApiKeysScreen() {
   const { getSecret, setSecret, hasSecureStorage } = useSecrets();
-  const [form, setForm] = useState<KeysForm>({ muxTokenId: '', muxTokenSecret: '', cfAccountId: '', cfToken: '' });
+  const [form, setForm] = useState<KeysForm>({ muxTokenId: '', muxTokenSecret: '', cfAccountId: '', cfToken: '', nvidiaNimKey: '', nvidiaApiBase: '' });
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const [muxId, muxSecret, cfAcc, cfTok] = await Promise.all([
+        const [muxId, muxSecret, cfAcc, cfTok, nvKey, nvBase] = await Promise.all([
           getSecret('mux.token_id'),
           getSecret('mux.token_secret'),
           getSecret('cf.account_id'),
           getSecret('cf.api_token'),
+          getSecret('nvidia.nim_api_key'),
+          getSecret('nvidia.api_base'),
         ]);
         if (isMounted) {
           setForm({
@@ -34,6 +38,8 @@ export default function VideoApiKeysScreen() {
             muxTokenSecret: muxSecret ?? '',
             cfAccountId: cfAcc ?? '',
             cfToken: cfTok ?? '',
+            nvidiaNimKey: nvKey ?? '',
+            nvidiaApiBase: nvBase ?? '',
           });
         }
       } catch (e) {
@@ -46,7 +52,8 @@ export default function VideoApiKeysScreen() {
   const canSave = useMemo(() => {
     return (
       (form.muxTokenId.length > 0 && form.muxTokenSecret.length > 0) ||
-      (form.cfAccountId.length > 0 && form.cfToken.length > 0)
+      (form.cfAccountId.length > 0 && form.cfToken.length > 0) ||
+      (form.nvidiaNimKey.length > 0)
     );
   }, [form]);
 
@@ -61,6 +68,12 @@ export default function VideoApiKeysScreen() {
       if (form.cfAccountId && form.cfToken) {
         await setSecret('cf.account_id', form.cfAccountId, 'video');
         await setSecret('cf.api_token', form.cfToken, 'video');
+      }
+      if (form.nvidiaNimKey) {
+        await setSecret('nvidia.nim_api_key', form.nvidiaNimKey, 'video');
+      }
+      if (form.nvidiaApiBase) {
+        await setSecret('nvidia.api_base', form.nvidiaApiBase, 'video');
       }
       Alert.alert('Saved', hasSecureStorage ? 'Stored securely on device' : 'Stored locally (web)');
     } catch (e) {
@@ -108,6 +121,25 @@ export default function VideoApiKeysScreen() {
           secureTextEntry
           value={form.cfToken}
           onChangeText={(t) => setForm(prev => ({ ...prev, cfToken: t }))}
+        />
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.caption}>NVIDIA NIM / Video Services</Text>
+        <TextField
+          testID="nvidia-api-base"
+          placeholder="NVIDIA API Base (optional, e.g. https://nim.yourdomain/api)"
+          autoCapitalize="none"
+          value={form.nvidiaApiBase}
+          onChangeText={(t) => setForm(prev => ({ ...prev, nvidiaApiBase: t }))}
+        />
+        <TextField
+          testID="nvidia-nim-key"
+          placeholder="NVIDIA API Key"
+          autoCapitalize="none"
+          secureTextEntry
+          value={form.nvidiaNimKey}
+          onChangeText={(t) => setForm(prev => ({ ...prev, nvidiaNimKey: t }))}
         />
       </View>
 
