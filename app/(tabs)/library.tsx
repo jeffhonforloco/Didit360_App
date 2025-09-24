@@ -9,7 +9,7 @@ import {
   FlatList,
   TextInput,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Plus,
   Download,
@@ -223,7 +223,7 @@ export default function LibraryScreen() {
   }, [playTrack, viewMode, router]);
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <Text style={styles.title}>Your Library</Text>
@@ -466,7 +466,7 @@ export default function LibraryScreen() {
           />
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
