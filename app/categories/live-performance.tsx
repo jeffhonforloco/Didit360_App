@@ -12,26 +12,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Play } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { topCharts } from "@/data/mockData";
+import { livePerformanceVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function LivePerformanceScreen() {
   const { playTrack } = usePlayer();
 
   const renderTrack = ({ item }: { item: Track }) => {
-    // Mark live performance tracks as video content
-    const liveTrack: Track = {
-      ...item,
-      isVideo: true,
-      type: "video",
-      description: "Live Performance",
-      videoUrl: item.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-    };
-    
     return (
       <TouchableOpacity
         style={styles.trackCard}
-        onPress={() => playTrack(liveTrack)}
+        onPress={() => playTrack(item)}
         activeOpacity={0.8}
         testID={`track-${item.id}`}
       >
@@ -45,7 +36,7 @@ export default function LivePerformanceScreen() {
           </Text>
           <Text style={styles.liveLabel}>Live Performance</Text>
         </View>
-        <TouchableOpacity style={styles.playButton} onPress={() => playTrack(liveTrack)}>
+        <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)}>
           <Play size={16} color="#000" fill="#FFF" />
         </TouchableOpacity>
       </TouchableOpacity>
@@ -68,7 +59,7 @@ export default function LivePerformanceScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <FlatList
-          data={topCharts}
+          data={livePerformanceVideos}
           renderItem={renderTrack}
           keyExtractor={(item) => `live-${item.id}`}
           scrollEnabled={false}
