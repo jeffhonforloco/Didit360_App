@@ -11,13 +11,18 @@ export default function AccountScreen() {
   const nav = useNavigation();
   const insets = useSafeAreaInsets();
 
-  const initialName = profile?.displayName ?? "";
-  const initialEmail = profile?.email ?? "";
-  const initialAvatar = profile?.avatarUrl ?? "";
+  const [name, setName] = useState<string>(profile?.displayName ?? "");
+  const [email, setEmail] = useState<string>(profile?.email ?? "");
+  const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatarUrl ?? "");
 
-  const [name, setName] = useState<string>(initialName);
-  const [email, setEmail] = useState<string>(initialEmail);
-  const [avatarUrl, setAvatarUrl] = useState<string>(initialAvatar ?? "");
+  // Update local state when profile changes
+  React.useEffect(() => {
+    if (profile) {
+      setName(profile.displayName);
+      setEmail(profile.email);
+      setAvatarUrl(profile.avatarUrl ?? "");
+    }
+  }, [profile]);
   const [saving, setSaving] = useState<boolean>(false);
   const [currentPw, setCurrentPw] = useState<string>("");
   const [newPw, setNewPw] = useState<string>("");

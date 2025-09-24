@@ -103,7 +103,8 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
           avatarUrl: null
         };
         setProfile(defaultProfile);
-        await persist(PROFILE_KEY, defaultProfile);
+        // Only persist default profile if no profile exists at all
+        // Don't overwrite existing profile data
       }
       if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
     } catch (err) {
