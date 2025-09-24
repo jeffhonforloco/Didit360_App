@@ -313,6 +313,8 @@ export default function LibraryScreen() {
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterList}
+          scrollEnabled={true}
+          nestedScrollEnabled={true}
         />
       </SafeAreaView>
 
@@ -363,7 +365,14 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.historyScroll}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
             {recentlyPlayed.slice(0, 5).map((track, index) => (
               <TouchableOpacity
                 key={track.id}
@@ -394,7 +403,14 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.historyScroll}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
             {podcasts.slice(0, 5).map((podcast, index) => (
               <TouchableOpacity
                 key={podcast.id}
@@ -421,7 +437,14 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
           
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            style={styles.historyScroll}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            contentContainerStyle={styles.horizontalScrollContent}
+          >
             {audiobooks.slice(0, 5).map((audiobook, index) => (
               <TouchableOpacity
                 key={audiobook.id}
@@ -449,7 +472,14 @@ export default function LibraryScreen() {
           </View>
           
           {mixmindSets.length > 0 ? (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false} 
+              style={styles.historyScroll}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+              contentContainerStyle={styles.horizontalScrollContent}
+            >
               {mixmindSets.slice(0, 5).map((set, index) => (
                 <TouchableOpacity
                   key={set.id}
@@ -790,5 +820,8 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 14,
     lineHeight: 20,
+  },
+  horizontalScrollContent: {
+    paddingRight: 20,
   },
 });
