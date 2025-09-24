@@ -35,7 +35,7 @@ export default function ProfileScreen() {
     else router.push("/settings" as Href);
   };
 
-  const avatarSrc = profile?.avatarUrl ?? "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop";
+  const avatarSrc = profile?.avatarUrl || "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop";
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]} testID="profile-screen">

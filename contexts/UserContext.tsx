@@ -96,11 +96,11 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       if (p) {
         setProfile(JSON.parse(p));
       } else {
-        // Set default profile if none exists
+        // Set default profile if none exists - but without hardcoded avatar
         const defaultProfile = {
           displayName: 'jeffhonforloco',
           email: 'jeffhonforloco@gmail.com',
-          avatarUrl: 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop'
+          avatarUrl: null
         };
         setProfile(defaultProfile);
         await persist(PROFILE_KEY, defaultProfile);
