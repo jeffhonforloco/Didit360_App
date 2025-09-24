@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -41,19 +41,37 @@ import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import type { Track } from "@/types";
+import { audioEngine, Progress } from "@/lib/AudioEngine";
 
 
 export default function PlayerScreen() {
   const { width } = useWindowDimensions();
   const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious, queue, playTrack } = usePlayer();
   const { toggleFavorite, isFavorite, playlists, addToPlaylist } = useLibrary();
-  const [progress, setProgress] = useState(0.3);
+  const [progress, setProgress] = useState<number>(0);
+  const [positionMs, setPositionMs] = useState<number>(0);
+  const [durationMs, setDurationMs] = useState<number>(0);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState(false);
   const [currentView, setCurrentView] = useState<'player' | 'queue' | 'details'>('player');
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [showDownloadProgress, setShowDownloadProgress] = useState(false);
+
+  useEffect(() => {
+    const unsub = audioEngine.subscribeProgress((p: Progress) => {
+      setPositionMs(p.position);
+      setDurationMs(p.duration);
+      const pct = p.duration > 0 ? p.position / p.duration : 0;
+      setProgress(Math.max(0, Math.min(1, pct)));
+    });
+    return () => {
+      unsub();
+    };
+  }, []);
+
+  const elapsed = useMemo(() => formatMs(positionMs), [positionMs]);
+  const total = useMemo(() => formatMs(durationMs), [durationMs]);
 
   if (!currentTrack) {
     router.back();
@@ -279,6 +297,8 @@ export default function PlayerScreen() {
                   const containerWidth = width - 40;
                   const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
                   setProgress(newProgress);
+                  const target = Math.floor(newProgress * (durationMs || 0));
+                  audioEngine.seekTo(target).catch((e) => console.log('[Player] seek error', e));
                 }}
               >
                 <View style={styles.sliderTrack}>
@@ -287,8 +307,8 @@ export default function PlayerScreen() {
                 </View>
               </TouchableOpacity>
               <View style={styles.timeRow}>
-                <Text style={styles.time}>2:46</Text>
-                <Text style={styles.time}>3:05</Text>
+                <Text style={styles.time}>{elapsed}</Text>
+                <Text style={styles.time}>{total}</Text>
               </View>
             </View>
 
@@ -519,6 +539,8 @@ export default function PlayerScreen() {
                     const containerWidth = width - 40;
                     const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
                     setProgress(newProgress);
+                    const target = Math.floor(newProgress * (durationMs || 0));
+                    audioEngine.seekTo(target).catch((e) => console.log('[Player] seek error', e));
                   }}
                 >
                   <View style={styles.sliderTrack}>
@@ -527,12 +549,8 @@ export default function PlayerScreen() {
                   </View>
                 </TouchableOpacity>
                 <View style={styles.timeRow}>
-                  <Text style={styles.time}>
-                    {isAudiobookTrack ? "12:15" : "2:46"}
-                  </Text>
-                  <Text style={styles.time}>
-                    {isAudiobookTrack ? "47:32" : "3:05"}
-                  </Text>
+                  <Text style={styles.time}>{elapsed}</Text>
+                  <Text style={styles.time}>{total}</Text>
                 </View>
               </View>
 
@@ -722,6 +740,14 @@ export default function PlayerScreen() {
       </Modal>
     </View>
   );
+}
+
+function formatMs(ms: number): string {
+  if (!ms || ms < 0) return '0:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 const styles = StyleSheet.create({

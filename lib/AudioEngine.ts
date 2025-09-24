@@ -1,5 +1,6 @@
-import { Audio, AVPlaybackStatusSuccess, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
+import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Track } from '@/types';
 
 type Playable = {
@@ -8,6 +9,8 @@ type Playable = {
   uri: string | null;
 };
 
+export type Progress = { position: number; duration: number; buffered: number };
+
 type EngineState = 'idle' | 'loading' | 'playing' | 'paused' | 'stopped' | 'error';
 
 export type AudioEngineEvents = {
@@ -15,6 +18,7 @@ export type AudioEngineEvents = {
   onTrackEnd?: (track: Track) => void;
   onError?: (error: unknown) => void;
   onStateChange?: (state: EngineState) => void;
+  onProgress?: (p: Progress) => void;
 };
 
 const fallbackUris: Record<Track['type'], string> = {
@@ -42,6 +46,7 @@ export class AudioEngine {
   private fadeTimer: null | ReturnType<typeof setInterval> = null;
   private endSub: any = null;
   private isFading = false;
+  private progressListeners = new Set<(p: Progress) => void>();
 
   async configure() {
     try {
@@ -56,6 +61,7 @@ export class AudioEngine {
           playThroughEarpieceAndroid: false,
         });
       }
+      await this.loadPersistedPrefs();
     } catch (e) {
       console.log('[AudioEngine] configure error', e);
     }
@@ -63,6 +69,23 @@ export class AudioEngine {
 
   setEvents(events: AudioEngineEvents) {
     this.events = events;
+  }
+
+  private async loadPersistedPrefs() {
+    const types: Track['type'][] = ['song', 'podcast', 'audiobook', 'video'];
+    for (const t of types) {
+      try {
+        const v = await AsyncStorage.getItem(`audioPrefs:${t}` as const);
+        if (v) {
+          const p = JSON.parse(v) as { crossfadeMs: number; gapless: boolean };
+          if (typeof p.crossfadeMs === 'number' && typeof p.gapless === 'boolean') {
+            this.contentPrefs[t] = { crossfadeMs: Math.max(0, p.crossfadeMs), gapless: p.gapless };
+          }
+        }
+      } catch (e) {
+        console.log('[AudioEngine] load prefs error', e);
+      }
+    }
   }
 
   setCrossfade(ms: number) {
@@ -73,12 +96,17 @@ export class AudioEngine {
     this.gapless = enabled;
   }
 
-  setContentPrefs(type: Track['type'], prefs: { crossfadeMs?: number; gapless?: boolean }) {
+  async setContentPrefs(type: Track['type'], prefs: { crossfadeMs?: number; gapless?: boolean }) {
     const current = this.contentPrefs[type];
     this.contentPrefs[type] = {
       crossfadeMs: Math.max(0, prefs.crossfadeMs ?? current.crossfadeMs),
       gapless: prefs.gapless ?? current.gapless,
     };
+    try {
+      await AsyncStorage.setItem(`audioPrefs:${type}` as const, JSON.stringify(this.contentPrefs[type]));
+    } catch (e) {
+      console.log('[AudioEngine] persist prefs error', e);
+    }
   }
 
   private getActive(): Playable {
@@ -121,12 +149,21 @@ export class AudioEngine {
       sound.setOnPlaybackStatusUpdate(null);
       this.endSub = null;
     }
-    sound.setOnPlaybackStatusUpdate((status) => {
+    sound.setOnPlaybackStatusUpdate((status: AVPlaybackStatus) => {
+      if (!('isLoaded' in status) || !status.isLoaded) {
+        if ('error' in status && status.error) {
+          console.log('[AudioEngine] playback status error', status.error);
+          this.recoverFromError(track).catch((e) => console.log('[AudioEngine] recover error', e));
+        }
+        return;
+      }
       const s = status as AVPlaybackStatusSuccess;
-      if (!s.isLoaded) return;
       try {
-        const duration = (s.durationMillis ?? 0);
-        const position = (s.positionMillis ?? 0);
+        const duration = s.durationMillis ?? 0;
+        const position = s.positionMillis ?? 0;
+        const buffered = s.playableDurationMillis ?? 0;
+        if (this.events.onProgress) this.events.onProgress({ position, duration, buffered });
+        this.progressListeners.forEach((cb) => cb({ position, duration, buffered }));
         const remaining = duration > 0 ? Math.max(0, duration - position) : Number.MAX_SAFE_INTEGER;
         const shouldAutoFade = this.crossfadeDurationMs > 0 && !!this.nextTrack && !this.isFading && remaining <= (this.crossfadeDurationMs + 200);
         if (shouldAutoFade && this.nextTrack) {
@@ -153,7 +190,13 @@ export class AudioEngine {
       const active = this.getActive();
       await this.unload(active);
       const sound = new Audio.Sound();
-      await sound.loadAsync({ uri }, { shouldPlay: true, volume: 1.0, isLooping: false }, true);
+      try {
+        await sound.loadAsync({ uri }, { shouldPlay: true, volume: 1.0, isLooping: false }, true);
+      } catch (e1) {
+        console.log('[AudioEngine] primary load failed, trying fallback', e1);
+        const fallback = fallbackUris[track.type] ?? uri;
+        await sound.loadAsync({ uri: fallback }, { shouldPlay: true, volume: 1.0, isLooping: false }, true);
+      }
       active.sound = sound;
       active.track = track;
       active.uri = uri;
@@ -176,7 +219,13 @@ export class AudioEngine {
     const inactive = this.getInactive();
     await this.unload(inactive);
     const sound = new Audio.Sound();
-    await sound.loadAsync({ uri }, { shouldPlay: false, volume: 0.0, isLooping: false }, true);
+    try {
+      await sound.loadAsync({ uri }, { shouldPlay: false, volume: 0.0, isLooping: false }, true);
+    } catch (e1) {
+      console.log('[AudioEngine] preload primary failed, trying fallback', e1);
+      const fallback = fallbackUris[track.type] ?? uri;
+      await sound.loadAsync({ uri: fallback }, { shouldPlay: false, volume: 0.0, isLooping: false }, true);
+    }
     inactive.sound = sound;
     inactive.track = track;
     inactive.uri = uri;
@@ -262,6 +311,50 @@ export class AudioEngine {
     await this.unload(this.a);
     await this.unload(this.b);
     this.setState('stopped');
+  }
+
+  async seekTo(ms: number) {
+    const active = this.getActive();
+    if (active.sound) {
+      try {
+        await active.sound.setPositionAsync(Math.max(0, Math.floor(ms)));
+      } catch (e) {
+        console.log('[AudioEngine] seek error', e);
+      }
+    }
+  }
+
+  subscribeProgress(cb: (p: Progress) => void) {
+    this.progressListeners.add(cb);
+    return () => {
+      this.progressListeners.delete(cb);
+    };
+  }
+
+  getCurrentTrack() {
+    const active = this.getActive();
+    return active.track;
+  }
+
+  async getStatus(): Promise<AVPlaybackStatus | null> {
+    const active = this.getActive();
+    try {
+      if (active.sound) return await active.sound.getStatusAsync();
+    } catch (e) {
+      console.log('[AudioEngine] getStatus error', e);
+    }
+    return null;
+  }
+
+  private async recoverFromError(track: Track) {
+    try {
+      const active = this.getActive();
+      if (active.track && track.id === active.track.id) {
+        await this.loadAndPlay(track, this.nextTrack ?? undefined);
+      }
+    } catch (e) {
+      console.log('[AudioEngine] recoverFromError failed', e);
+    }
   }
 }
 
