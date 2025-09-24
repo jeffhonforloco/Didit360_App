@@ -59,18 +59,25 @@ app.get("/v1/updates", (c) => {
   const since = c.req.query("since") ?? new Date(Date.now() - 3600_000).toISOString();
   const until = c.req.query("until") ?? new Date().toISOString();
   const limit = Math.min(Number(c.req.query("limit") ?? 500), 500);
-  const body = {
-    since,
-    until,
-    events: [] as Array<{
-      op: "upsert" | "delete";
-      entity: "track" | "video" | "artist" | "release" | "podcast" | "episode" | "book" | "audiobook" | "image";
-      id: string;
-      version: number;
-      updated_at: string;
-    }>,
-    next_since: until,
-  };
+
+  let events: Array<{
+    op: "upsert" | "delete";
+    entity: "track" | "video" | "artist" | "release" | "podcast" | "episode" | "book" | "audiobook" | "image";
+    id: string;
+    version: number;
+    updated_at: string;
+  }> = [];
+
+  try {
+    // Dynamically import to avoid circular deps in some runtimes
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { getMockUpdateEvents } = require("./trpc/util/catalog-mock");
+    events = getMockUpdateEvents({ since, until, limit });
+  } catch (e) {
+    console.warn("/v1/updates mock generation failed", e);
+  }
+
+  const body = { since, until, events, next_since: until };
   const etag = weakEtagFrom(body);
   const inm = c.req.header("if-none-match");
   if (inm && inm === etag) return notModified(c);
