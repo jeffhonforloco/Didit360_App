@@ -51,7 +51,7 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
 
   const toggleControls = () => {
     setShowControls(!showControls);
-    if (!showControls) {
+    if (showControls) {
       setTimeout(() => {
         setShowControls(false);
       }, 3000);
@@ -63,87 +63,77 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
   }
 
   return (
-    <View style={[styles.container, style]}>
-      <TouchableOpacity
-        style={styles.videoContainer}
-        activeOpacity={1}
-        onPress={toggleControls}
-      >
-        <Video
-          ref={videoRef}
-          style={styles.video}
-          source={{ uri: track.videoUrl }}
-          useNativeControls={false}
-          resizeMode={ResizeMode.CONTAIN}
-          isLooping={false}
-          shouldPlay={isPlaying}
-          isMuted={isMuted}
-          onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-        />
-        
-        {showControls && (
-          <View style={styles.controlsOverlay}>
-            <View style={styles.topControls}>
-              <TouchableOpacity
-                style={styles.controlButton}
-                onPress={toggleFullscreen}
-              >
-                {isFullscreen ? (
-                  <Minimize size={24} color="#FFF" />
-                ) : (
-                  <Maximize size={24} color="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.centerControls}>
-              <TouchableOpacity
-                style={styles.playButton}
-                onPress={onPlayPause}
-              >
-                {isPlaying ? (
-                  <Pause size={48} color="#FFF" fill="#FFF" />
-                ) : (
-                  <Play size={48} color="#FFF" fill="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
-            
-            <View style={styles.bottomControls}>
-              <TouchableOpacity
-                style={styles.controlButton}
-                onPress={toggleMute}
-              >
-                {isMuted ? (
-                  <VolumeX size={24} color="#FFF" />
-                ) : (
-                  <Volume2 size={24} color="#FFF" />
-                )}
-              </TouchableOpacity>
-            </View>
+    <TouchableOpacity
+      style={[styles.container, style]}
+      activeOpacity={1}
+      onPress={toggleControls}
+    >
+      <Video
+        ref={videoRef}
+        style={styles.video}
+        source={{ uri: track.videoUrl }}
+        useNativeControls={false}
+        resizeMode={ResizeMode.CONTAIN}
+        isLooping={false}
+        shouldPlay={isPlaying}
+        isMuted={isMuted}
+        onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+      />
+      
+      {showControls && (
+        <View style={styles.controlsOverlay}>
+          <View style={styles.topControls}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleFullscreen}
+            >
+              {isFullscreen ? (
+                <Minimize size={24} color="#FFF" />
+              ) : (
+                <Maximize size={24} color="#FFF" />
+              )}
+            </TouchableOpacity>
           </View>
-        )}
-      </TouchableOpacity>
-    </View>
+          
+          <View style={styles.centerControls}>
+            <TouchableOpacity
+              style={styles.playButton}
+              onPress={onPlayPause}
+            >
+              {isPlaying ? (
+                <Pause size={48} color="#FFF" fill="#FFF" />
+              ) : (
+                <Play size={48} color="#FFF" fill="#FFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.bottomControls}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleMute}
+            >
+              {isMuted ? (
+                <VolumeX size={24} color="#FFF" />
+              ) : (
+                <Volume2 size={24} color="#FFF" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#000",
-    borderRadius: 12,
-    overflow: "hidden",
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  videoContainer: {
     position: "relative",
     width: "100%",
-    aspectRatio: 16 / 9,
-    minHeight: 200,
+    height: "100%",
+    backgroundColor: "#000",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   video: {
     width: "100%",

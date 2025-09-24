@@ -230,6 +230,167 @@ export default function PlayerScreen() {
     );
   }
 
+  const isVideoTrack = currentTrack.isVideo || currentTrack.type === "video";
+  const isAudiobookTrack = currentTrack.type === "audiobook";
+
+  if (isVideoTrack) {
+    return (
+      <View style={styles.container}>
+        <SafeAreaView style={styles.safeArea} edges={["top"]}>
+          <View style={styles.videoHeader}>
+            <TouchableOpacity onPress={() => router.back()}>
+              <ArrowLeft size={28} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={styles.videoTitle} numberOfLines={1}>
+              {currentTrack.title}
+            </Text>
+            <TouchableOpacity>
+              <MoreVertical size={24} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.videoPlayerFullContainer}>
+            <VideoPlayer
+              track={currentTrack}
+              isPlaying={isPlaying}
+              onPlayPause={togglePlayPause}
+              style={styles.videoPlayerFull}
+            />
+          </View>
+
+          <View style={styles.videoInfoContainer}>
+            <View style={styles.videoTitleSection}>
+              <Text style={styles.videoTrackTitle} numberOfLines={2}>
+                {currentTrack.title}
+              </Text>
+              <Text style={styles.videoArtist} numberOfLines={1}>
+                {currentTrack.artist}
+              </Text>
+            </View>
+
+            <View style={styles.videoActionRow}>
+              <TouchableOpacity style={styles.actionIcon} onPress={() => setShowShareModal(true)}>
+                <Share2 size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionIcon} onPress={() => setCurrentView('queue')}>
+                <List size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionIcon} onPress={() => toggleFavorite(currentTrack)}>
+                <Heart
+                  size={24}
+                  color={isLiked ? "#FF0080" : "#FFF"}
+                  fill={isLiked ? "#FF0080" : "transparent"}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.actionIcon} onPress={handleDownload}>
+                <Download size={24} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+        
+        {/* Share Modal */}
+        <Modal
+          visible={showShareModal}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowShareModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.shareModal}>
+              <Text style={styles.shareTitle}>SHARE TO</Text>
+              
+              <TouchableOpacity 
+                style={styles.shareOption}
+                onPress={() => handleShare('facebook')}
+              >
+                <View style={styles.shareIconContainer}>
+                  <Facebook size={24} color="#1877F2" />
+                </View>
+                <Text style={styles.shareOptionText}>Facebook</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.shareOption}
+                onPress={() => handleShare('google')}
+              >
+                <View style={[styles.shareIconContainer, { backgroundColor: '#DB4437' }]}>
+                  <Text style={styles.googleIcon}>G+</Text>
+                </View>
+                <Text style={styles.shareOptionText}>Google +</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.shareOption}
+                onPress={() => handleShare('twitter')}
+              >
+                <View style={styles.shareIconContainer}>
+                  <Twitter size={24} color="#1DA1F2" />
+                </View>
+                <Text style={styles.shareOptionText}>Twitter</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.shareOption}
+                onPress={() => handleShare('copy')}
+              >
+                <View style={styles.shareIconContainer}>
+                  <Link size={24} color="#999" />
+                </View>
+                <Text style={styles.shareOptionText}>Copy Link</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Add to Playlist Modal */}
+        <Modal
+          visible={showAddToPlaylistModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowAddToPlaylistModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.playlistModal}>
+              <Text style={styles.playlistModalTitle}>Add this song to My Playlist</Text>
+              <FlatList
+                data={playlists}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.playlistOption}
+                    onPress={() => handleAddToPlaylist(item.id)}
+                  >
+                    <Text style={styles.playlistOptionText}>{item.name}</Text>
+                  </TouchableOpacity>
+                )}
+              />
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowAddToPlaylistModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Download Progress Modal */}
+        <Modal
+          visible={showDownloadProgress}
+          transparent
+          animationType="fade"
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.downloadModal}>
+              <Text style={styles.downloadText}>Downloading music for this song...</Text>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ImageBackground 
@@ -257,25 +418,14 @@ export default function PlayerScreen() {
               </TouchableOpacity>
             </View>
 
-            {currentTrack.isVideo || currentTrack.type === "video" ? (
-              <View style={styles.videoPlayerContainer}>
-                <VideoPlayer
-                  track={currentTrack}
-                  isPlaying={isPlaying}
-                  onPlayPause={togglePlayPause}
-                  style={styles.fullVideoPlayer}
+            <View style={styles.artworkContainer}>
+              <View style={styles.artworkWrapper}>
+                <Image
+                  source={{ uri: currentTrack.artwork }}
+                  style={styles.artwork}
                 />
               </View>
-            ) : (
-              <View style={styles.artworkContainer}>
-                <View style={styles.artworkWrapper}>
-                  <Image
-                    source={{ uri: currentTrack.artwork }}
-                    style={styles.artwork}
-                  />
-                </View>
-              </View>
-            )}
+            </View>
 
             <View style={styles.infoContainer}>
               <View style={styles.titleSection}>
@@ -306,35 +456,33 @@ export default function PlayerScreen() {
                 </TouchableOpacity>
               </View>
 
-              {!(currentTrack.isVideo || currentTrack.type === "video") && (
-                <View style={styles.progressContainer}>
-                  <TouchableOpacity 
-                    style={styles.sliderContainer}
-                    activeOpacity={1}
-                    onPress={(e) => {
-                      const { locationX } = e.nativeEvent;
-                      const containerWidth = width - 40;
-                      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                      setProgress(newProgress);
-                    }}
-                  >
-                    <View style={styles.sliderTrack}>
-                      <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                      <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
-                    </View>
-                  </TouchableOpacity>
-                  <View style={styles.timeRow}>
-                    <Text style={styles.time}>
-                      {currentTrack.type === "audiobook" ? "12:15" : "2:46"}
-                    </Text>
-                    <Text style={styles.time}>
-                      {currentTrack.type === "audiobook" ? "47:32" : "3:05"}
-                    </Text>
+              <View style={styles.progressContainer}>
+                <TouchableOpacity 
+                  style={styles.sliderContainer}
+                  activeOpacity={1}
+                  onPress={(e) => {
+                    const { locationX } = e.nativeEvent;
+                    const containerWidth = width - 40;
+                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+                    setProgress(newProgress);
+                  }}
+                >
+                  <View style={styles.sliderTrack}>
+                    <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
+                    <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
                   </View>
+                </TouchableOpacity>
+                <View style={styles.timeRow}>
+                  <Text style={styles.time}>
+                    {isAudiobookTrack ? "12:15" : "2:46"}
+                  </Text>
+                  <Text style={styles.time}>
+                    {isAudiobookTrack ? "47:32" : "3:05"}
+                  </Text>
                 </View>
-              )}
+              </View>
 
-              {currentTrack.type === "audiobook" ? (
+              {isAudiobookTrack ? (
                 <View style={styles.audiobookControls}>
                   <View style={styles.audiobookMainControls}>
                     <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
@@ -379,7 +527,7 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
                   </View>
                 </View>
-              ) : !(currentTrack.isVideo || currentTrack.type === "video") ? (
+              ) : (
                 <View style={styles.controls}>
                   <TouchableOpacity
                     onPress={() => setShuffle(!shuffle)}
@@ -414,7 +562,7 @@ export default function PlayerScreen() {
                     <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
                   </TouchableOpacity>
                 </View>
-              ) : null}
+              )}
             </View>
           </SafeAreaView>
         </LinearGradient>
@@ -583,24 +731,58 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  videoPlayerContainer: {
+  videoHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+  },
+  videoTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFF",
     flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 20,
+  },
+  videoPlayerFullContainer: {
+    flex: 1,
+    backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  videoPlayerFull: {
+    width: '100%',
+    height: '100%',
+  },
+  videoInfoContainer: {
+    backgroundColor: 'rgba(0,0,0,0.9)',
     paddingHorizontal: 20,
-    marginTop: 20,
+    paddingVertical: 20,
+  },
+  videoTitleSection: {
+    alignItems: 'center',
     marginBottom: 20,
   },
-  fullVideoPlayer: {
-    width: '100%',
-    maxWidth: 400,
-    borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+  videoTrackTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFF",
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  videoArtist: {
+    fontSize: 16,
+    color: "rgba(255,255,255,0.7)",
+    textAlign: 'center',
+  },
+  videoActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingHorizontal: 40,
   },
   infoContainer: {
     flex: 1,
