@@ -28,7 +28,8 @@
       "package": "app.didit360",
       "permissions": [
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "android.permission.VIBRATE"
       ]
     },
     "web": {

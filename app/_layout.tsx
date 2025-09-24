@@ -10,6 +10,8 @@ import { LibraryProvider } from "@/contexts/LibraryContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { SearchContext } from "@/contexts/SearchContext";
 import { MixMindProvider } from "@/contexts/MixMindContext";
+import { SecurityProvider } from "@/contexts/SecurityContext";
+import { UXProvider } from "@/contexts/UXContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -49,6 +51,8 @@ function RootLayoutNav() {
           animation: "fade"
         }} 
       />
+      <Stack.Screen name="security-settings" options={{ title: "Security Settings" }} />
+      <Stack.Screen name="ux-settings" options={{ title: "UX Settings" }} />
     </Stack>
   );
 }
@@ -71,16 +75,20 @@ export default function RootLayout() {
         <RootContainer style={styles.container}>
           <ErrorBoundary>
             <UserProvider>
-              <SearchContext>
-                <MixMindProvider>
-                  <PlayerProvider>
-                    <LibraryProvider>
-                      <RootLayoutNav />
-                      <MiniPlayer />
-                    </LibraryProvider>
-                  </PlayerProvider>
-                </MixMindProvider>
-              </SearchContext>
+              <SecurityProvider>
+                <UXProvider>
+                  <SearchContext>
+                    <MixMindProvider>
+                      <PlayerProvider>
+                        <LibraryProvider>
+                          <RootLayoutNav />
+                          <MiniPlayer />
+                        </LibraryProvider>
+                      </PlayerProvider>
+                    </MixMindProvider>
+                  </SearchContext>
+                </UXProvider>
+              </SecurityProvider>
             </UserProvider>
           </ErrorBoundary>
         </RootContainer>
