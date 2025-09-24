@@ -12,6 +12,7 @@ import { SearchContext } from "@/contexts/SearchContext";
 import { MixMindProvider } from "@/contexts/MixMindContext";
 import { SecurityProvider } from "@/contexts/SecurityContext";
 import { UXProvider } from "@/contexts/UXContext";
+import { SecretsProvider } from "@/contexts/SecretsContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { ToastProvider, ToastViewport } from "@/components/ui/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -122,9 +123,11 @@ export default function RootLayout() {
                         <PlayerProvider>
                           <LibraryProvider>
                             <ToastProvider>
-                              <RootLayoutNav />
-                              <MiniPlayer />
-                              <ToastViewport />
+                              <SecretsProvider>
+                                <RootLayoutNav />
+                                <MiniPlayer />
+                                <ToastViewport />
+                              </SecretsProvider>
                             </ToastProvider>
                           </LibraryProvider>
                         </PlayerProvider>

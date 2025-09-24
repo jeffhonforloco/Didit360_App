@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Home, Search, Library, Sparkles, Newspaper, User } from "lucide-react-native";
+import { Home, Search, Library, Sparkles, Newspaper, User, KeyRound } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -82,6 +82,14 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          href: profile ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
+        name="video-api-keys"
+        options={{
+          title: "API Keys",
+          tabBarIcon: ({ color }) => <KeyRound size={24} color={color} />,
           href: profile ? undefined : null,
         }}
       />
