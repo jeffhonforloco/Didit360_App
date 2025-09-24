@@ -214,6 +214,7 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<FilterTab>("Top");
+  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -224,6 +225,13 @@ export default function SearchScreen() {
   const { recentSearches, addToSearchHistory, removeFromSearchHistory, clearSearchHistory } = useSearch();
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef<TextInput>(null);
+
+  React.useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 250);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
 
   const filteredTracks = allTracks.filter(
     (track) =>
@@ -320,12 +328,27 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
+  const backendType = useMemo(() => {
+    switch (activeFilter) {
+      case "Songs":
+        return "track" as const;
+      case "Artists":
+        return "artist" as const;
+      case "Albums":
+        return "release" as const;
+      case "Podcasts":
+        return "podcast" as const;
+      default:
+        return "all" as const;
+    }
+  }, [activeFilter]);
+
   const backendResults = trpc.catalog.search.useQuery(
-    { q: searchQuery || "", type: "all", limit: 20 },
-    { enabled: searchQuery.trim().length > 0 }
+    { q: debouncedQuery || "", type: backendType, limit: 20 },
+    { enabled: debouncedQuery.length > 0 }
   );
 
-  const isUsingBackend = useMemo(() => searchQuery.trim().length > 0, [searchQuery]);
+  const isUsingBackend = useMemo(() => debouncedQuery.length > 0, [debouncedQuery]);
 
   const typePill = (label: string) => (
     <View style={styles.typePill}>
@@ -466,6 +489,29 @@ export default function SearchScreen() {
     );
   };
 
+  const prettyType = useCallback((t: string) => {
+    switch (t) {
+      case "track":
+        return "Song";
+      case "release":
+        return "Album";
+      case "artist":
+        return "Artist";
+      case "video":
+        return "Video";
+      case "podcast":
+        return "Podcast";
+      case "episode":
+        return "Episode";
+      case "audiobook":
+        return "Audiobook";
+      case "book":
+        return "Book";
+      default:
+        return t;
+    }
+  }, []);
+
   const renderBackendItem = ({
     item,
   }: {
@@ -489,13 +535,16 @@ export default function SearchScreen() {
           <Image source={{ uri: item.artwork }} style={styles.resultImage} />
         ) : (
           <View style={[styles.resultImage, styles.fallbackArt]}>
-            <Text style={{ color: "#666" }}>{item.type}</Text>
+            <Text style={{ color: "#666" }}>{prettyType(item.type)}</Text>
           </View>
         )}
         <View style={styles.resultInfo}>
-          <Text style={styles.resultTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
+          <View style={styles.artistHeader}>
+            <Text style={styles.resultTitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            {typePill(prettyType(item.type))}
+          </View>
           {item.subtitle ? (
             <Text style={styles.resultArtist} numberOfLines={1}>
               {item.subtitle}
@@ -533,7 +582,6 @@ export default function SearchScreen() {
               const q = searchQuery.trim();
               if (q.length > 0) {
                 addToSearchHistory(q);
-                backendResults.refetch();
               }
             }}
             autoCapitalize="none"
