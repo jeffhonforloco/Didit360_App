@@ -164,6 +164,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
         AsyncStorage.removeItem(PROFILE_KEY),
       ]);
       setProfile(null);
+      // Note: Library data will be cleared automatically when profile changes
     } catch (err) {
       console.error("[UserContext] signOut error", err);
     }

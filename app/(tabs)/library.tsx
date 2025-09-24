@@ -8,9 +8,8 @@ import {
   Image,
   FlatList,
   TextInput,
-  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Plus,
   Download,
@@ -25,6 +24,7 @@ import {
 } from "lucide-react-native";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useUser } from "@/contexts/UserContext";
 import { router } from "expo-router";
 import type { Track, Playlist } from "@/types";
 
@@ -43,14 +43,16 @@ import type { Track, Playlist } from "@/types";
 };
 
 export default function LibraryScreen() {
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterId>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sort, setSort] = useState<SortId>("recent");
   const [query, setQuery] = useState<string>("");
   const { playlists, favorites, downloads, recentlyPlayed } = useLibrary();
   const { playTrack } = usePlayer();
+  const { profile } = useUser();
 
-  const filters: Array<{ id: FilterId; label: string }> = [
+  const filters: { id: FilterId; label: string }[] = [
     { id: "all", label: "All" },
     { id: "playlists", label: "Playlists" },
     { id: "songs", label: "Songs" },
@@ -58,7 +60,7 @@ export default function LibraryScreen() {
     { id: "audiobooks", label: "Audiobooks" },
   ];
 
-  const sorters: Array<{ id: SortId; label: string }> = [
+  const sorters: { id: SortId; label: string }[] = [
     { id: "recent", label: "Recent" },
     { id: "alpha", label: "A–Z" },
     { id: "creator", label: "Creator" },
@@ -155,9 +157,14 @@ export default function LibraryScreen() {
   ), [playTrack, viewMode]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Your Library</Text>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>Your Library</Text>
+          {profile?.displayName && (
+            <Text style={styles.subtitle}>{profile.displayName}&apos;s personal collection</Text>
+          )}
+        </View>
         <TouchableOpacity 
           style={styles.addButton} 
           onPress={() => router.push("/playlists")}
@@ -269,7 +276,11 @@ export default function LibraryScreen() {
               <TouchableOpacity
                 key={track.id}
                 style={styles.historyItem}
-                onPress={() => playTrack(track)}
+                onPress={() => {
+                  if (track?.id && track?.title) {
+                    playTrack(track);
+                  }
+                }}
               >
                 <Image source={{ uri: track.artwork }} style={styles.historyArtwork} />
                 <Text style={styles.historyTitle} numberOfLines={2}>
@@ -312,7 +323,7 @@ export default function LibraryScreen() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -324,16 +335,25 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 12,
+  },
+  headerLeft: {
+    flex: 1,
   },
   title: {
     fontSize: 28,
     fontWeight: "800",
     color: "#FFFFFF",
     letterSpacing: 0.2,
+  },
+  subtitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#9CA3AF",
+    marginTop: 2,
   },
   addButton: {
     width: 40,
