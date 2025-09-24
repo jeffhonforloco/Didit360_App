@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, mostViewedVideos, recentlyAddedContent } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
@@ -335,8 +335,8 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Your Top Mix", "top-mix", "/categories/top-mix")}
           <FlatList
-            data={newReleases.slice(0, 6)}
-            renderItem={renderSmallCard}
+            data={newReleases.filter(item => item.type === 'song')}
+            renderItem={renderCard}
             keyExtractor={(item) => `mix-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -347,7 +347,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Recently Added", "recently-added", "/categories/recently-added")}
           <FlatList
-            data={recentlyPlayed}
+            data={recentlyAddedContent.slice(0, 8)}
             renderItem={renderCard}
             keyExtractor={(item) => `recently-${item.id}`}
             horizontal
@@ -371,7 +371,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Most Viewed", "most-viewed", "/categories/most-viewed")}
           <FlatList
-            data={topCharts}
+            data={mostViewedVideos.slice(0, 6)}
             renderItem={renderCard}
             keyExtractor={(item) => `most-${item.id}`}
             horizontal
