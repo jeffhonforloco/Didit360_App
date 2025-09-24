@@ -112,7 +112,10 @@ const TWO_FACTOR_KEY = 'two_factor_secret';
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const getDeviceInfo = () => {
-  const version = Platform.Version ? Platform.Version.toString() : 'unknown';
+  let version = 'unknown';
+  if (Platform.Version) {
+    version = typeof Platform.Version === 'string' ? Platform.Version : Platform.Version.toString();
+  }
   return `${Platform.OS} ${version}`;
 };
 

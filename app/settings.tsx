@@ -84,6 +84,30 @@ export default function SettingsScreen() {
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
+        <TouchableOpacity 
+          style={styles.settingsItem}
+          onPress={() => router.push('/security-settings')}
+          activeOpacity={0.8}
+        >
+          <View>
+            <Text style={styles.settingsItemText}>Security & Privacy</Text>
+            <Text style={styles.settingsItemSubtext}>Manage your security settings and privacy preferences</Text>
+          </View>
+          <ChevronRight size={20} color="#666" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.settingsItem}
+          onPress={() => router.push('/ux-settings')}
+          activeOpacity={0.8}
+        >
+          <View>
+            <Text style={styles.settingsItemText}>User Experience</Text>
+            <Text style={styles.settingsItemSubtext}>Customize accessibility, performance, and interface settings</Text>
+          </View>
+          <ChevronRight size={20} color="#666" />
+        </TouchableOpacity>
+        
         <Text style={styles.sectionTitle}>Free Plan</Text>
         
         <TouchableOpacity 

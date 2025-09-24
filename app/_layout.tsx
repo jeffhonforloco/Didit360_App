@@ -52,7 +52,7 @@ function RootLayoutNav() {
         }} 
       />
       <Stack.Screen name="security-settings" options={{ title: "Security Settings" }} />
-      <Stack.Screen name="ux-settings" options={{ title: "UX Settings" }} />
+      <Stack.Screen name="ux-settings" options={{ title: "User Experience" }} />
     </Stack>
   );
 }

@@ -186,9 +186,14 @@ const getDeviceInfo = (): DeviceInfo => {
   const { width, height } = Dimensions.get('window');
   const isTablet = Math.min(width, height) >= 768;
   
+  let version = 'unknown';
+  if (Platform.Version) {
+    version = typeof Platform.Version === 'string' ? Platform.Version : Platform.Version.toString();
+  }
+  
   return {
     platform: Platform.OS,
-    version: Platform.Version ? Platform.Version.toString() : 'unknown',
+    version,
     screenWidth: width,
     screenHeight: height,
     isTablet,

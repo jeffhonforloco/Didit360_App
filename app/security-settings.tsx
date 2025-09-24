@@ -308,7 +308,7 @@ export default function SecuritySettingsScreen() {
             <SettingRow
               icon={<Fingerprint size={24} color="#10B981" />}
               title="Biometric Authentication"
-              subtitle={`${biometricType.includes(1) ? 'Face ID' : 'Touch ID'} available`}
+              subtitle={`${biometricType.length > 0 ? 'Biometric authentication available' : 'No biometric available'}`}
               value={settings.biometricEnabled}
               onPress={() => updateSecuritySettings({ biometricEnabled: !settings.biometricEnabled })}
             />
