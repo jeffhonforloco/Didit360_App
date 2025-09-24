@@ -20,6 +20,13 @@ export const trpcClient = trpc.createClient({
     httpLink({
       url: `${getBaseUrl()}/api/trpc`,
       transformer: superjson,
+      headers() {
+        const obs = (globalThis as any).__OBS as { sessionId?: string; traceId?: string } | undefined;
+        return {
+          'x-session-id': obs?.sessionId ?? '',
+          'x-trace-id': obs?.traceId ?? '',
+        } as Record<string, string>;
+      },
     }),
   ],
 });

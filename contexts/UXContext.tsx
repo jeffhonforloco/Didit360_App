@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform, Dimensions, AppState, AppStateStatus } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
+import { logEvent } from '@/lib/logger';
 
 export type Theme = 'light' | 'dark' | 'system';
 export type AnimationSpeed = 'slow' | 'normal' | 'fast' | 'disabled';
@@ -361,6 +362,7 @@ export const [UXProvider, useUX] = createContextHook<UXState>(() => {
         },
       };
       void saveSettings(STORAGE_KEYS.metrics, updated);
+      logEvent('info', 'ux:screen_load', { screenName, loadTime });
       return updated;
     });
   }, []);
@@ -369,9 +371,10 @@ export const [UXProvider, useUX] = createContextHook<UXState>(() => {
     setBehavior(prev => {
       const updated = {
         ...prev,
-        actionsPerformed: [...prev.actionsPerformed, action].slice(-100), // Keep last 100
+        actionsPerformed: [...prev.actionsPerformed, action].slice(-100),
       };
       void saveSettings(STORAGE_KEYS.behavior, updated);
+      logEvent('info', 'ux:user_action', { action });
       return updated;
     });
   }, []);
@@ -380,9 +383,10 @@ export const [UXProvider, useUX] = createContextHook<UXState>(() => {
     setBehavior(prev => {
       const updated = {
         ...prev,
-        searchQueries: [...prev.searchQueries, query].slice(-50), // Keep last 50
+        searchQueries: [...prev.searchQueries, query].slice(-50),
       };
       void saveSettings(STORAGE_KEYS.behavior, updated);
+      logEvent('info', 'ux:search', { query });
       return updated;
     });
   }, []);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { logEvent } from '@/lib/logger';
+import { useToast } from '@/components/ui/Toast';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -29,6 +30,10 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     const route = (globalThis as any).__CURRENT_ROUTE ?? 'unknown';
     console.error('[ErrorBoundary] Render error captured', { message, stack, route, info });
     logEvent('error', 'Render error captured', { message, stack, route });
+    try {
+      const toast = (globalThis as any).__TOAST as { show?: (t: { type: 'error' | 'info' | 'success' | 'warning'; title: string; message?: string }) => void } | undefined;
+      toast?.show?.({ type: 'error', title: 'Something went wrong', message });
+    } catch {}
     this.setState({ stack });
   }
 

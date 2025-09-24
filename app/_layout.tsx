@@ -13,10 +13,11 @@ import { MixMindProvider } from "@/contexts/MixMindContext";
 import { SecurityProvider } from "@/contexts/SecurityContext";
 import { UXProvider } from "@/contexts/UXContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
+import { ToastProvider, ToastViewport } from "@/components/ui/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
-import { logEvent, logPerf } from "@/lib/logger";
+import { logEvent, logPerf, genId } from "@/lib/logger";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -25,12 +26,20 @@ const queryClient = new QueryClient({
     onError: (error, query) => {
       const message = (error as Error)?.message ?? String(error);
       logEvent('error', 'react-query:query_error', { key: query.queryKey as unknown as string[], message });
+      try {
+        const toast = (globalThis as any).__TOAST as { show?: (t: { type: 'error' | 'info' | 'success' | 'warning'; title: string; message?: string }) => void } | undefined;
+        toast?.show?.({ type: 'error', title: 'Request failed', message });
+      } catch {}
     },
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
       const message = (error as Error)?.message ?? String(error);
       logEvent('error', 'react-query:mutation_error', { key: mutation.options.mutationKey as unknown as string[] | undefined, message });
+      try {
+        const toast = (globalThis as any).__TOAST as { show?: (t: { type: 'error' | 'info' | 'success' | 'warning'; title: string; message?: string }) => void } | undefined;
+        toast?.show?.({ type: 'error', title: 'Action failed', message });
+      } catch {}
     },
   }),
   defaultOptions: {
@@ -84,6 +93,12 @@ export default function RootLayout() {
   }, [pathname]);
 
   useEffect(() => {
+    const sessionId = genId('sess');
+    const traceId = genId('trace');
+    (globalThis as any).__OBS = { sessionId, traceId };
+  }, []);
+
+  useEffect(() => {
     const t0 = Date.now();
     SplashScreen.hideAsync().finally(() => {
       const ms = Date.now() - t0;
@@ -106,8 +121,11 @@ export default function RootLayout() {
                       <OfflineProvider>
                         <PlayerProvider>
                           <LibraryProvider>
-                            <RootLayoutNav />
-                            <MiniPlayer />
+                            <ToastProvider>
+                              <RootLayoutNav />
+                              <MiniPlayer />
+                              <ToastViewport />
+                            </ToastProvider>
                           </LibraryProvider>
                         </PlayerProvider>
                       </OfflineProvider>
