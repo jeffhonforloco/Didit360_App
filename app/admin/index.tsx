@@ -5,15 +5,23 @@ import { useTheme } from '@/components/ui/Theme';
 import { 
   BarChart3, ShieldCheck, AlertTriangle, TrendingUp, Activity,
   Database, Zap, Clock, Globe, MessageSquare, FileText,
-  CheckCircle, XCircle, AlertCircle, Users
+  CheckCircle, XCircle, AlertCircle, Users, Music, Video,
+  Headphones, Radio, Upload, DollarSign, Eye, Play
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
-export default function TrustOpsDashboard() {
+export default function AdminDashboard() {
   const { colors } = useTheme();
   const router = useRouter();
 
-  const quickActions = [
+  const platformActions = [
+    { id: 'manage-users', label: 'Manage Users', icon: Users, color: '#3b82f6', route: '/admin/users' },
+    { id: 'content-moderation', label: 'Content Moderation', icon: Eye, color: '#f59e0b', route: '/admin/moderation' },
+    { id: 'analytics', label: 'View Analytics', icon: BarChart3, color: '#8b5cf6', route: '/admin/analytics' },
+    { id: 'revenue', label: 'Revenue Reports', icon: DollarSign, color: '#22c55e', route: '/admin/revenue' },
+  ];
+
+  const trustOpsActions = [
     { id: 'run-controls', label: 'Run Controls', icon: ShieldCheck, color: '#22c55e', route: '/admin/controls' },
     { id: 'review-findings', label: 'Review Findings', icon: AlertTriangle, color: '#ef4444', route: '/admin/controls' },
     { id: 'upload-evidence', label: 'Upload Evidence', icon: Database, color: '#3b82f6', route: '/admin/evidence' },
@@ -21,13 +29,92 @@ export default function TrustOpsDashboard() {
   ];
 
   return (
-    <AdminLayout title="TrustOps Dashboard">
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} testID="trustops-dashboard">
-        {/* Overall Posture */}
-        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="overall-posture">
+    <AdminLayout title="Didit360 Admin Dashboard">
+      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} testID="admin-dashboard">
+        {/* Platform Overview */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="platform-overview">
+          <View style={styles.cardHeader}>
+            <Music color="#22c55e" size={18} />
+            <Text style={styles.cardTitle}>Platform Overview</Text>
+          </View>
+          <View style={styles.metricsGrid}>
+            <View style={styles.metricItem}>
+              <Users color="#3b82f6" size={16} />
+              <Text style={[styles.metricValue, { color: '#3b82f6' }]}>2.4M</Text>
+              <Text style={styles.metricLabel}>Active Users</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Music color="#22c55e" size={16} />
+              <Text style={styles.metricValue}>847K</Text>
+              <Text style={styles.metricLabel}>Tracks</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Video color="#8b5cf6" size={16} />
+              <Text style={[styles.metricValue, { color: '#8b5cf6' }]}>124K</Text>
+              <Text style={styles.metricLabel}>Videos</Text>
+            </View>
+            <View style={styles.metricItem}>
+              <Headphones color="#f59e0b" size={16} />
+              <Text style={[styles.metricValue, { color: '#f59e0b' }]}>45K</Text>
+              <Text style={styles.metricLabel}>Podcasts</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Content Stats */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="content-stats">
+          <View style={styles.cardHeader}>
+            <BarChart3 color="#3b82f6" size={18} />
+            <Text style={styles.cardTitle}>Content Performance</Text>
+          </View>
+          <View style={styles.contentStats}>
+            <View style={styles.statRow}>
+              <View style={[styles.frameworkDot, { backgroundColor: '#22c55e' }]} />
+              <Text style={styles.statLabel}>Daily Streams</Text>
+              <Text style={[styles.statValue, { color: '#22c55e' }]}>12.4M</Text>
+            </View>
+            <View style={styles.statRow}>
+              <View style={[styles.frameworkDot, { backgroundColor: '#3b82f6' }]} />
+              <Text style={styles.statLabel}>New Uploads (24h)</Text>
+              <Text style={[styles.statValue, { color: '#3b82f6' }]}>2,847</Text>
+            </View>
+            <View style={styles.statRow}>
+              <View style={[styles.frameworkDot, { backgroundColor: '#f59e0b' }]} />
+              <Text style={styles.statLabel}>Pending Moderation</Text>
+              <Text style={[styles.statValue, { color: '#f59e0b' }]}>156</Text>
+            </View>
+            <View style={styles.statRow}>
+              <View style={[styles.frameworkDot, { backgroundColor: '#8b5cf6' }]} />
+              <Text style={styles.statLabel}>Live Streams</Text>
+              <Text style={[styles.statValue, { color: '#8b5cf6' }]}>89</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Revenue Overview */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="revenue-overview">
+          <View style={styles.cardHeader}>
+            <DollarSign color="#22c55e" size={18} />
+            <Text style={styles.cardTitle}>Revenue Overview</Text>
+          </View>
+          <View style={styles.revenueStats}>
+            <View style={styles.revenueItem}>
+              <Text style={[styles.revenueValue, { color: '#22c55e' }]}>$847K</Text>
+              <Text style={styles.revenueLabel}>Monthly Revenue</Text>
+              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>+12.4%</Text>
+            </View>
+            <View style={styles.revenueItem}>
+              <Text style={styles.revenueValue}>$234K</Text>
+              <Text style={styles.revenueLabel}>Creator Payouts</Text>
+              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>+8.7%</Text>
+            </View>
+          </View>
+        </View>
+        {/* Security Posture */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="security-posture">
           <View style={styles.cardHeader}>
             <ShieldCheck color="#22c55e" size={18} />
-            <Text style={styles.cardTitle}>Overall Security Posture</Text>
+            <Text style={styles.cardTitle}>Security & Compliance Posture</Text>
           </View>
           <View style={styles.metricsGrid}>
             <View style={styles.metricItem}>
@@ -130,14 +217,14 @@ export default function TrustOpsDashboard() {
           </View>
         </View>
 
-        {/* Quick Actions */}
-        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="quick-actions">
+        {/* Platform Actions */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="platform-actions">
           <View style={styles.cardHeader}>
-            <Zap color="#8b5cf6" size={18} />
-            <Text style={styles.cardTitle}>Quick Actions</Text>
+            <Zap color="#3b82f6" size={18} />
+            <Text style={styles.cardTitle}>Platform Actions</Text>
           </View>
           <View style={styles.actionsGrid}>
-            {quickActions.map((action) => {
+            {platformActions.map((action) => {
               const Icon = action.icon;
               return (
                 <Pressable
@@ -147,7 +234,34 @@ export default function TrustOpsDashboard() {
                     { backgroundColor: pressed ? '#1f2937' : '#0f172a' }
                   ]}
                   onPress={() => router.push(action.route as any)}
-                  testID={`quick-action-${action.id}`}
+                  testID={`platform-action-${action.id}`}
+                >
+                  <Icon color={action.color} size={20} />
+                  <Text style={styles.actionLabel}>{action.label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* TrustOps Actions */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="trustops-actions">
+          <View style={styles.cardHeader}>
+            <ShieldCheck color="#22c55e" size={18} />
+            <Text style={styles.cardTitle}>Security & Compliance Actions</Text>
+          </View>
+          <View style={styles.actionsGrid}>
+            {trustOpsActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <Pressable
+                  key={action.id}
+                  style={({ pressed }) => [
+                    styles.actionButton,
+                    { backgroundColor: pressed ? '#1f2937' : '#0f172a' }
+                  ]}
+                  onPress={() => router.push(action.route as any)}
+                  testID={`trustops-action-${action.id}`}
                 >
                   <Icon color={action.color} size={20} />
                   <Text style={styles.actionLabel}>{action.label}</Text>
@@ -252,6 +366,11 @@ const styles = StyleSheet.create({
   riskDot: { width: 8, height: 8, borderRadius: 4 },
   vendorLabel: { color: '#cbd5e1', fontSize: 12, flex: 1 },
   vendorCount: { color: '#fff', fontSize: 12, fontWeight: '600' as const },
+  revenueStats: { flexDirection: 'row', gap: 24 },
+  revenueItem: { flex: 1 },
+  revenueValue: { color: '#fff', fontSize: 24, fontWeight: '700' as const },
+  revenueLabel: { color: '#94a3b8', fontSize: 12, marginTop: 4 },
+  revenueChange: { fontSize: 12, fontWeight: '600' as const, marginTop: 2 },
   actionsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionButton: { 
     flexDirection: 'row', 
