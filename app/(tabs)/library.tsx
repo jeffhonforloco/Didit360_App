@@ -223,78 +223,84 @@ export default function LibraryScreen() {
   }, [playTrack, viewMode, router]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Text style={styles.title}>Your Library</Text>
-          {profile?.displayName && (
-            <Text style={styles.subtitle}>{profile.displayName}&apos;s personal collection</Text>
-          )}
-        </View>
-        <TouchableOpacity 
-          style={styles.addButton} 
-          onPress={() => router.push("/playlists")}
-          testID="add-button"
-          accessibilityRole="button"
-        >
-          <Plus size={24} color="#FFF" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchRow}>
-        <View style={styles.searchBox}>
-          <Search size={18} color="#9CA3AF" />
-          <TextInput
-            testID="library-search"
-            style={styles.searchInput}
-            placeholder="Search your library"
-            placeholderTextColor="#6B7280"
-            value={query}
-            onChangeText={setQuery}
-            returnKeyType="search"
-          />
-        </View>
-        <TouchableOpacity
-          testID="sort-button"
-          style={styles.sortBtn}
-          onPress={() => {
-            const idx = sorters.findIndex((s) => s.id === sort);
-            const next = sorters[(idx + 1) % sorters.length];
-            console.log("[Library] sort", next.id);
-            setSort(next.id);
-          }}
-        >
-          <Text style={styles.sortText}>{sorters.find((s) => s.id === sort)?.label ?? "Sort"}</Text>
-          <ChevronDown size={16} color="#FFF" />
-        </TouchableOpacity>
-        <View style={styles.viewToggle}>
-          <TouchableOpacity
-            testID="toggle-grid"
-            style={[styles.toggleBtn, viewMode === "grid" ? styles.toggleActive : undefined]}
-            onPress={() => setViewMode("grid")}
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>Your Library</Text>
+            {profile?.displayName && (
+              <Text style={styles.subtitle}>{profile.displayName}&apos;s personal collection</Text>
+            )}
+          </View>
+          <TouchableOpacity 
+            style={styles.addButton} 
+            onPress={() => router.push("/playlists")}
+            testID="add-button"
+            accessibilityRole="button"
           >
-            <Grid3X3 size={18} color={viewMode === "grid" ? "#0B0B0C" : "#9CA3AF"} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            testID="toggle-list"
-            style={[styles.toggleBtn, viewMode === "list" ? styles.toggleActive : undefined]}
-            onPress={() => setViewMode("list")}
-          >
-            <ListIcon size={18} color={viewMode === "list" ? "#0B0B0C" : "#9CA3AF"} />
+            <Plus size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
-      </View>
 
-      <FlatList
-        data={filters}
-        renderItem={renderFilter}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filterList}
-      />
+        <View style={styles.searchRow}>
+          <View style={styles.searchBox}>
+            <Search size={18} color="#9CA3AF" />
+            <TextInput
+              testID="library-search"
+              style={styles.searchInput}
+              placeholder="Search your library"
+              placeholderTextColor="#6B7280"
+              value={query}
+              onChangeText={setQuery}
+              returnKeyType="search"
+            />
+          </View>
+          <TouchableOpacity
+            testID="sort-button"
+            style={styles.sortBtn}
+            onPress={() => {
+              const idx = sorters.findIndex((s) => s.id === sort);
+              const next = sorters[(idx + 1) % sorters.length];
+              console.log("[Library] sort", next.id);
+              setSort(next.id);
+            }}
+          >
+            <Text style={styles.sortText}>{sorters.find((s) => s.id === sort)?.label ?? "Sort"}</Text>
+            <ChevronDown size={16} color="#FFF" />
+          </TouchableOpacity>
+          <View style={styles.viewToggle}>
+            <TouchableOpacity
+              testID="toggle-grid"
+              style={[styles.toggleBtn, viewMode === "grid" ? styles.toggleActive : undefined]}
+              onPress={() => setViewMode("grid")}
+            >
+              <Grid3X3 size={18} color={viewMode === "grid" ? "#0B0B0C" : "#9CA3AF"} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="toggle-list"
+              style={[styles.toggleBtn, viewMode === "list" ? styles.toggleActive : undefined]}
+              onPress={() => setViewMode("list")}
+            >
+              <ListIcon size={18} color={viewMode === "list" ? "#0B0B0C" : "#9CA3AF"} />
+            </TouchableOpacity>
+          </View>
+        </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+        <FlatList
+          data={filters}
+          renderItem={renderFilter}
+          keyExtractor={(item) => item.id}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterList}
+        />
+      </SafeAreaView>
+
+      <ScrollView 
+        style={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
         <View style={styles.quickAccess}>
           <TouchableOpacity style={styles.quickItem} testID="liked-songs">
             <View style={[styles.quickIcon, { backgroundColor: "#FF0080" }]}>
@@ -466,7 +472,7 @@ export default function LibraryScreen() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -474,6 +480,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0B0B0C",
+  },
+  safeArea: {
+    backgroundColor: "#0B0B0C",
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 120,
   },
   header: {
     flexDirection: "row",
