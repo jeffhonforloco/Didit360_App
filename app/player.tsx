@@ -233,12 +233,18 @@ export default function PlayerScreen() {
   // Determine content type
   const isVideoTrack = currentTrack.type === "video" || currentTrack.isVideo === true || currentTrack.videoUrl;
   const isAudiobookTrack = currentTrack.type === "audiobook";
-  const isLivePerformance = currentTrack.title.toLowerCase().includes('live') || 
-                           currentTrack.album?.toLowerCase().includes('live') ||
-                           currentTrack.description?.toLowerCase().includes('live performance');
+  
+  console.log("[Player] Content type check:", {
+    title: currentTrack.title,
+    type: currentTrack.type,
+    isVideo: currentTrack.isVideo,
+    hasVideoUrl: !!currentTrack.videoUrl,
+    isVideoTrack,
+    isAudiobookTrack
+  });
 
-  // Video Player Component
-  if (isVideoTrack || isLivePerformance) {
+  // Video Player Component - All live performance content should be video
+  if (isVideoTrack) {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>

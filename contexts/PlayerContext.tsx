@@ -71,6 +71,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   };
 
   const playTrack = useCallback((track: Track) => {
+    console.log("[Player] Playing track:", track.title, "Type:", track.type, "IsVideo:", track.isVideo);
     setCurrentTrack(track);
     setIsPlaying(true);
     saveLastPlayed(track);
@@ -81,6 +82,16 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     setQueue(similarTracks);
 
     startGuestTimer();
+    
+    // Navigate to player screen immediately for video content
+    if (track.type === "video" || track.isVideo === true) {
+      console.log("[Player] Video content detected, navigating to player");
+      try {
+        router.push("/player");
+      } catch (e) {
+        console.error("[Player] Navigation error:", e);
+      }
+    }
   }, [startGuestTimer]);
 
   const togglePlayPause = useCallback(() => {
