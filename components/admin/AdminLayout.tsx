@@ -25,19 +25,19 @@ export function AdminLayout({ title, children }: { title: string; children: Reac
 
   const items: Item[] = useMemo(() => [
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-    { key: 'users', label: 'User Management', icon: Users, href: '/admin/users' },
-    { key: 'content', label: 'Content Management', icon: Library, href: '/admin/content' },
-    { key: 'moderation', label: 'Content Moderation', icon: Shield, href: '/admin/moderation' },
-    { key: 'analytics', label: 'Analytics & Reports', icon: BarChart3, href: '/admin/analytics' },
-    { key: 'mixmind', label: 'MixMind AI DJ', icon: Zap, href: '/admin/mixmind' },
-    { key: 'ingest', label: 'Content Ingestion', icon: Database, href: '/admin/ingest' },
-    { key: 'partners', label: 'Partner Management', icon: Globe, href: '/admin/partners' },
-    { key: 'revenue', label: 'Revenue & Finance', icon: DollarSign, href: '/admin/revenue' },
-    { key: 'system', label: 'System Health', icon: Activity, href: '/admin/system' },
-    { key: 'audit', label: 'Audit & Logs', icon: FileText, href: '/admin/audit' },
-    { key: 'secrets', label: 'API Keys & Secrets', icon: Key, href: '/admin/secrets' },
-    { key: 'support', label: 'Support & Tickets', icon: HelpCircle, href: '/admin/support' },
-    { key: 'settings', label: 'Platform Settings', icon: Settings, href: '/admin/settings' },
+    { key: 'controls', label: 'Controls', icon: ShieldCheck, href: '/admin/controls' },
+    { key: 'frameworks', label: 'Frameworks', icon: FileText, href: '/admin/frameworks' },
+    { key: 'evidence', label: 'Evidence', icon: Database, href: '/admin/evidence' },
+    { key: 'vendors', label: 'Vendors', icon: Globe, href: '/admin/vendors' },
+    { key: 'questionnaires', label: 'Questionnaires', icon: MessageSquare, href: '/admin/questionnaires' },
+    { key: 'trust-center', label: 'Trust Center', icon: Shield, href: '/admin/trust-center' },
+    { key: 'policies', label: 'Policies', icon: FileText, href: '/admin/policies' },
+    { key: 'training', label: 'Training', icon: BookOpen, href: '/admin/training' },
+    { key: 'integrations', label: 'Integrations', icon: Zap, href: '/admin/integrations' },
+    { key: 'audits', label: 'Audits & Reports', icon: BarChart3, href: '/admin/audits' },
+    { key: 'users', label: 'Users & Orgs', icon: Users, href: '/admin/users' },
+    { key: 'settings', label: 'Settings', icon: Settings, href: '/admin/settings' },
+    { key: 'audit-log', label: 'Audit Log', icon: Activity, href: '/admin/audit-log' },
   ], []);
 
   return (
