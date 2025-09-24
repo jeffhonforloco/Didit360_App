@@ -290,9 +290,9 @@ export const audiobookDetails: Record<string, AudiobookDetails> = {
     author: "J.K. Rowling",
     artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
     duration: 28620,
-    rating: 4.0,
-    genres: ["Fantasy", "Drama", "Fiction"],
-    summary: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.",
+    rating: 4.8,
+    genres: ["Fantasy", "Young Adult", "Adventure"],
+    summary: "Harry Potter's third year at Hogwarts is full of new dangers. A convicted murderer, Sirius Black, has broken out of Azkaban prison, and it seems he's after Harry. In the meantime, the school is being guarded by the terrifying Dementors, and Harry's feeling the effects of their presence more than his classmates. What's an aspiring wizard to do?",
     chapters: [
       { id: "ch1", title: "Chapter 1: Owl Post", duration: 1260, startTime: 0 },
       { id: "ch2", title: "Chapter 2: Aunt Marge's Big Mistake", duration: 1380, startTime: 1260 },
@@ -300,15 +300,201 @@ export const audiobookDetails: Record<string, AudiobookDetails> = {
       { id: "ch4", title: "Chapter 4: The Leaky Cauldron", duration: 1440, startTime: 3840 },
       { id: "ch5", title: "Chapter 5: The Dementor", duration: 1320, startTime: 5280 },
     ],
-    content: `forehead. Harry is then left at the doorstep of his boring but brutish aunt and uncle, the Dursleys.
+    content: `Harry Potter was spending another miserable summer with the Dursleys, when the matter was taken out of his hands. After an incident with Aunt Marge, Harry ran away from Privet Drive and was picked up by the Knight Bus, which took him to the Leaky Cauldron.
 
-For 10 years, Harry lives in the cupboard under the stairs and is subjected to cruel mistreatment by Aunt Petunia, Uncle Vernon and their son Dudley. On his 11th birthday, Harry receives a letter inviting him to study magic at the Hogwarts School of Witchcraft and Wizardry.
+At the Leaky Cauldron, Harry learned that Sirius Black, a convicted murderer and Voldemort supporter, had escaped from Azkaban prison and was believed to be after Harry. The Ministry of Magic was taking no chances - Dementors were stationed around Hogwarts to protect the school.
 
-Harry discovers that not only is he a wizard, but he is a famous one. He meets two best friends, Ron Weasley and Hermione Granger, and makes his first enemy, Draco Malfoy. At Hogwarts the three friends are all placed into the Gryffindor house. Harry has a knack for the school sport, Quidditch, and is recruited onto the Gryffindor team as its star Seeker.
+Back at Hogwarts for his third year, Harry found the atmosphere changed. The Dementors affected him more than other students, causing him to hear his mother's last moments. Professor Lupin, the new Defense Against the Dark Arts teacher, taught Harry to cast a Patronus charm to repel the Dementors.
 
-Perusing the restricted section in the library, Harry discovers that the Sorcerer's Stone produces the Elixir of Life, which gives its drinker the gift of immortality. After realizing that Voldemort might be after the stone, Albus Dumbledore had it moved to Hogwarts for safekeeping.
+As the year progressed, Harry learned shocking truths about his past, including the real story behind his parents' death and the identity of their betrayer. The climax came when Harry discovered that Sirius Black was not the villain he had been led to believe, but rather his godfather who had been wrongly imprisoned.`
+  },
+  a2: {
+    id: "a2",
+    title: "The Silence",
+    author: "Mark Alpert",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600,
+    rating: 4.2,
+    genres: ["Science Fiction", "Thriller", "Mystery"],
+    summary: "In this gripping science fiction thriller, a mysterious signal from space threatens to silence all electronic communication on Earth. As governments scramble to understand the phenomenon, a small team of scientists races against time to prevent a global catastrophe that could end civilization as we know it.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Signal", duration: 1080, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: First Contact", duration: 1200, startTime: 1080 },
+      { id: "ch3", title: "Chapter 3: The Blackout", duration: 1320, startTime: 2280 },
+      { id: "ch4", title: "Chapter 4: Underground", duration: 1140, startTime: 3600 },
+      { id: "ch5", title: "Chapter 5: The Truth", duration: 1260, startTime: 4740 },
+    ],
+    content: `Dr. Sarah Chen stared at the data streaming across her monitor, her coffee growing cold as the implications became clear. The signal wasn't random noise from deep space—it was structured, purposeful, and getting stronger by the hour.
 
-Harry finds out that when she died, Lily Potter`
+"This can't be right," she whispered, running the analysis for the third time. The pattern was unmistakable: a complex mathematical sequence that seemed to be learning, adapting, evolving with each transmission.
+
+Across the lab, her colleague Dr. Marcus Webb looked up from his own workstation. "Sarah, you need to see this. Every satellite in the northern hemisphere just went dark."
+
+The silence that followed wasn't just the absence of sound—it was the absence of everything electronic. No cell phones, no internet, no GPS. In a matter of hours, the modern world had been thrust back into the dark ages, and the signal from space was just getting started.`
+  },
+  a3: {
+    id: "a3",
+    title: "The Speaker",
+    author: "Traci Chee",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 19800,
+    rating: 4.5,
+    genres: ["Fantasy", "Young Adult", "Adventure"],
+    summary: "In the second book of the Sea of Ink and Gold trilogy, Sefia continues her quest to understand the power of the Book while navigating a world where reading is forbidden. As she searches for the boy who was taken from her, she discovers that some stories have the power to change the world.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Hunt", duration: 990, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Memories in Ink", duration: 1080, startTime: 990 },
+      { id: "ch3", title: "Chapter 3: The Speaker's Tale", duration: 1200, startTime: 2070 },
+      { id: "ch4", title: "Chapter 4: Words of Power", duration: 1140, startTime: 3270 },
+      { id: "ch5", title: "Chapter 5: The Final Chapter", duration: 1020, startTime: 4410 },
+    ],
+    content: `Sefia traced the symbols on the page with her finger, feeling the familiar tingle of magic that came with reading. In a world where books were burned and literacy was punishable by death, she possessed the most dangerous skill of all.
+
+The Book had shown her visions of the future—glimpses of what could be if she made the right choices. But with each page she turned, she realized that the power to read came with a terrible price. The stories weren't just words on a page; they were prophecies, and she was both their reader and their subject.
+
+"Every story needs a speaker," the old woman had told her. "Someone to give voice to the words that would otherwise remain silent." Now Sefia understood what that meant. She wasn't just reading the story—she was living it, and the fate of everyone she loved hung in the balance.`
+  },
+  a4: {
+    id: "a4",
+    title: "Light Mage",
+    author: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 25200,
+    rating: 4.3,
+    genres: ["Fantasy", "Romance", "Magic"],
+    summary: "In a world where magical power determines social status, Elloren Gardner discovers she possesses a rare and dangerous gift. As she navigates the treacherous politics of the magical academy, she must choose between the safety of conformity and the courage to fight for what's right.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Awakening", duration: 1260, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Academy of Shadows", duration: 1380, startTime: 1260 },
+      { id: "ch3", title: "Chapter 3: Light and Dark", duration: 1200, startTime: 2640 },
+      { id: "ch4", title: "Chapter 4: The Resistance", duration: 1320, startTime: 3840 },
+      { id: "ch5", title: "Chapter 5: The Light Within", duration: 1440, startTime: 5160 },
+    ],
+    content: `Elloren had always believed she was powerless, just another Gardnerian girl destined for a quiet life of domestic service. But when the testing revealed her true nature, everything changed.
+
+"Light Mage," the examiner had whispered, his face pale with shock. "We haven't seen one in over a century."
+
+Now, standing in the grand hall of the Verpax University, surrounded by students who wielded fire and shadow with casual ease, Elloren felt the weight of her newfound power pressing down on her shoulders. The light that flowed through her veins was both a gift and a curse, marking her as either a savior or a target.
+
+As she watched her classmates practice their dark arts, she realized that in a world built on the oppression of the powerless, being different wasn't just dangerous—it was revolutionary.`
+  },
+  r1: {
+    id: "r1",
+    title: "The Silence",
+    author: "Mark Alpert",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600,
+    rating: 4.2,
+    genres: ["Science Fiction", "Thriller", "Mystery"],
+    summary: "In this gripping science fiction thriller, a mysterious signal from space threatens to silence all electronic communication on Earth. As governments scramble to understand the phenomenon, a small team of scientists races against time to prevent a global catastrophe that could end civilization as we know it.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Signal", duration: 1080, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: First Contact", duration: 1200, startTime: 1080 },
+      { id: "ch3", title: "Chapter 3: The Blackout", duration: 1320, startTime: 2280 },
+      { id: "ch4", title: "Chapter 4: Underground", duration: 1140, startTime: 3600 },
+      { id: "ch5", title: "Chapter 5: The Truth", duration: 1260, startTime: 4740 },
+    ],
+    content: `Dr. Sarah Chen stared at the data streaming across her monitor, her coffee growing cold as the implications became clear. The signal wasn't random noise from deep space—it was structured, purposeful, and getting stronger by the hour.
+
+"This can't be right," she whispered, running the analysis for the third time. The pattern was unmistakable: a complex mathematical sequence that seemed to be learning, adapting, evolving with each transmission.
+
+Across the lab, her colleague Dr. Marcus Webb looked up from his own workstation. "Sarah, you need to see this. Every satellite in the northern hemisphere just went dark."
+
+The silence that followed wasn't just the absence of sound—it was the absence of everything electronic. No cell phones, no internet, no GPS. In a matter of hours, the modern world had been thrust back into the dark ages, and the signal from space was just getting started.`
+  },
+  r2: {
+    id: "r2",
+    title: "The Speaker",
+    author: "Traci Chee",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 19800,
+    rating: 4.5,
+    genres: ["Fantasy", "Young Adult", "Adventure"],
+    summary: "In the second book of the Sea of Ink and Gold trilogy, Sefia continues her quest to understand the power of the Book while navigating a world where reading is forbidden. As she searches for the boy who was taken from her, she discovers that some stories have the power to change the world.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Hunt", duration: 990, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Memories in Ink", duration: 1080, startTime: 990 },
+      { id: "ch3", title: "Chapter 3: The Speaker's Tale", duration: 1200, startTime: 2070 },
+      { id: "ch4", title: "Chapter 4: Words of Power", duration: 1140, startTime: 3270 },
+      { id: "ch5", title: "Chapter 5: The Final Chapter", duration: 1020, startTime: 4410 },
+    ],
+    content: `Sefia traced the symbols on the page with her finger, feeling the familiar tingle of magic that came with reading. In a world where books were burned and literacy was punishable by death, she possessed the most dangerous skill of all.
+
+The Book had shown her visions of the future—glimpses of what could be if she made the right choices. But with each page she turned, she realized that the power to read came with a terrible price. The stories weren't just words on a page; they were prophecies, and she was both their reader and their subject.
+
+"Every story needs a speaker," the old woman had told her. "Someone to give voice to the words that would otherwise remain silent." Now Sefia understood what that meant. She wasn't just reading the story—she was living it, and the fate of everyone she loved hung in the balance.`
+  },
+  bs1: {
+    id: "bs1",
+    title: "Light Mage",
+    author: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 25200,
+    rating: 4.3,
+    genres: ["Fantasy", "Romance", "Magic"],
+    summary: "In a world where magical power determines social status, Elloren Gardner discovers she possesses a rare and dangerous gift. As she navigates the treacherous politics of the magical academy, she must choose between the safety of conformity and the courage to fight for what's right.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Awakening", duration: 1260, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Academy of Shadows", duration: 1380, startTime: 1260 },
+      { id: "ch3", title: "Chapter 3: Light and Dark", duration: 1200, startTime: 2640 },
+      { id: "ch4", title: "Chapter 4: The Resistance", duration: 1320, startTime: 3840 },
+      { id: "ch5", title: "Chapter 5: The Light Within", duration: 1440, startTime: 5160 },
+    ],
+    content: `Elloren had always believed she was powerless, just another Gardnerian girl destined for a quiet life of domestic service. But when the testing revealed her true nature, everything changed.
+
+"Light Mage," the examiner had whispered, his face pale with shock. "We haven't seen one in over a century."
+
+Now, standing in the grand hall of the Verpax University, surrounded by students who wielded fire and shadow with casual ease, Elloren felt the weight of her newfound power pressing down on her shoulders. The light that flowed through her veins was both a gift and a curse, marking her as either a savior or a target.
+
+As she watched her classmates practice their dark arts, she realized that in a world built on the oppression of the powerless, being different wasn't just dangerous—it was revolutionary.`
+  },
+  nr1: {
+    id: "nr1",
+    title: "The Prisoner",
+    author: "Laurie Forest",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 22800,
+    rating: 4.1,
+    genres: ["Fantasy", "Adventure", "Magic"],
+    summary: "A captivating fantasy adventure that follows a young prisoner who discovers they hold the key to an ancient prophecy. As dark forces gather, they must escape their bonds and embrace their destiny to save their world from eternal darkness.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: The Cell", duration: 1140, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: Whispers in the Dark", duration: 1200, startTime: 1140 },
+      { id: "ch3", title: "Chapter 3: The Escape", duration: 1320, startTime: 2340 },
+      { id: "ch4", title: "Chapter 4: Ancient Secrets", duration: 1260, startTime: 3660 },
+      { id: "ch5", title: "Chapter 5: The Prophecy", duration: 1380, startTime: 4920 },
+    ],
+    content: `The stone walls of the prison cell had become as familiar as breathing to Kael. Three years he had spent in this darkness, three years since the night his village burned and he was accused of crimes he didn't commit.
+
+But tonight was different. Tonight, the whispers in the walls spoke louder than ever, and the strange mark on his palm—the one that had appeared the day of his arrest—began to glow with an otherworldly light.
+
+"The time has come," a voice echoed in his mind, ancient and powerful. "The chains that bind you are nothing compared to the chains that bind this world. Break free, young one, and fulfill your destiny."
+
+As the cell door creaked open on its own, Kael realized that his imprisonment had not been a punishment—it had been preparation.`
+  },
+  nr2: {
+    id: "nr2",
+    title: "The Prisoner",
+    author: "B.A. Paris",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 18000,
+    rating: 4.4,
+    genres: ["Thriller", "Psychological", "Mystery"],
+    summary: "A psychological thriller that will keep you on the edge of your seat. When Amelie wakes up in a locked room with no memory of how she got there, she must piece together the truth before it's too late. But some secrets are better left buried.",
+    chapters: [
+      { id: "ch1", title: "Chapter 1: Awakening", duration: 900, startTime: 0 },
+      { id: "ch2", title: "Chapter 2: The Room", duration: 1080, startTime: 900 },
+      { id: "ch3", title: "Chapter 3: Fragments", duration: 1200, startTime: 1980 },
+      { id: "ch4", title: "Chapter 4: The Truth", duration: 1140, startTime: 3180 },
+      { id: "ch5", title: "Chapter 5: Escape", duration: 1020, startTime: 4320 },
+    ],
+    content: `Amelie's eyes fluttered open to unfamiliar surroundings. The room was small, windowless, with walls painted a sterile white that hurt to look at. A single bulb hung from the ceiling, casting harsh shadows in every corner.
+
+She tried to remember how she'd gotten here, but her mind was a blank slate. The last thing she could recall was leaving work on Friday evening, walking to her car in the parking garage. Everything after that was darkness.
+
+A tray of food sat on a small table beside the bed—fresh bread, water, and what looked like soup. Someone had been taking care of her, but who? And why couldn't she remember?
+
+As she stood on shaky legs, she noticed something that made her blood run cold. The door had no handle on the inside.`
   },
 };
 
@@ -1131,7 +1317,7 @@ export const podcastShows = [
     title: "The Jordan Harbinger Show",
     host: "Jordan Harbinger",
     artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, view more...",
+    description: "Deep-dive conversations with fascinating people from all walks of life. Jordan Harbinger explores the psychology and strategies behind the world's most successful individuals, offering practical insights you can apply to your own life.",
     episodes: jordanHarbingerEpisodes,
   },
   {
