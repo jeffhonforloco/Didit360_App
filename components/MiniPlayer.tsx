@@ -8,15 +8,17 @@ import {
   Platform,
 } from "react-native";
 import { Play, Pause, SkipForward } from "lucide-react-native";
-import { router } from "expo-router";
+import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function MiniPlayer() {
   const { currentTrack, isPlaying, togglePlayPause, skipNext } = usePlayer();
   const insets = useSafeAreaInsets();
+  const pathname = usePathname();
 
-  if (!currentTrack) return null;
+  // Hide MiniPlayer when full player is open
+  if (!currentTrack || pathname === '/player') return null;
 
   const tabBarHeight = Platform.OS === "ios" ? 80 + insets.bottom : 60;
 
