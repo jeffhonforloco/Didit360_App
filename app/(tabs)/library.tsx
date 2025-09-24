@@ -149,20 +149,40 @@ export default function LibraryScreen() {
     return sorted;
   }, [filter, query, sort, recentlyPlayed, getFilteredContent]);
 
-  const renderFilter = useCallback(({ item }: { item: { id: FilterId; label: string } }) => (
-    <TouchableOpacity
-      testID={`filter-${item.id}`}
-      style={[styles.filterChip, filter === item.id ? styles.filterChipActive : undefined]}
-      onPress={() => setFilter(item.id)}
-      accessibilityRole="button"
-      accessibilityLabel={`Filter ${item.label}`}
-      activeOpacity={0.8}
-    >
-      <Text style={[styles.filterText, filter === item.id ? styles.filterTextActive : undefined]}>
-        {item.label}
-      </Text>
-    </TouchableOpacity>
-  ), [filter]);
+  const renderFilter = useCallback(({ item }: { item: { id: FilterId; label: string } }) => {
+    const handleFilterPress = () => {
+      if (item.id === "all") {
+        router.push("/library-all");
+      } else if (item.id === "playlists") {
+        router.push("/playlists");
+      } else if (item.id === "songs") {
+        router.push("/songs");
+      } else if (item.id === "podcasts") {
+        router.push("/podcasts");
+      } else if (item.id === "audiobooks") {
+        router.push("/categories/audiobooks");
+      } else if (item.id === "mixmind") {
+        router.push("/mixmind-history");
+      } else {
+        setFilter(item.id);
+      }
+    };
+    
+    return (
+      <TouchableOpacity
+        testID={`filter-${item.id}`}
+        style={[styles.filterChip, filter === item.id ? styles.filterChipActive : undefined]}
+        onPress={handleFilterPress}
+        accessibilityRole="button"
+        accessibilityLabel={`Filter ${item.label}`}
+        activeOpacity={0.8}
+      >
+        <Text style={[styles.filterText, filter === item.id ? styles.filterTextActive : undefined]}>
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [filter, router]);
 
   const renderCard = useCallback(({ item }: { item: ModernItem }) => {
     const handlePress = () => {
