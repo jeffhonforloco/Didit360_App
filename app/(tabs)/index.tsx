@@ -277,9 +277,6 @@ export default function HomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
-            pagingEnabled
-            snapToInterval={width - 40}
-            decelerationRate="fast"
           />
         </View>
 
