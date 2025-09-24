@@ -112,7 +112,8 @@ const TWO_FACTOR_KEY = 'two_factor_secret';
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const getDeviceInfo = () => {
-  return `${Platform.OS} ${Platform.Version}`;
+  const version = Platform.Version ? Platform.Version.toString() : 'unknown';
+  return `${Platform.OS} ${version}`;
 };
 
 const getSessionTimeout = (timeout: SessionTimeout): number => {

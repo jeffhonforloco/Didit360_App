@@ -188,7 +188,7 @@ const getDeviceInfo = (): DeviceInfo => {
   
   return {
     platform: Platform.OS,
-    version: Platform.Version.toString(),
+    version: Platform.Version ? Platform.Version.toString() : 'unknown',
     screenWidth: width,
     screenHeight: height,
     isTablet,
