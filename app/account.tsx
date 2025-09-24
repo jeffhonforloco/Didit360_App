@@ -3,6 +3,8 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert, Plat
 import { useUser } from "@/contexts/UserContext";
 import { useNavigation } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as ImagePicker from 'expo-image-picker';
+import { Camera, ImageIcon } from 'lucide-react-native';
 
 export default function AccountScreen() {
   const { profile, updateProfile, isLoading, changePassword } = useUser();
@@ -21,6 +23,71 @@ export default function AccountScreen() {
   const [newPw, setNewPw] = useState<string>("");
   const [confirmPw, setConfirmPw] = useState<string>("");
   const disabled = useMemo(() => saving || isLoading, [saving, isLoading]);
+
+  const pickImage = useCallback(async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant photo library access to change your profile picture.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setAvatarUrl(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
+    }
+  }, []);
+
+  const takePhoto = useCallback(async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant camera access to take a profile picture.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        setAvatarUrl(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  }, []);
+
+  const showImageOptions = useCallback(() => {
+    if (Platform.OS === 'web') {
+      // On web, only show photo library option
+      pickImage();
+      return;
+    }
+
+    Alert.alert(
+      'Change Profile Picture',
+      'Choose how you want to update your profile picture',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'Choose from Library', onPress: pickImage },
+      ]
+    );
+  }, [pickImage, takePhoto]);
 
   const onSave = useCallback(async () => {
     const n = name.trim();
@@ -70,12 +137,28 @@ export default function AccountScreen() {
   return (
     <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(12, insets.bottom) }]} testID="account-screen">
       <View style={styles.headerRow}>
-        <View style={styles.avatarWrap}>
+        <TouchableOpacity 
+          style={styles.avatarWrap} 
+          onPress={showImageOptions}
+          activeOpacity={0.8}
+          testID="change-avatar-button"
+        >
           <Image source={{ uri: avatarSrc }} style={styles.avatar} />
-        </View>
+          <View style={styles.avatarOverlay}>
+            <Camera size={20} color="#FFFFFF" />
+          </View>
+        </TouchableOpacity>
         <View style={styles.headerMeta}>
           <Text style={styles.headerTitle} numberOfLines={1}>{name || "Your Name"}</Text>
           <Text style={styles.headerSub} numberOfLines={1}>{email || "you@example.com"}</Text>
+          <TouchableOpacity 
+            onPress={showImageOptions}
+            style={styles.changePhotoButton}
+            testID="change-photo-text-button"
+          >
+            <ImageIcon size={14} color="#FF0080" />
+            <Text style={styles.changePhotoText}>Change Photo</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -103,16 +186,25 @@ export default function AccountScreen() {
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>Avatar URL</Text>
-        <TextInput
-          testID="input-avatar"
-          style={styles.input}
-          placeholder="https://..."
-          placeholderTextColor="#6B7280"
-          autoCapitalize="none"
-          value={avatarUrl}
-          onChangeText={setAvatarUrl}
-        />
+        <Text style={styles.label}>Avatar URL (Optional)</Text>
+        <View style={styles.avatarInputRow}>
+          <TextInput
+            testID="input-avatar"
+            style={[styles.input, styles.avatarInput]}
+            placeholder="https://... or use camera above"
+            placeholderTextColor="#6B7280"
+            autoCapitalize="none"
+            value={avatarUrl}
+            onChangeText={setAvatarUrl}
+          />
+          <TouchableOpacity 
+            style={styles.imagePickerButton}
+            onPress={showImageOptions}
+            testID="avatar-picker-button"
+          >
+            <ImageIcon size={18} color="#FF0080" />
+          </TouchableOpacity>
+        </View>
 
         <Text style={[styles.sectionTitle]}>Security</Text>
         <Text style={styles.label}>Current password</Text>
@@ -185,6 +277,49 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     backgroundColor: "#111113",
+    position: 'relative',
+  },
+  avatarOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#FF0080',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#0B0B0C',
+  },
+  changePhotoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  changePhotoText: {
+    color: '#FF0080',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  avatarInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  avatarInput: {
+    flex: 1,
+  },
+  imagePickerButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: '#111113',
+    borderWidth: 1,
+    borderColor: '#1F2937',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatar: { width: "100%", height: "100%" },
   headerMeta: { flex: 1 },
