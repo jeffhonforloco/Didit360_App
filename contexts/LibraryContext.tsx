@@ -2,14 +2,18 @@ import { useState, useCallback, useEffect } from "react";
 import createContextHook from "@nkzw/create-context-hook";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Track, Playlist } from "@/types";
-import { downloadedTracks, downloadedPodcasts } from "@/data/mockData";
+import { downloadedTracks, downloadedPodcasts, audiobooks } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
+import type { GeneratedSet } from "@/contexts/MixMindContext";
 
 interface LibraryState {
   playlists: Playlist[];
   favorites: Track[];
   downloads: Track[];
   recentlyPlayed: Track[];
+  audiobooks: Track[];
+  podcasts: Track[];
+  mixmindSets: GeneratedSet[];
   createPlaylist: (name: string, tracks: Track[]) => void;
   addToPlaylist: (playlistId: string, track: Track) => void;
   toggleFavorite: (track: Track) => void;
@@ -17,7 +21,14 @@ interface LibraryState {
   addToDownloads: (track: Track) => void;
   removeFromDownloads: (trackId: string) => void;
   addToRecentlyPlayed: (track: Track) => void;
+  addAudiobook: (audiobook: Track) => void;
+  removeAudiobook: (audiobookId: string) => void;
+  addPodcast: (podcast: Track) => void;
+  removePodcast: (podcastId: string) => void;
+  addMixMindSet: (set: GeneratedSet) => void;
+  removeMixMindSet: (setId: string) => void;
   clearUserLibrary: () => void;
+  getFilteredContent: (filter: string) => any[];
 }
 
 export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() => {
@@ -26,6 +37,9 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
   const [favorites, setFavorites] = useState<Track[]>([]);
   const [downloads, setDownloads] = useState<Track[]>([]);
   const [recentlyPlayed, setRecentlyPlayed] = useState<Track[]>([]);
+  const [userAudiobooks, setUserAudiobooks] = useState<Track[]>([]);
+  const [userPodcasts, setUserPodcasts] = useState<Track[]>([]);
+  const [mixmindSets, setMixmindSets] = useState<GeneratedSet[]>([]);
 
   const getUserKey = useCallback((key: string) => {
     const sanitizedKey = key?.trim();
@@ -51,23 +65,40 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
     setFavorites([]);
     setDownloads([]);
     setRecentlyPlayed([]);
+    setUserAudiobooks([]);
+    setUserPodcasts([]);
+    setMixmindSets([]);
   }, []);
 
   const loadLibraryData = useCallback(async () => {
     if (!profile?.email) return;
     
     try {
-      const [playlistsData, favoritesData, downloadsData, recentData] = await Promise.all([
+      const [
+        playlistsData, 
+        favoritesData, 
+        downloadsData, 
+        recentData,
+        audiobooksData,
+        podcastsData,
+        mixmindData
+      ] = await Promise.all([
         AsyncStorage.getItem(getUserKey("playlists")),
         AsyncStorage.getItem(getUserKey("favorites")),
         AsyncStorage.getItem(getUserKey("downloads")),
         AsyncStorage.getItem(getUserKey("recentlyPlayed")),
+        AsyncStorage.getItem(getUserKey("audiobooks")),
+        AsyncStorage.getItem(getUserKey("podcasts")),
+        AsyncStorage.getItem(getUserKey("mixmind_sets")),
       ]);
 
       if (playlistsData) setPlaylists(JSON.parse(playlistsData));
       if (favoritesData) setFavorites(JSON.parse(favoritesData));
       if (downloadsData) setDownloads(JSON.parse(downloadsData));
       if (recentData) setRecentlyPlayed(JSON.parse(recentData));
+      if (audiobooksData) setUserAudiobooks(JSON.parse(audiobooksData));
+      if (podcastsData) setUserPodcasts(JSON.parse(podcastsData));
+      if (mixmindData) setMixmindSets(JSON.parse(mixmindData));
     } catch (error) {
       console.error("Error loading library data:", error);
     }
@@ -83,13 +114,18 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
   }, [profile?.email, loadLibraryData]);
 
   useEffect(() => {
-    // Initialize with mock downloads data if empty
+    // Initialize with mock data if empty
     if (downloads.length === 0 && profile?.email) {
       const mockDownloads = [...downloadedTracks, ...downloadedPodcasts];
       setDownloads(mockDownloads);
       saveLibraryData("downloads", mockDownloads);
     }
-  }, [downloads.length, profile?.email, saveLibraryData]);
+    
+    if (userAudiobooks.length === 0 && profile?.email) {
+      setUserAudiobooks(audiobooks);
+      saveLibraryData("audiobooks", audiobooks);
+    }
+  }, [downloads.length, userAudiobooks.length, profile?.email, saveLibraryData]);
 
   const createPlaylist = useCallback((name: string, tracks: Track[]) => {
     const newPlaylist: Playlist = {
@@ -153,13 +189,83 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
     saveLibraryData("recentlyPlayed", updated);
   }, [recentlyPlayed, saveLibraryData]);
 
+  const addAudiobook = useCallback((audiobook: Track) => {
+    if (!userAudiobooks.some(a => a.id === audiobook.id)) {
+      const updated = [...userAudiobooks, audiobook];
+      setUserAudiobooks(updated);
+      saveLibraryData("audiobooks", updated);
+    }
+  }, [userAudiobooks, saveLibraryData]);
 
+  const removeAudiobook = useCallback((audiobookId: string) => {
+    const updated = userAudiobooks.filter(a => a.id !== audiobookId);
+    setUserAudiobooks(updated);
+    saveLibraryData("audiobooks", updated);
+  }, [userAudiobooks, saveLibraryData]);
+
+  const addPodcast = useCallback((podcast: Track) => {
+    if (!userPodcasts.some(p => p.id === podcast.id)) {
+      const updated = [...userPodcasts, podcast];
+      setUserPodcasts(updated);
+      saveLibraryData("podcasts", updated);
+    }
+  }, [userPodcasts, saveLibraryData]);
+
+  const removePodcast = useCallback((podcastId: string) => {
+    const updated = userPodcasts.filter(p => p.id !== podcastId);
+    setUserPodcasts(updated);
+    saveLibraryData("podcasts", updated);
+  }, [userPodcasts, saveLibraryData]);
+
+  const addMixMindSet = useCallback((set: GeneratedSet) => {
+    if (!mixmindSets.some(s => s.id === set.id)) {
+      const updated = [...mixmindSets, set];
+      setMixmindSets(updated);
+      saveLibraryData("mixmind_sets", updated);
+    }
+  }, [mixmindSets, saveLibraryData]);
+
+  const removeMixMindSet = useCallback((setId: string) => {
+    const updated = mixmindSets.filter(s => s.id !== setId);
+    setMixmindSets(updated);
+    saveLibraryData("mixmind_sets", updated);
+  }, [mixmindSets, saveLibraryData]);
+
+  const getFilteredContent = useCallback((filter: string) => {
+    console.log("[Library] filtering content for:", filter);
+    
+    switch (filter) {
+      case "all":
+        return [
+          ...playlists.map(p => ({ ...p, type: "playlist" })),
+          ...favorites.map(t => ({ ...t, type: "track" })),
+          ...userAudiobooks.map(a => ({ ...a, type: "audiobook" })),
+          ...userPodcasts.map(p => ({ ...p, type: "podcast" })),
+          ...mixmindSets.map(s => ({ ...s, type: "mixmind" })),
+        ];
+      case "playlists":
+        return playlists.map(p => ({ ...p, type: "playlist" }));
+      case "songs":
+        return favorites.map(t => ({ ...t, type: "track" }));
+      case "podcasts":
+        return userPodcasts.map(p => ({ ...p, type: "podcast" }));
+      case "audiobooks":
+        return userAudiobooks.map(a => ({ ...a, type: "audiobook" }));
+      case "mixmind":
+        return mixmindSets.map(s => ({ ...s, type: "mixmind" }));
+      default:
+        return [];
+    }
+  }, [playlists, favorites, userAudiobooks, userPodcasts, mixmindSets]);
 
   return {
     playlists,
     favorites,
     downloads,
     recentlyPlayed,
+    audiobooks: userAudiobooks,
+    podcasts: userPodcasts,
+    mixmindSets,
     createPlaylist,
     addToPlaylist,
     toggleFavorite,
@@ -167,6 +273,13 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
     addToDownloads,
     removeFromDownloads,
     addToRecentlyPlayed,
+    addAudiobook,
+    removeAudiobook,
+    addPodcast,
+    removePodcast,
+    addMixMindSet,
+    removeMixMindSet,
     clearUserLibrary,
+    getFilteredContent,
   };
 });

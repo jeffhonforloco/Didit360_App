@@ -28,18 +28,22 @@ import { useUser } from "@/contexts/UserContext";
 import { router } from "expo-router";
 import type { Track, Playlist } from "@/types";
 
- type FilterId = "all" | "playlists" | "songs" | "podcasts" | "audiobooks";
+ type FilterId = "all" | "playlists" | "songs" | "podcasts" | "audiobooks" | "mixmind";
  type ViewMode = "grid" | "list";
  type SortId = "recent" | "alpha" | "creator";
 
  type ModernItem = {
-  kind: "playlist" | "track";
+  kind: "playlist" | "track" | "audiobook" | "podcast" | "mixmind";
   id: string;
   title: string;
   subtitle: string;
   artwork: string;
   track?: Track;
   playlist?: Playlist;
+  audiobook?: Track;
+  podcast?: Track;
+  mixmindSet?: any;
+  type?: string;
 };
 
 export default function LibraryScreen() {
@@ -48,7 +52,7 @@ export default function LibraryScreen() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sort, setSort] = useState<SortId>("recent");
   const [query, setQuery] = useState<string>("");
-  const { playlists, favorites, downloads, recentlyPlayed } = useLibrary();
+  const { playlists, favorites, downloads, recentlyPlayed, audiobooks, podcasts, mixmindSets, getFilteredContent } = useLibrary();
   const { playTrack } = usePlayer();
   const { profile } = useUser();
 
@@ -58,6 +62,7 @@ export default function LibraryScreen() {
     { id: "songs", label: "Songs" },
     { id: "podcasts", label: "Podcasts" },
     { id: "audiobooks", label: "Audiobooks" },
+    { id: "mixmind", label: "MixMind" },
   ];
 
   const sorters: { id: SortId; label: string }[] = [
@@ -68,31 +73,64 @@ export default function LibraryScreen() {
 
   const items = useMemo<ModernItem[]>(() => {
     console.log("[Library] computing items", { filter, q: query, sort });
+    
+    const filteredContent = getFilteredContent(filter);
     const base: ModernItem[] = [];
-    if (filter === "all" || filter === "playlists") {
-      playlists.forEach((pl) => {
+    
+    filteredContent.forEach((item) => {
+      if (item.type === "playlist") {
         base.push({
           kind: "playlist",
-          id: pl.id,
-          title: pl.name,
-          subtitle: `${pl.tracks.length} tracks`,
-          artwork: pl.tracks[0]?.artwork ?? "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=400&auto=format&fit=crop",
-          playlist: pl,
+          id: item.id,
+          title: item.name,
+          subtitle: `${item.tracks?.length || 0} tracks`,
+          artwork: item.tracks?.[0]?.artwork ?? "https://images.unsplash.com/photo-1511379938547-c1f69419868d?q=80&w=400&auto=format&fit=crop",
+          playlist: item,
+          type: "playlist",
         });
-      });
-    }
-    if (filter === "all" || filter === "songs") {
-      favorites.forEach((t) => {
+      } else if (item.type === "track") {
         base.push({
           kind: "track",
-          id: t.id,
-          title: t.title,
-          subtitle: t.artist,
-          artwork: t.artwork,
-          track: t,
+          id: item.id,
+          title: item.title,
+          subtitle: item.artist,
+          artwork: item.artwork,
+          track: item,
+          type: "track",
         });
-      });
-    }
+      } else if (item.type === "audiobook") {
+        base.push({
+          kind: "audiobook",
+          id: item.id,
+          title: item.title,
+          subtitle: item.artist,
+          artwork: item.artwork,
+          audiobook: item,
+          type: "audiobook",
+        });
+      } else if (item.type === "podcast") {
+        base.push({
+          kind: "podcast",
+          id: item.id,
+          title: item.title,
+          subtitle: item.artist,
+          artwork: item.artwork,
+          podcast: item,
+          type: "podcast",
+        });
+      } else if (item.type === "mixmind") {
+        base.push({
+          kind: "mixmind",
+          id: item.id,
+          title: item.title,
+          subtitle: `${item.tracks?.length || 0} tracks • ${Math.round(item.totalDuration / 60)}min`,
+          artwork: item.artwork || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+          mixmindSet: item,
+          type: "mixmind",
+        });
+      }
+    });
+    
     const q = query.trim().toLowerCase();
     const filtered = q
       ? base.filter((i) =>
@@ -109,7 +147,7 @@ export default function LibraryScreen() {
       sorted.sort((a, b) => Number(recentIds.has(b.id)) - Number(recentIds.has(a.id)));
     }
     return sorted;
-  }, [filter, playlists, favorites, query, sort, recentlyPlayed]);
+  }, [filter, query, sort, recentlyPlayed, getFilteredContent]);
 
   const renderFilter = useCallback(({ item }: { item: { id: FilterId; label: string } }) => (
     <TouchableOpacity
@@ -126,35 +164,63 @@ export default function LibraryScreen() {
     </TouchableOpacity>
   ), [filter]);
 
-  const renderCard = useCallback(({ item }: { item: ModernItem }) => (
-    <TouchableOpacity
-      testID={`card-${item.kind}-${item.id}`}
-      style={viewMode === "grid" ? styles.card : styles.row}
-      onPress={() => {
-        if (item.kind === "track" && item.track) {
-          console.log("[Library] play track", item.track.id);
-          playTrack(item.track);
-        }
-      }}
-      activeOpacity={0.9}
-    >
-      <View style={viewMode === "grid" ? styles.cardArtWrap : styles.rowArtWrap}>
-        <Image source={{ uri: item.artwork }} style={viewMode === "grid" ? styles.cardArt : styles.rowArt} />
-        {item.kind === "track" && (
-          <View style={styles.playBadge}>
-            <Play size={14} color="#0B0B0C" />
-          </View>
-        )}
-      </View>
-      <View style={viewMode === "grid" ? styles.cardMeta : styles.rowMeta}>
-        <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.itemSubtitle} numberOfLines={1}>{item.subtitle}</Text>
-      </View>
-      <TouchableOpacity style={styles.moreBtn} onPress={() => console.log("[Library] more", item.id)}>
-        <MoreHorizontal size={18} color="#9CA3AF" />
+  const renderCard = useCallback(({ item }: { item: ModernItem }) => {
+    const handlePress = () => {
+      console.log("[Library] item pressed", item.kind, item.id);
+      
+      if (item.kind === "track" && item.track) {
+        playTrack(item.track);
+      } else if (item.kind === "audiobook" && item.audiobook) {
+        router.push(`/audiobook/${item.audiobook.id}`);
+      } else if (item.kind === "podcast" && item.podcast) {
+        router.push(`/podcast-episode/${item.podcast.id}`);
+      } else if (item.kind === "playlist" && item.playlist) {
+        router.push(`/playlist?id=${item.playlist.id}`);
+      } else if (item.kind === "mixmind" && item.mixmindSet) {
+        router.push(`/mixmind-live?setId=${item.mixmindSet.id}`);
+      }
+    };
+    
+    const getIcon = () => {
+      switch (item.kind) {
+        case "track":
+          return <Play size={14} color="#0B0B0C" />;
+        case "audiobook":
+          return <Play size={14} color="#0B0B0C" />;
+        case "podcast":
+          return <Play size={14} color="#0B0B0C" />;
+        case "mixmind":
+          return <Play size={14} color="#0B0B0C" />;
+        default:
+          return null;
+      }
+    };
+    
+    return (
+      <TouchableOpacity
+        testID={`card-${item.kind}-${item.id}`}
+        style={viewMode === "grid" ? styles.card : styles.row}
+        onPress={handlePress}
+        activeOpacity={0.9}
+      >
+        <View style={viewMode === "grid" ? styles.cardArtWrap : styles.rowArtWrap}>
+          <Image source={{ uri: item.artwork }} style={viewMode === "grid" ? styles.cardArt : styles.rowArt} />
+          {getIcon() && (
+            <View style={styles.playBadge}>
+              {getIcon()}
+            </View>
+          )}
+        </View>
+        <View style={viewMode === "grid" ? styles.cardMeta : styles.rowMeta}>
+          <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.itemSubtitle} numberOfLines={1}>{item.subtitle}</Text>
+        </View>
+        <TouchableOpacity style={styles.moreBtn} onPress={() => console.log("[Library] more", item.id)}>
+          <MoreHorizontal size={18} color="#9CA3AF" />
+        </TouchableOpacity>
       </TouchableOpacity>
-    </TouchableOpacity>
-  ), [playTrack, viewMode]);
+    );
+  }, [playTrack, viewMode, router]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -302,12 +368,89 @@ export default function LibraryScreen() {
             </TouchableOpacity>
           </View>
           
-          <TouchableOpacity 
-            style={styles.podcastPreview}
-            onPress={() => router.push("/podcasts")}
-          >
-            <Text style={styles.podcastPreviewText}>View your podcast library with tabs for Your Likes, Queue, and Downloaded episodes</Text>
-          </TouchableOpacity>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+            {podcasts.slice(0, 5).map((podcast, index) => (
+              <TouchableOpacity
+                key={podcast.id}
+                style={styles.historyItem}
+                onPress={() => router.push(`/podcast-episode/${podcast.id}`)}
+              >
+                <Image source={{ uri: podcast.artwork }} style={styles.historyArtwork} />
+                <Text style={styles.historyTitle} numberOfLines={2}>
+                  {podcast.title}
+                </Text>
+                <Text style={styles.historyArtist} numberOfLines={1}>
+                  {podcast.artist}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+        
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Audiobooks</Text>
+            <TouchableOpacity onPress={() => router.push("/categories/audiobooks")}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+            {audiobooks.slice(0, 5).map((audiobook, index) => (
+              <TouchableOpacity
+                key={audiobook.id}
+                style={styles.historyItem}
+                onPress={() => router.push(`/audiobook/${audiobook.id}`)}
+              >
+                <Image source={{ uri: audiobook.artwork }} style={styles.historyArtwork} />
+                <Text style={styles.historyTitle} numberOfLines={2}>
+                  {audiobook.title}
+                </Text>
+                <Text style={styles.historyArtist} numberOfLines={1}>
+                  {audiobook.artist}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+        
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>MixMind Sets</Text>
+            <TouchableOpacity onPress={() => router.push("/mixmind-history")}>
+              <Text style={styles.seeAllText}>See All</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {mixmindSets.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.historyScroll}>
+              {mixmindSets.slice(0, 5).map((set, index) => (
+                <TouchableOpacity
+                  key={set.id}
+                  style={styles.historyItem}
+                  onPress={() => router.push(`/mixmind-live?setId=${set.id}`)}
+                >
+                  <Image 
+                    source={{ uri: set.artwork || "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop" }} 
+                    style={styles.historyArtwork} 
+                  />
+                  <Text style={styles.historyTitle} numberOfLines={2}>
+                    {set.title}
+                  </Text>
+                  <Text style={styles.historyArtist} numberOfLines={1}>
+                    {set.tracks?.length || 0} tracks • {Math.round(set.totalDuration / 60)}min
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <TouchableOpacity 
+              style={styles.podcastPreview}
+              onPress={() => router.push("/ai-dj-setup")}
+            >
+              <Text style={styles.podcastPreviewText}>Create your first AI-generated mix with MixMind. Tap to get started!</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.section}>

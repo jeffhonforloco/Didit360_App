@@ -3,7 +3,7 @@ import { publicProcedure } from "../../../create-context";
 
 const UpdateLibrarySchema = z.object({
   userId: z.string(),
-  type: z.enum(['playlists', 'favorites', 'downloads', 'recentlyPlayed']),
+  type: z.enum(['playlists', 'favorites', 'downloads', 'recentlyPlayed', 'audiobooks', 'podcasts', 'mixmindSets']),
   data: z.any(),
 });
 

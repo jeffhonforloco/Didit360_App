@@ -11,6 +11,9 @@ const LibrarySchema = z.object({
   favorites: z.array(z.any()),
   downloads: z.array(z.any()),
   recentlyPlayed: z.array(z.any()),
+  audiobooks: z.array(z.any()),
+  podcasts: z.array(z.any()),
+  mixmindSets: z.array(z.any()),
 });
 
 export const getLibraryProcedure = publicProcedure
@@ -26,5 +29,8 @@ export const getLibraryProcedure = publicProcedure
       favorites: [],
       downloads: [],
       recentlyPlayed: [],
+      audiobooks: [],
+      podcasts: [],
+      mixmindSets: [],
     };
   });
