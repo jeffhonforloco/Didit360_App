@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,6 +9,14 @@ import { router } from "expo-router";
 export default function SettingsScreen() {
   const { profile } = useUser();
   const insets = useSafeAreaInsets();
+  
+  const showFeatureAlert = (title: string, message: string = 'This feature is coming soon!') => {
+    if (Platform.OS === 'web') {
+      console.log(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
   
   // Settings state
   const [dataSaver, setDataSaver] = useState(false);
@@ -112,7 +120,7 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => console.log('Email')}
+          onPress={() => Alert.alert('Email Settings', 'Email management features coming soon!')}
           activeOpacity={0.8}
         >
           <View>

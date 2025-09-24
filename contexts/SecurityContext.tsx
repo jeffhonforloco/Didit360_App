@@ -113,8 +113,13 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 
 const getDeviceInfo = () => {
   let version = 'unknown';
-  if (Platform.Version) {
-    version = typeof Platform.Version === 'string' ? Platform.Version : Platform.Version.toString();
+  try {
+    if (Platform.Version) {
+      version = typeof Platform.Version === 'string' ? Platform.Version : String(Platform.Version);
+    }
+  } catch (error) {
+    console.warn('[SecurityContext] Failed to get platform version:', error);
+    version = 'unknown';
   }
   return `${Platform.OS} ${version}`;
 };

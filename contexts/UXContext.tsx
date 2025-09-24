@@ -187,8 +187,13 @@ const getDeviceInfo = (): DeviceInfo => {
   const isTablet = Math.min(width, height) >= 768;
   
   let version = 'unknown';
-  if (Platform.Version) {
-    version = typeof Platform.Version === 'string' ? Platform.Version : Platform.Version.toString();
+  try {
+    if (Platform.Version) {
+      version = typeof Platform.Version === 'string' ? Platform.Version : String(Platform.Version);
+    }
+  } catch (error) {
+    console.warn('[UXContext] Failed to get platform version:', error);
+    version = 'unknown';
   }
   
   return {
