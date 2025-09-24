@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Play } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { topCharts } from "@/data/mockData";
+import { mostViewedVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function MostViewedScreen() {
@@ -33,7 +33,7 @@ export default function MostViewedScreen() {
         <Text style={styles.trackArtist} numberOfLines={1}>
           {item.artist}
         </Text>
-        <Text style={styles.viewedLabel}>Most Viewed</Text>
+        <Text style={styles.viewedLabel}>{item.description || "Most Viewed"}</Text>
       </View>
       <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)}>
         <Play size={16} color="#000" fill="#FFF" />
@@ -57,7 +57,7 @@ export default function MostViewedScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <FlatList
-          data={topCharts}
+          data={mostViewedVideos}
           renderItem={renderTrack}
           keyExtractor={(item) => `most-${item.id}`}
           scrollEnabled={false}
