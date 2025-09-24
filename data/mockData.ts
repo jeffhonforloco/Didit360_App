@@ -1377,6 +1377,7 @@ export const allTracks: Track[] = [
 ];
 
 export const trendingNow: Track[] = [
+  // Trending Music
   {
     id: "t1",
     title: "Shades of Love",
@@ -1393,6 +1394,49 @@ export const trendingNow: Track[] = [
     duration: 210,
     type: "song",
   },
+  // Trending Video
+  {
+    id: "tv1",
+    title: "Starboy (Official Video)",
+    artist: "The Weeknd ft. Daft Punk",
+    album: "Starboy",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 230,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  },
+  {
+    id: "tv2",
+    title: "Anti-Hero (Music Video)",
+    artist: "Taylor Swift",
+    album: "Midnights",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 201,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  // Trending Podcast
+  {
+    id: "tp1",
+    title: "The Future of AI",
+    artist: "Tech Insights Daily",
+    artwork: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=400&fit=crop",
+    duration: 2850,
+    type: "podcast",
+    description: "Deep dive into artificial intelligence trends and implications",
+  },
+  {
+    id: "tp2",
+    title: "True Crime: The Missing Hour",
+    artist: "Mystery Files Podcast",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3240,
+    type: "podcast",
+    description: "Investigating unsolved mysteries from around the world",
+  },
+  // Trending Music
   {
     id: "t3",
     title: "Save Your Tears",
@@ -1401,6 +1445,26 @@ export const trendingNow: Track[] = [
     duration: 225,
     type: "song",
   },
+  // Trending Audiobook
+  {
+    id: "ta1",
+    title: "Atomic Habits",
+    artist: "James Clear",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 19800,
+    type: "audiobook",
+    description: "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+  },
+  {
+    id: "ta2",
+    title: "The Psychology of Money",
+    artist: "Morgan Housel",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 21600,
+    type: "audiobook",
+    description: "Timeless lessons on wealth, greed, and happiness",
+  },
+  // More trending music
   {
     id: "t4",
     title: "Kiss Me More",
@@ -1417,25 +1481,15 @@ export const trendingNow: Track[] = [
     duration: 242,
     type: "song",
   },
+  // Trending Podcast
   {
-    id: "t6",
-    title: "Forever After All",
-    artist: "Luke Combs",
-    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
-    duration: 186,
-    type: "song",
-  },
-  // Add video content to trending
-  {
-    id: "v2",
-    title: "Starboy (Official Video)",
-    artist: "The Weeknd ft. Daft Punk",
-    album: "Starboy",
-    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
-    duration: 230,
-    type: "video",
-    isVideo: true,
-    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+    id: "tp3",
+    title: "Mindfulness & Meditation",
+    artist: "Wellness Journey",
+    artwork: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    duration: 1980,
+    type: "podcast",
+    description: "Daily practices for mental health and well-being",
   },
 ];
 
