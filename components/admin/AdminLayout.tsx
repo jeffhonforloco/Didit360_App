@@ -1,7 +1,12 @@
 import React, { ReactNode, useMemo } from 'react';
 import { View, StyleSheet, Platform, Pressable, Text } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
-import { Bell, User2, LayoutDashboard, Users, Library, Radio, Palette, DollarSign, ShieldCheck, HelpCircle, Settings } from 'lucide-react-native';
+import { 
+  Bell, User2, LayoutDashboard, Users, Library, Radio, Palette, DollarSign, 
+  ShieldCheck, HelpCircle, Settings, BarChart3, Zap, Database, 
+  MessageSquare, FileText, Shield, Activity, Globe, Headphones,
+  Video, BookOpen, Music, AlertTriangle, Key
+} from 'lucide-react-native';
 import { useTheme } from '@/components/ui/Theme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -22,12 +27,17 @@ export function AdminLayout({ title, children }: { title: string; children: Reac
     { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
     { key: 'users', label: 'User Management', icon: Users, href: '/admin/users' },
     { key: 'content', label: 'Content Management', icon: Library, href: '/admin/content' },
-    { key: 'live', label: 'Live Streaming', icon: Radio, href: '/admin/live' },
-    { key: 'genres', label: 'Genre Customization', icon: Palette, href: '/admin/genres' },
+    { key: 'moderation', label: 'Content Moderation', icon: Shield, href: '/admin/moderation' },
+    { key: 'analytics', label: 'Analytics & Reports', icon: BarChart3, href: '/admin/analytics' },
+    { key: 'mixmind', label: 'MixMind AI DJ', icon: Zap, href: '/admin/mixmind' },
+    { key: 'ingest', label: 'Content Ingestion', icon: Database, href: '/admin/ingest' },
+    { key: 'partners', label: 'Partner Management', icon: Globe, href: '/admin/partners' },
     { key: 'revenue', label: 'Revenue & Finance', icon: DollarSign, href: '/admin/revenue' },
-    { key: 'secrets', label: 'Secure Keys', icon: ShieldCheck, href: '/admin/secrets' },
-    { key: 'support', label: 'Support & Comm.', icon: HelpCircle, href: '/admin/support' },
-    { key: 'settings', label: 'Settings', icon: Settings, href: '/admin/settings' },
+    { key: 'system', label: 'System Health', icon: Activity, href: '/admin/system' },
+    { key: 'audit', label: 'Audit & Logs', icon: FileText, href: '/admin/audit' },
+    { key: 'secrets', label: 'API Keys & Secrets', icon: Key, href: '/admin/secrets' },
+    { key: 'support', label: 'Support & Tickets', icon: HelpCircle, href: '/admin/support' },
+    { key: 'settings', label: 'Platform Settings', icon: Settings, href: '/admin/settings' },
   ], []);
 
   return (

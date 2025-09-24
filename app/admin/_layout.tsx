@@ -7,9 +7,14 @@ export default function AdminStackLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="users" />
       <Stack.Screen name="content" />
-      <Stack.Screen name="genres" />
-      <Stack.Screen name="live" />
+      <Stack.Screen name="moderation" />
+      <Stack.Screen name="analytics" />
+      <Stack.Screen name="mixmind" />
+      <Stack.Screen name="ingest" />
+      <Stack.Screen name="partners" />
       <Stack.Screen name="revenue" />
+      <Stack.Screen name="system" />
+      <Stack.Screen name="audit" />
       <Stack.Screen name="secrets" />
       <Stack.Screen name="support" />
       <Stack.Screen name="settings" />
