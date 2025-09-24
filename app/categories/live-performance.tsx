@@ -18,28 +18,39 @@ import type { Track } from "@/types";
 export default function LivePerformanceScreen() {
   const { playTrack } = usePlayer();
 
-  const renderTrack = ({ item }: { item: Track }) => (
-    <TouchableOpacity
-      style={styles.trackCard}
-      onPress={() => playTrack(item)}
-      activeOpacity={0.8}
-      testID={`track-${item.id}`}
-    >
-      <Image source={{ uri: item.artwork }} style={styles.trackImage} />
-      <View style={styles.trackInfo}>
-        <Text style={styles.trackTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.trackArtist} numberOfLines={1}>
-          {item.artist}
-        </Text>
-        <Text style={styles.liveLabel}>Live Performance</Text>
-      </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)}>
-        <Play size={16} color="#000" fill="#FFF" />
+  const renderTrack = ({ item }: { item: Track }) => {
+    // Mark live performance tracks as video content
+    const liveTrack: Track = {
+      ...item,
+      isVideo: true,
+      type: "video",
+      description: "Live Performance",
+      videoUrl: item.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+    };
+    
+    return (
+      <TouchableOpacity
+        style={styles.trackCard}
+        onPress={() => playTrack(liveTrack)}
+        activeOpacity={0.8}
+        testID={`track-${item.id}`}
+      >
+        <Image source={{ uri: item.artwork }} style={styles.trackImage} />
+        <View style={styles.trackInfo}>
+          <Text style={styles.trackTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={styles.trackArtist} numberOfLines={1}>
+            {item.artist}
+          </Text>
+          <Text style={styles.liveLabel}>Live Performance</Text>
+        </View>
+        <TouchableOpacity style={styles.playButton} onPress={() => playTrack(liveTrack)}>
+          <Play size={16} color="#000" fill="#FFF" />
+        </TouchableOpacity>
       </TouchableOpacity>
-    </TouchableOpacity>
-  );
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>

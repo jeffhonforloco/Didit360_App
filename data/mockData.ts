@@ -28,6 +28,18 @@ export const featuredContent: Track[] = [
     duration: 242,
     type: "song",
   },
+  // Add a video track to featured content
+  {
+    id: "v1",
+    title: "Blinding Lights (Official Music Video)",
+    artist: "The Weeknd",
+    album: "After Hours",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 200,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
 ];
 
 export const recentlyPlayed: Track[] = [
@@ -57,6 +69,18 @@ export const recentlyPlayed: Track[] = [
     artwork: "https://picsum.photos/400/400?random=6",
     duration: 195,
     type: "song",
+  },
+  // Add music video to recently played
+  {
+    id: "v4",
+    title: "Firework (Official Music Video)",
+    artist: "Katy Perry",
+    album: "Teenage Dream",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 228,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
   },
 ];
 
@@ -97,6 +121,19 @@ export const topCharts: Track[] = [
     duration: 212,
     type: "song",
   },
+  // Add live performance video
+  {
+    id: "v5",
+    title: "Live Concert: Midnight Dreams",
+    artist: "Luna Echo",
+    album: "Live Sessions",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 300,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    description: "Live Performance",
+  },
 ];
 
 export const newReleases: Track[] = [
@@ -135,6 +172,18 @@ export const newReleases: Track[] = [
     artwork: "https://picsum.photos/400/400?random=14",
     duration: 194,
     type: "song",
+  },
+  // Add music video to new releases
+  {
+    id: "v3",
+    title: "7 rings (Official Video)",
+    artist: "Ariana Grande",
+    album: "Thank U, Next",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 178,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
   },
 ];
 
@@ -1086,6 +1135,19 @@ export const videoTracks: Track[] = [
     type: "video",
     isVideo: true,
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    description: "Live Performance",
+  },
+  {
+    id: "v6",
+    title: "Live at Madison Square Garden",
+    artist: "Electric Pulse",
+    album: "Live Sessions",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 420,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",
+    description: "Live Performance",
   },
 ];
 
@@ -1149,6 +1211,18 @@ export const trendingNow: Track[] = [
     artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
     duration: 186,
     type: "song",
+  },
+  // Add video content to trending
+  {
+    id: "v2",
+    title: "Starboy (Official Video)",
+    artist: "The Weeknd ft. Daft Punk",
+    album: "Starboy",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 230,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
   },
 ];
 

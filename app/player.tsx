@@ -230,10 +230,15 @@ export default function PlayerScreen() {
     );
   }
 
-  const isVideoTrack = currentTrack.isVideo || currentTrack.type === "video";
+  // Determine content type
+  const isVideoTrack = currentTrack.type === "video" || currentTrack.isVideo === true || currentTrack.videoUrl;
   const isAudiobookTrack = currentTrack.type === "audiobook";
+  const isLivePerformance = currentTrack.title.toLowerCase().includes('live') || 
+                           currentTrack.album?.toLowerCase().includes('live') ||
+                           currentTrack.description?.toLowerCase().includes('live performance');
 
-  if (isVideoTrack) {
+  // Video Player Component
+  if (isVideoTrack || isLivePerformance) {
     return (
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -244,22 +249,65 @@ export default function PlayerScreen() {
             <Text style={styles.videoTitle} numberOfLines={1}>
               {currentTrack.title}
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowShareModal(true)}>
               <MoreVertical size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
 
-          <View style={styles.videoPlayerFullContainer}>
+          <View style={styles.videoPlayerContainer}>
             <VideoPlayer
               track={currentTrack}
               isPlaying={isPlaying}
               onPlayPause={togglePlayPause}
-              style={styles.videoPlayerFull}
+              style={styles.videoPlayer}
             />
           </View>
 
-          <View style={styles.videoInfoContainer}>
-            <View style={styles.videoTitleSection}>
+          <View style={styles.videoControlsContainer}>
+            <View style={styles.videoProgressContainer}>
+              <TouchableOpacity 
+                style={styles.sliderContainer}
+                activeOpacity={1}
+                onPress={(e) => {
+                  const { locationX } = e.nativeEvent;
+                  const containerWidth = width - 40;
+                  const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+                  setProgress(newProgress);
+                }}
+              >
+                <View style={styles.sliderTrack}>
+                  <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
+                  <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                </View>
+              </TouchableOpacity>
+              <View style={styles.timeRow}>
+                <Text style={styles.time}>2:46</Text>
+                <Text style={styles.time}>3:05</Text>
+              </View>
+            </View>
+
+            <View style={styles.videoMainControls}>
+              <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                <SkipBack size={28} color="#FFF" fill="#FFF" />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={togglePlayPause}
+                style={styles.videoPlayButton}
+              >
+                {isPlaying ? (
+                  <Pause size={32} color="#FFF" fill="#FFF" />
+                ) : (
+                  <Play size={32} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                <SkipForward size={28} color="#FFF" fill="#FFF" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.videoInfoSection}>
               <Text style={styles.videoTrackTitle} numberOfLines={2}>
                 {currentTrack.title}
               </Text>
@@ -352,7 +400,7 @@ export default function PlayerScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.playlistModal}>
-              <Text style={styles.playlistModalTitle}>Add this song to My Playlist</Text>
+              <Text style={styles.playlistModalTitle}>Add this video to My Playlist</Text>
               <FlatList
                 data={playlists}
                 keyExtractor={(item) => item.id}
@@ -383,7 +431,7 @@ export default function PlayerScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.downloadModal}>
-              <Text style={styles.downloadText}>Downloading music for this song...</Text>
+              <Text style={styles.downloadText}>Downloading video...</Text>
             </View>
           </View>
         </Modal>
@@ -747,34 +795,60 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginHorizontal: 20,
   },
-  videoPlayerFullContainer: {
+  videoPlayerContainer: {
     flex: 1,
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+    marginHorizontal: 0,
   },
-  videoPlayerFull: {
+  videoPlayer: {
     width: '100%',
-    height: '100%',
+    aspectRatio: 16/9,
+    backgroundColor: '#000',
   },
-  videoInfoContainer: {
-    backgroundColor: 'rgba(0,0,0,0.9)',
+  videoControlsContainer: {
+    backgroundColor: 'rgba(0,0,0,0.95)',
     paddingHorizontal: 20,
     paddingVertical: 20,
   },
-  videoTitleSection: {
+  videoProgressContainer: {
+    marginBottom: 20,
+  },
+  videoMainControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 40,
+  },
+  videoPlayButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "#FF0080",
+    justifyContent: "center",
+    alignItems: "center",
+    marginHorizontal: 30,
+    shadowColor: '#FF0080',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  videoInfoSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   videoTrackTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "700",
     color: "#FFF",
     textAlign: 'center',
     marginBottom: 8,
   },
   videoArtist: {
-    fontSize: 16,
+    fontSize: 14,
     color: "rgba(255,255,255,0.7)",
     textAlign: 'center',
   },
@@ -782,7 +856,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
   },
   infoContainer: {
     flex: 1,

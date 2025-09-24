@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import {
   StyleSheet,
+  Text,
   View,
   TouchableOpacity,
   Platform,
@@ -75,8 +76,18 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
     }
   };
 
-  if (!track.videoUrl) {
-    return null;
+  // Use a fallback video URL if none is provided
+  const videoUrl = track.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
+  
+  if (!videoUrl) {
+    return (
+      <View style={[styles.container, style]}>
+        <View style={styles.placeholderContainer}>
+          <Play size={48} color="#FFF" />
+          <Text style={styles.placeholderText}>Video not available</Text>
+        </View>
+      </View>
+    );
   }
 
   return (
@@ -88,7 +99,7 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
       <Video
         ref={videoRef}
         style={styles.video}
-        source={{ uri: track.videoUrl }}
+        source={{ uri: videoUrl }}
         useNativeControls={false}
         resizeMode={ResizeMode.CONTAIN}
         isLooping={false}
@@ -201,6 +212,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 8,
+  },
+  placeholderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1A1A1A',
+  },
+  placeholderText: {
+    color: '#FFF',
+    fontSize: 16,
+    marginTop: 12,
+    fontWeight: '500',
   },
 });
 
