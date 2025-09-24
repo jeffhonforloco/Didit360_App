@@ -21,7 +21,7 @@ interface PlayerState {
 }
 
 export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => {
-  const { profile } = useUser();
+  const { profile, settings } = useUser();
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [queue, setQueue] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -179,7 +179,28 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
 
   useEffect(() => {
     audioEngine.setEvents({
-      onTrackStart: (t) => console.log('[AudioEngine] started', t.title),
+      onTrackStart: (t) => {
+        console.log('[AudioEngine] started', t.title);
+        setCurrentTrack((prev) => {
+          if (!prev || prev.id !== t.id) return t;
+          return prev;
+        });
+        setQueue((prev) => {
+          if (prev.length > 0 && prev[0].id === t.id) {
+            const remaining = prev.slice(1);
+            if (remaining[0]) {
+              audioEngine.preload(remaining[0]).catch((e) => console.log('[Player] preload next after start error', e));
+            }
+            saveLastPlayed(t);
+            return remaining;
+          }
+          if (prev[0]) {
+            // ensure next is preloaded
+            audioEngine.preload(prev[0]).catch((e) => console.log('[Player] preload next ensure error', e));
+          }
+          return prev;
+        });
+      },
       onTrackEnd: (t) => {
         console.log('[AudioEngine] ended', t.title);
         if (queue.length > 0) {
@@ -193,11 +214,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       },
       onError: (e) => console.log('[AudioEngine] error', e),
     });
-    audioEngine.setContentPrefs('song', { crossfadeMs: 6000, gapless: true });
+    audioEngine.setContentPrefs('song', { crossfadeMs: (settings.crossfadeSeconds ?? 0) * 1000, gapless: settings.gaplessPlayback });
     audioEngine.setContentPrefs('podcast', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('audiobook', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('video', { crossfadeMs: 0, gapless: false });
-  }, [queue]);
+  }, [queue, settings.crossfadeSeconds, settings.gaplessPlayback]);
 
   return {
     currentTrack,

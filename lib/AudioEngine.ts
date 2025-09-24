@@ -41,6 +41,7 @@ export class AudioEngine {
   private nextTrack: Track | null = null;
   private fadeTimer: null | ReturnType<typeof setInterval> = null;
   private endSub: any = null;
+  private isFading = false;
 
   async configure() {
     try {
@@ -123,6 +124,17 @@ export class AudioEngine {
     sound.setOnPlaybackStatusUpdate((status) => {
       const s = status as AVPlaybackStatusSuccess;
       if (!s.isLoaded) return;
+      try {
+        const duration = (s.durationMillis ?? 0);
+        const position = (s.positionMillis ?? 0);
+        const remaining = duration > 0 ? Math.max(0, duration - position) : Number.MAX_SAFE_INTEGER;
+        const shouldAutoFade = this.crossfadeDurationMs > 0 && !!this.nextTrack && !this.isFading && remaining <= (this.crossfadeDurationMs + 200);
+        if (shouldAutoFade && this.nextTrack) {
+          this.crossfadeToNext(this.nextTrack).catch((e) => console.log('[AudioEngine] auto-crossfade error', e));
+        }
+      } catch (e) {
+        console.log('[AudioEngine] status handler error', e);
+      }
       if (s.didJustFinish) {
         if (this.events.onTrackEnd && track) this.events.onTrackEnd(track);
       }
@@ -175,6 +187,7 @@ export class AudioEngine {
       clearInterval(this.fadeTimer);
       this.fadeTimer = null;
     }
+    this.isFading = false;
   }
 
   async crossfadeToNext(next: Track) {
@@ -186,12 +199,28 @@ export class AudioEngine {
     await this.preload(next);
     const to = this.getInactive();
     if (!to.sound) return;
+
+    if (this.crossfadeDurationMs <= 0) {
+      try {
+        await to.sound.setVolumeAsync(1);
+        await to.sound.playAsync();
+        if (from.sound) await from.sound.stopAsync();
+      } catch (e) {
+        console.log('[AudioEngine] instant switch error', e);
+      }
+      this.active = this.active === 'a' ? 'b' : 'a';
+      if (this.events.onTrackStart && to.track) this.events.onTrackStart(to.track);
+      return;
+    }
+
+    this.isFading = true;
     await to.sound.setVolumeAsync(0);
     await to.sound.playAsync();
     const steps = 24;
     const stepMs = Math.max(16, Math.floor(this.crossfadeDurationMs / steps));
     let i = 0;
     this.clearFade();
+    this.isFading = true;
     this.fadeTimer = setInterval(async () => {
       i += 1;
       const t = Math.min(1, i / steps);

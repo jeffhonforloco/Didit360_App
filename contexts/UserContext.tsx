@@ -59,7 +59,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   dataSaver: false,
   streamQuality: 'high',
   downloadQuality: 'high',
-  crossfadeSeconds: 4,
+  crossfadeSeconds: 6,
   showLyrics: true,
   language: 'en',
   analytics: true,

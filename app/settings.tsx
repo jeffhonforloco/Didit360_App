@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
@@ -7,14 +7,14 @@ import { router } from "expo-router";
 
 
 export default function SettingsScreen() {
-  const { profile } = useUser();
+  const { profile, settings, updateSetting } = useUser();
   const insets = useSafeAreaInsets();
   
   // Settings state
   const [dataSaver, setDataSaver] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
-  const [crossfade, setCrossfade] = useState(true);
-  const [gaplessPlayback, setGaplessPlayback] = useState(true);
+  const crossfade = useMemo(() => (settings?.crossfadeSeconds ?? 0) > 0, [settings?.crossfadeSeconds]);
+  const gaplessPlayback = settings?.gaplessPlayback ?? true;
   const [allowExplicitContent, setAllowExplicitContent] = useState(false);
   const [showUnplayableSongs, setShowUnplayableSongs] = useState(false);
   const [normalizeAudio, setNormalizeAudio] = useState(true);
@@ -160,8 +160,12 @@ export default function SettingsScreen() {
             <Text style={styles.settingsItemSubtext}>Allows you to crossfade between tracks</Text>
           </View>
           <Switch
+            testID="settings-toggle-crossfade"
             value={crossfade}
-            onValueChange={setCrossfade}
+            onValueChange={(v) => {
+              const seconds = v ? (settings.crossfadeSeconds > 0 ? settings.crossfadeSeconds : 6) : 0;
+              void updateSetting('crossfadeSeconds', seconds);
+            }}
             trackColor={{ false: '#333', true: '#1DB954' }}
             thumbColor={crossfade ? '#FFF' : '#FFF'}
           />
@@ -173,8 +177,9 @@ export default function SettingsScreen() {
             <Text style={styles.settingsItemSubtext}>Allows gapless playback</Text>
           </View>
           <Switch
+            testID="settings-toggle-gapless"
             value={gaplessPlayback}
-            onValueChange={setGaplessPlayback}
+            onValueChange={(v) => void updateSetting('gaplessPlayback', v)}
             trackColor={{ false: '#333', true: '#1DB954' }}
             thumbColor={gaplessPlayback ? '#FFF' : '#FFF'}
           />

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
-import { ArrowLeft, Wifi, Smartphone, Volume2, ChevronRight } from 'lucide-react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, Switch } from 'react-native';
+import { ArrowLeft, Wifi, Smartphone, Volume2, ChevronRight, Waves, Link as LinkIcon } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useUser } from '@/contexts/UserContext';
+import SliderCompat from '@/components/SliderCompat';
 
 type AudioQuality = 'low' | 'normal' | 'high' | 'lossless';
 
@@ -14,6 +15,10 @@ export default function AudioQualitySettings() {
   const [wifiStreamingQuality, setWifiStreamingQuality] = useState<AudioQuality>('high');
   const [mobileStreamingQuality, setMobileStreamingQuality] = useState<AudioQuality>('normal');
   const [autoAdjustQuality, setAutoAdjustQuality] = useState(true);
+
+  const crossfadeEnabled = useMemo(() => (settings?.crossfadeSeconds ?? 0) > 0, [settings?.crossfadeSeconds]);
+  const crossfadeSeconds = settings?.crossfadeSeconds ?? 0;
+  const gapless = settings?.gaplessPlayback ?? true;
   
   const qualityOptions: { value: AudioQuality; label: string; description: string }[] = [
     { value: 'low', label: 'Low (96 kbps)', description: 'Uses less data, lower quality' },
@@ -129,6 +134,65 @@ export default function AudioQualitySettings() {
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
+        <Text style={styles.sectionTitle}>Playback</Text>
+
+        <View style={styles.settingsItemWithSwitch}>
+          <View style={styles.itemContent}>
+            <Waves size={20} color="#1DB954" style={styles.itemIcon} />
+            <View style={styles.itemText}>
+              <Text style={styles.settingsItemText}>Crossfade</Text>
+              <Text style={styles.settingsItemSubtext}>{crossfadeEnabled ? `${crossfadeSeconds}s` : 'Off'}</Text>
+            </View>
+          </View>
+          <Switch
+            testID="toggle-crossfade"
+            value={crossfadeEnabled}
+            onValueChange={(v) => {
+              const seconds = v ? (settings.crossfadeSeconds > 0 ? settings.crossfadeSeconds : 6) : 0;
+              void updateSetting('crossfadeSeconds', seconds);
+            }}
+            trackColor={{ false: '#333', true: '#1DB954' }}
+            thumbColor={crossfadeEnabled ? '#FFF' : '#FFF'}
+          />
+        </View>
+
+        {crossfadeEnabled && (
+          <View style={styles.sliderRow}>
+            <Text style={styles.sliderLabel}>Duration</Text>
+            <View style={styles.sliderContainer}>
+              <SliderCompat
+                testID="slider-crossfade"
+                minimumValue={0}
+                maximumValue={12}
+                step={1}
+                value={crossfadeSeconds}
+                onValueChange={(v) => void updateSetting('crossfadeSeconds', Math.max(0, Math.min(12, Math.round(v))))}
+                minimumTrackTintColor="#1DB954"
+                maximumTrackTintColor="#333"
+                thumbTintColor="#FFFFFF"
+              />
+              <Text style={styles.sliderValue}>{crossfadeSeconds}s</Text>
+            </View>
+          </View>
+        )}
+
+        <View style={styles.settingsItemWithSwitch}>
+          <View style={styles.itemContent}>
+            <LinkIcon size={20} color="#1DB954" style={styles.itemIcon} />
+            <View style={styles.itemText}>
+              <Text style={styles.settingsItemText}>Gapless Playback</Text>
+              <Text style={styles.settingsItemSubtext}>{gapless ? 'On' : 'Off'}</Text>
+            </View>
+          </View>
+          <Switch
+            testID="toggle-gapless"
+            value={gapless}
+            onValueChange={(v) => void updateSetting('gaplessPlayback', v)}
+            trackColor={{ false: '#333', true: '#1DB954' }}
+            thumbColor={gapless ? '#FFF' : '#FFF'}
+          />
+        </View>
+
         <Text style={styles.sectionTitle}>Quality Information</Text>
         
         <View style={styles.qualityInfo}>
@@ -198,6 +262,35 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#1A1A1A',
+  },
+  settingsItemWithSwitch: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1A1A1A',
+  },
+  sliderRow: {
+    paddingVertical: 12,
+    gap: 8,
+  },
+  sliderLabel: {
+    color: '#999',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  sliderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  sliderValue: {
+    color: '#FFF',
+    fontSize: 14,
+    width: 36,
+    textAlign: 'right',
   },
   itemContent: {
     flexDirection: 'row',
