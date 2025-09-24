@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
@@ -323,7 +323,7 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Live Performance", "live-performance", "/categories/live-performance")}
           <FlatList
-            data={topCharts.slice(0, 6)}
+            data={livePerformanceVideos.slice(0, 6)}
             renderItem={renderSmallCard}
             keyExtractor={(item) => `live-${item.id}`}
             horizontal
