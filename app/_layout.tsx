@@ -15,6 +15,7 @@ import { UXProvider } from "@/contexts/UXContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { OfflineProvider } from "@/contexts/OfflineContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -79,12 +80,14 @@ export default function RootLayout() {
                 <UXProvider>
                   <SearchContext>
                     <MixMindProvider>
-                      <PlayerProvider>
-                        <LibraryProvider>
-                          <RootLayoutNav />
-                          <MiniPlayer />
-                        </LibraryProvider>
-                      </PlayerProvider>
+                      <OfflineProvider>
+                        <PlayerProvider>
+                          <LibraryProvider>
+                            <RootLayoutNav />
+                            <MiniPlayer />
+                          </LibraryProvider>
+                        </PlayerProvider>
+                      </OfflineProvider>
                     </MixMindProvider>
                   </SearchContext>
                 </UXProvider>

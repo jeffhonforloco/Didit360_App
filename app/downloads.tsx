@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,24 +17,27 @@ import {
   Heart,
   Plus,
   X,
-
+  Download,
+  Pause,
+  PlayCircle,
+  Trash2,
   ChevronDown,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { downloadedTracks, downloadedPodcasts } from "@/data/mockData";
+import { useOffline } from "@/contexts/OfflineContext";
 import type { Track } from "@/types";
 
 type SortOption = "recently-downloaded" | "alphabetical" | "artist";
-
-
 
 export default function DownloadsScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("recently-downloaded");
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const { playTrack } = usePlayer();
+  const { downloads, queue, requestDownload, removeDownload, pauseDownload, resumeDownload, cancelDownload } = useOffline();
 
-  const allDownloads = [...downloadedTracks, ...downloadedPodcasts];
+  const allDownloadItems = useMemo(() => Object.values(downloads).sort((a, b) => b.updatedAt - a.updatedAt), [downloads]);
+  const allDownloads: Track[] = useMemo(() => allDownloadItems.map((d) => ({ ...d.track, localUri: d.localUri, isDownloaded: d.status === 'completed' })), [allDownloadItems]);
 
   const sortedDownloads = [...allDownloads].sort((a, b) => {
     switch (sortBy) {
@@ -75,70 +78,101 @@ export default function DownloadsScreen() {
   };
 
   const renderTrackItem = useCallback(
-    ({ item }: { item: Track }) => (
-      <TouchableOpacity
-        style={styles.trackItem}
-        onPress={() => playTrack(item)}
-        activeOpacity={0.8}
-      >
-        <View style={styles.trackArtworkContainer}>
-          <Image source={{ uri: item.artwork }} style={styles.trackArtwork} />
-          <View style={styles.trackPlayButton}>
-            <Play size={12} color="#0B0B0C" fill="#0B0B0C" />
-          </View>
-        </View>
-        
-        <View style={styles.trackInfo}>
-          <Text style={styles.trackTitle} numberOfLines={1}>
-            {item.title}
-          </Text>
-          <Text style={styles.trackArtist} numberOfLines={1}>
-            {item.artist}
-          </Text>
-        </View>
-
+    ({ item }: { item: Track }) => {
+      const d = downloads[item.id];
+      const progress = d?.progress ?? 0;
+      const status = d?.status ?? undefined;
+      const inQueue = queue.includes(item.id);
+      return (
         <TouchableOpacity
-          style={styles.menuButton}
-          onPress={() => setShowMenu(showMenu === item.id ? null : item.id)}
+          style={styles.trackItem}
+          onPress={() => playTrack(item)}
+          activeOpacity={0.8}
+          testID={`download-item-${item.id}`}
         >
-          <MoreHorizontal size={20} color="#9CA3AF" />
-        </TouchableOpacity>
+          <View style={styles.trackArtworkContainer}>
+            <Image source={{ uri: item.artwork }} style={styles.trackArtwork} />
+            <View style={styles.trackPlayButton}>
+              <Play size={12} color="#0B0B0C" fill="#0B0B0C" />
+            </View>
+          </View>
+          
+          <View style={styles.trackInfo}>
+            <Text style={styles.trackTitle} numberOfLines={1}>
+              {item.title}
+            </Text>
+            <Text style={styles.trackArtist} numberOfLines={1}>
+              {item.artist}
+            </Text>
+            {status && status !== 'completed' && (
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
+              </View>
+            )}
+            {status === 'completed' && (
+              <Text style={styles.completedLabel}>Available Offline</Text>
+            )}
+          </View>
 
-        {showMenu === item.id && (
-          <View style={styles.contextMenu}>
-            <TouchableOpacity style={styles.menuItem}>
-              <Heart size={16} color="#FFF" />
-              <Text style={styles.menuText}>Like</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Plus size={16} color="#FFF" />
-              <Text style={styles.menuText}>Add to Playlist</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <X size={16} color="#FFF" />
-              <Text style={styles.menuText}>Don&apos;t Play This</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <X size={16} color="#FF4444" />
-              <Text style={[styles.menuText, { color: "#FF4444" }]}>Remove Download</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <MoreHorizontal size={16} color="#FFF" />
-              <Text style={styles.menuText}>View Artist</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <MoreHorizontal size={16} color="#FFF" />
-              <Text style={styles.menuText}>Go to Album</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <MoreHorizontal size={16} color="#FFF" />
-              <Text style={styles.menuText}>Share</Text>
+          <View style={styles.rowActions}>
+            {!status && (
+              <TouchableOpacity onPress={() => requestDownload(item)} testID={`download-btn-${item.id}`} style={styles.iconBtn}>
+                <Download size={18} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            {status === 'queued' && (
+              <TouchableOpacity onPress={() => cancelDownload(item.id)} style={styles.iconBtn}>
+                <X size={18} color="#FF6666" />
+              </TouchableOpacity>
+            )}
+            {status === 'downloading' && (
+              <TouchableOpacity onPress={() => pauseDownload(item.id)} style={styles.iconBtn}>
+                <Pause size={18} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            {status === 'paused' && (
+              <TouchableOpacity onPress={() => resumeDownload(item.id)} style={styles.iconBtn}>
+                <PlayCircle size={18} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            {status === 'completed' && (
+              <TouchableOpacity onPress={() => removeDownload(item.id)} style={styles.iconBtn}>
+                <Trash2 size={18} color="#FF6666" />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setShowMenu(showMenu === item.id ? null : item.id)}
+            >
+              <MoreHorizontal size={20} color="#9CA3AF" />
             </TouchableOpacity>
           </View>
-        )}
-      </TouchableOpacity>
-    ),
-    [playTrack, showMenu]
+
+          {showMenu === item.id && (
+            <View style={styles.contextMenu}>
+              <TouchableOpacity style={styles.menuItem}>
+                <Heart size={16} color="#FFF" />
+                <Text style={styles.menuText}>Like</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem}>
+                <Plus size={16} color="#FFF" />
+                <Text style={styles.menuText}>Add to Playlist</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem}>
+                <X size={16} color="#FFF" />
+                <Text style={styles.menuText}>Don&apos;t Play This</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={() => removeDownload(item.id)}>
+                <X size={16} color="#FF4444" />
+                <Text style={[styles.menuText, { color: "#FF4444" }]}>Remove Download</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </TouchableOpacity>
+      );
+    },
+    [playTrack, showMenu, downloads, queue, requestDownload, pauseDownload, resumeDownload, cancelDownload, removeDownload]
   );
 
   return (
@@ -187,6 +221,13 @@ export default function DownloadsScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.tracksList}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Download size={40} color="#444" />
+            <Text style={styles.emptyTitle}>No downloads yet</Text>
+            <Text style={styles.emptySubtitle}>Save music, podcasts and audiobooks for offline listening.</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -290,6 +331,47 @@ const styles = StyleSheet.create({
   },
   tracksList: {
     paddingBottom: 100,
+  },
+  rowActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    padding: 8,
+    marginHorizontal: 2,
+  },
+  progressBar: {
+    marginTop: 6,
+    height: 4,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: 4,
+    backgroundColor: '#FF0080',
+  },
+  completedLabel: {
+    marginTop: 6,
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 80,
+    gap: 8,
+  },
+  emptyTitle: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '700',
+    marginTop: 12,
+  },
+  emptySubtitle: {
+    color: '#999',
+    fontSize: 14,
   },
   trackItem: {
     flexDirection: "row",

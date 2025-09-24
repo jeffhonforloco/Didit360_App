@@ -9,6 +9,9 @@ export interface Track {
   description?: string;
   videoUrl?: string;
   isVideo?: boolean;
+  audioUrl?: string;
+  localUri?: string;
+  isDownloaded?: boolean;
 }
 
 export interface Playlist {

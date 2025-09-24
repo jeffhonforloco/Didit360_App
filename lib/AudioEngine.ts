@@ -29,8 +29,14 @@ export class AudioEngine {
   private b: Playable = { sound: null, track: null, uri: null };
   private active: 'a' | 'b' = 'a';
   private state: EngineState = 'idle';
-  private crossfadeDurationMs = 3000;
+  private crossfadeDurationMs = 6000;
   private gapless = true;
+  private contentPrefs: Record<Track['type'], { crossfadeMs: number; gapless: boolean }> = {
+    song: { crossfadeMs: 6000, gapless: true },
+    podcast: { crossfadeMs: 0, gapless: false },
+    audiobook: { crossfadeMs: 0, gapless: false },
+    video: { crossfadeMs: 0, gapless: false },
+  };
   private events: AudioEngineEvents = {};
   private nextTrack: Track | null = null;
   private fadeTimer: null | ReturnType<typeof setInterval> = null;
@@ -66,6 +72,14 @@ export class AudioEngine {
     this.gapless = enabled;
   }
 
+  setContentPrefs(type: Track['type'], prefs: { crossfadeMs?: number; gapless?: boolean }) {
+    const current = this.contentPrefs[type];
+    this.contentPrefs[type] = {
+      crossfadeMs: Math.max(0, prefs.crossfadeMs ?? current.crossfadeMs),
+      gapless: prefs.gapless ?? current.gapless,
+    };
+  }
+
   private getActive(): Playable {
     return this[this.active];
   }
@@ -80,8 +94,10 @@ export class AudioEngine {
   }
 
   private trackToUri(track: Track): string {
+    if (track.localUri) return track.localUri;
     if (track.isVideo && track.videoUrl) return track.videoUrl;
     if (track.videoUrl && track.type === 'video') return track.videoUrl;
+    if (track.audioUrl) return track.audioUrl;
     return fallbackUris[track.type] ?? fallbackUris.song;
   }
 
@@ -119,6 +135,9 @@ export class AudioEngine {
     this.setState('loading');
     try {
       const uri = this.trackToUri(track);
+      const prefs = this.contentPrefs[track.type];
+      this.setCrossfade(prefs.crossfadeMs);
+      this.setGapless(prefs.gapless);
       const active = this.getActive();
       await this.unload(active);
       const sound = new Audio.Sound();
@@ -161,12 +180,15 @@ export class AudioEngine {
   async crossfadeToNext(next: Track) {
     console.log('[AudioEngine] crossfadeToNext', next.title);
     const from = this.getActive();
+    const prefs = this.contentPrefs[next.type];
+    this.setCrossfade(prefs.crossfadeMs);
+    this.setGapless(prefs.gapless);
     await this.preload(next);
     const to = this.getInactive();
     if (!to.sound) return;
     await to.sound.setVolumeAsync(0);
     await to.sound.playAsync();
-    const steps = 20;
+    const steps = 24;
     const stepMs = Math.max(16, Math.floor(this.crossfadeDurationMs / steps));
     let i = 0;
     this.clearFade();

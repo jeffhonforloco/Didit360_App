@@ -193,6 +193,10 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       },
       onError: (e) => console.log('[AudioEngine] error', e),
     });
+    audioEngine.setContentPrefs('song', { crossfadeMs: 6000, gapless: true });
+    audioEngine.setContentPrefs('podcast', { crossfadeMs: 0, gapless: false });
+    audioEngine.setContentPrefs('audiobook', { crossfadeMs: 0, gapless: false });
+    audioEngine.setContentPrefs('video', { crossfadeMs: 0, gapless: false });
   }, [queue]);
 
   return {
