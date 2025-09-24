@@ -59,7 +59,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
         {profile ? (
           <>
-            <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => console.log("Bell pressed")}> 
+            <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => router.push('/notifications')}> 
               <Bell color="#FFF" size={20} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.iconSpacer} testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')}> 
