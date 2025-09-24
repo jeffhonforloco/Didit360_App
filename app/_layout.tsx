@@ -1,5 +1,5 @@
 import "./polyfills";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
@@ -16,10 +16,29 @@ import { MiniPlayer } from "@/components/MiniPlayer";
 import { trpc, trpcClient } from "@/lib/trpc";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
+import { logEvent, logPerf } from "@/lib/logger";
 
 SplashScreen.preventAutoHideAsync();
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      const message = (error as Error)?.message ?? String(error);
+      logEvent('error', 'react-query:query_error', { key: query.queryKey as unknown as string[], message });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      const message = (error as Error)?.message ?? String(error);
+      logEvent('error', 'react-query:mutation_error', { key: mutation.options.mutationKey as unknown as string[] | undefined, message });
+    },
+  }),
+  defaultOptions: {
+    queries: {
+      retry: 1,
+    },
+  },
+});
 
 function RootLayoutNav() {
   return (
@@ -65,7 +84,11 @@ export default function RootLayout() {
   }, [pathname]);
 
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const t0 = Date.now();
+    SplashScreen.hideAsync().finally(() => {
+      const ms = Date.now() - t0;
+      logPerf('splash_hide', ms);
+    });
   }, []);
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;

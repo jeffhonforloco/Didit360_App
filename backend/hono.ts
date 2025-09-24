@@ -10,6 +10,46 @@ const app = new Hono();
 // Enable CORS for all routes
 app.use("*", cors());
 
+// ---- Lightweight observability: request logging + metrics + correlation ----
+const metrics = {
+  startedAt: Date.now(),
+  requestsTotal: 0,
+  requestsByPath: new Map<string, { count: number; errors: number; totalMs: number }>(),
+  recentErrors: [] as Array<{ id: string; path: string; method: string; status?: number; msg: string; at: number }>,
+  recentEvents: [] as Array<{ level: string; message: string; at: number; ctx?: Record<string, unknown> }>,
+};
+
+function getOrInitPath(path: string) {
+  if (!metrics.requestsByPath.has(path)) metrics.requestsByPath.set(path, { count: 0, errors: 0, totalMs: 0 });
+  return metrics.requestsByPath.get(path)!;
+}
+
+app.use("*", async (c, next) => {
+  const start = Date.now();
+  const existingId = c.req.header("x-request-id");
+  const reqId = existingId ?? (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`);
+  const path = c.req.path;
+  const method = c.req.method;
+  c.res.headers.set("x-request-id", reqId);
+  metrics.requestsTotal += 1;
+  const pathMetrics = getOrInitPath(path);
+  pathMetrics.count += 1;
+  try {
+    await next();
+    const dur = Date.now() - start;
+    pathMetrics.totalMs += dur;
+    console.log(`[api] ${method} ${path} ${c.res.status} ${dur}ms id=${reqId}`);
+  } catch (err: any) {
+    const dur = Date.now() - start;
+    pathMetrics.errors += 1;
+    const msg = err?.message ?? String(err);
+    metrics.recentErrors.unshift({ id: reqId, path, method, status: 500, msg, at: Date.now() });
+    metrics.recentErrors = metrics.recentErrors.slice(0, 50);
+    console.error(`[api] ${method} ${path} 500 ${dur}ms id=${reqId} error=${msg}`);
+    throw err;
+  }
+});
+
 // Mount tRPC router at /trpc
 app.use(
   "/trpc/*",
@@ -50,6 +90,52 @@ function notModified(c: any) {
 // Simple health check endpoint
 app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
+});
+
+// Metrics endpoint (Prometheus text format)
+app.get("/metrics", (c) => {
+  const uptimeSeconds = Math.floor((Date.now() - metrics.startedAt) / 1000);
+  let body = "# HELP api_requests_total Total API requests\n# TYPE api_requests_total counter\n";
+  body += `api_requests_total ${metrics.requestsTotal}\n`;
+  body += "# HELP api_request_path_count Requests per path\n# TYPE api_request_path_count counter\n";
+  for (const [path, m] of metrics.requestsByPath.entries()) {
+    body += `api_request_path_count{path="${path}"} ${m.count}\n`;
+  }
+  body += "# HELP api_request_path_errors Errors per path\n# TYPE api_request_path_errors counter\n";
+  for (const [path, m] of metrics.requestsByPath.entries()) {
+    body += `api_request_path_errors{path="${path}"} ${m.errors}\n`;
+  }
+  body += "# HELP api_request_path_duration_ms_total Total duration per path in ms\n# TYPE api_request_path_duration_ms_total counter\n";
+  for (const [path, m] of metrics.requestsByPath.entries()) {
+    body += `api_request_path_duration_ms_total{path="${path}"} ${m.totalMs}\n`;
+  }
+  body += "# HELP api_uptime_seconds Uptime in seconds\n# TYPE api_uptime_seconds gauge\n";
+  body += `api_uptime_seconds ${uptimeSeconds}\n`;
+  return c.body(body, 200, { "content-type": "text/plain; charset=utf-8" });
+});
+
+// Observability events intake
+app.post("/v1/obs/events", async (c) => {
+  try {
+    const payload = await c.req.json<{ level?: string; message?: string; context?: Record<string, unknown> }>();
+    const level = (payload.level ?? "info").toLowerCase();
+    const message = payload.message ?? "";
+    const ctx = payload.context ?? {};
+    metrics.recentEvents.unshift({ level, message, at: Date.now(), ctx });
+    metrics.recentEvents = metrics.recentEvents.slice(0, 200);
+    console.log(`[obs] ${level}: ${message}`);
+    return c.json({ ok: true });
+  } catch (e: any) {
+    return c.json({ ok: false, error: e?.message ?? String(e) }, 400);
+  }
+});
+
+// Recent errors/events for quick diagnostics
+app.get("/v1/obs/recent", (c) => {
+  return c.json({
+    errors: metrics.recentErrors,
+    events: metrics.recentEvents,
+  });
 });
 
 // --- REST scaffolding per v1 contract ---

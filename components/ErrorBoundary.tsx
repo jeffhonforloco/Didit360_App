@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import { logEvent } from '@/lib/logger';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -27,6 +28,7 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     const stack = (error as any)?.stack ?? info?.componentStack ?? undefined;
     const route = (globalThis as any).__CURRENT_ROUTE ?? 'unknown';
     console.error('[ErrorBoundary] Render error captured', { message, stack, route, info });
+    logEvent('error', 'Render error captured', { message, stack, route });
     this.setState({ stack });
   }
 
