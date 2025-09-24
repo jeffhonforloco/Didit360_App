@@ -98,8 +98,8 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       } else {
         // Set default profile if none exists
         const defaultProfile = {
-          displayName: 'didit360',
-          email: 'didit360@gmail.com',
+          displayName: 'jeffhonforloco',
+          email: 'jeffhonforloco@gmail.com',
           avatarUrl: 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop'
         };
         setProfile(defaultProfile);

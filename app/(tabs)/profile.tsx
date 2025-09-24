@@ -47,7 +47,7 @@ export default function ProfileScreen() {
             <Image source={{ uri: avatarSrc }} style={styles.avatar} />
           </View>
           <View style={styles.userMeta}>
-            <Text style={styles.userName} numberOfLines={1}>{profile?.displayName ?? 'didit360'}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{profile?.displayName ?? 'jeffhonforloco'}</Text>
             <TouchableOpacity onPress={() => router.push('/account' as Href)} activeOpacity={0.9} testID="btn-view-profile">
               <Text style={styles.userView}>View Profile</Text>
             </TouchableOpacity>
