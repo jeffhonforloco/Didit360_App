@@ -5,6 +5,7 @@ import type { Track } from "@/types";
 import { allTracks } from "@/data/mockData";
 import { router } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
+import { audioEngine } from "@/lib/AudioEngine";
 
 interface PlayerState {
   currentTrack: Track | null;
@@ -44,12 +45,18 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       console.log("[Player] Guest time limit reached. Pausing and prompting sign up.");
       setIsPlaying(false);
       try {
+        const t = currentTrack;
+        if (t && t.type !== 'video' && !t.isVideo) {
+          audioEngine.pause().catch((e) => console.log('[Player] guest pause error', e));
+        }
+      } catch {}
+      try {
         router.push("/auth");
       } catch (e) {
         console.error("[Player] navigate auth error", e);
       }
     }, GUEST_LIMIT_MS);
-  }, [profile]);
+  }, [profile, currentTrack]);
 
   const loadLastPlayed = async () => {
     try {
@@ -73,18 +80,22 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
 
   const playTrack = useCallback((track: Track) => {
     console.log("[Player] Playing track:", track.title, "Type:", track.type, "IsVideo:", track.isVideo);
-    setCurrentTrack(track);
-    setIsPlaying(true);
-    saveLastPlayed(track);
-
     const similarTracks = allTracks
       .filter((t) => t.id !== track.id && t.type === track.type)
       .slice(0, 10);
     setQueue(similarTracks);
+    setCurrentTrack(track);
+    setIsPlaying(true);
+    saveLastPlayed(track);
+
+    if (track.type !== 'video' && !track.isVideo) {
+      audioEngine
+        .loadAndPlay(track, similarTracks[0])
+        .catch((e) => console.log('[Player] audio load error', e));
+    }
 
     startGuestTimer();
     
-    // Navigate to player screen immediately for video content
     if (track.type === "video" || track.isVideo === true) {
       console.log("[Player] Video content detected, navigating to player");
       try {
@@ -96,16 +107,38 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   }, [startGuestTimer]);
 
   const togglePlayPause = useCallback(() => {
-    setIsPlaying((prev) => !prev);
+    setIsPlaying((prev) => {
+      const next = !prev;
+      try {
+        const t = currentTrack;
+        if (t && t.type !== 'video' && !t.isVideo) {
+          if (next) {
+            audioEngine.play().catch((e) => console.log('[Player] play() error', e));
+          } else {
+            audioEngine.pause().catch((e) => console.log('[Player] pause() error', e));
+          }
+        }
+      } catch (e) {
+        console.log('[Player] toggle error', e);
+      }
+      return next;
+    });
     startGuestTimer();
-  }, [startGuestTimer]);
+  }, [startGuestTimer, currentTrack]);
 
   const skipNext = useCallback(() => {
     if (queue.length > 0) {
       const nextTrack = queue[0];
+      const remaining = queue.slice(1);
       setCurrentTrack(nextTrack);
-      setQueue((prev) => prev.slice(1));
+      setQueue(remaining);
       saveLastPlayed(nextTrack);
+      const t = nextTrack;
+      if (t.type !== 'video' && !t.isVideo) {
+        audioEngine
+          .crossfadeToNext(t)
+          .catch((e) => console.log('[Player] crossfade error', e));
+      }
       startGuestTimer();
     }
   }, [queue, startGuestTimer]);
@@ -125,6 +158,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
 
   const stopPlayer = useCallback(async () => {
     console.log("[Player] Stopping player and clearing state");
+    try {
+      await audioEngine.stop();
+    } catch (e) {
+      console.log('[Player] engine stop error', e);
+    }
     setCurrentTrack(null);
     setQueue([]);
     setIsPlaying(false);
@@ -138,6 +176,24 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       console.error("Error clearing last played track:", error);
     }
   }, []);
+
+  useEffect(() => {
+    audioEngine.setEvents({
+      onTrackStart: (t) => console.log('[AudioEngine] started', t.title),
+      onTrackEnd: (t) => {
+        console.log('[AudioEngine] ended', t.title);
+        if (queue.length > 0) {
+          const nxt = queue[0];
+          setCurrentTrack(nxt);
+          setQueue((prev) => prev.slice(1));
+          saveLastPlayed(nxt);
+        } else if (GUEST_LIMIT_MS > 0) {
+          setIsPlaying(false);
+        }
+      },
+      onError: (e) => console.log('[AudioEngine] error', e),
+    });
+  }, [queue]);
 
   return {
     currentTrack,
