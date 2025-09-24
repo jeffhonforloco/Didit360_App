@@ -22,6 +22,8 @@ import {
   PlayCircle,
   Trash2,
   ChevronDown,
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -34,7 +36,7 @@ export default function DownloadsScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("recently-downloaded");
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const { playTrack } = usePlayer();
-  const { downloads, queue, requestDownload, removeDownload, pauseDownload, resumeDownload, cancelDownload } = useOffline();
+  const { downloads, queue, requestDownload, removeDownload, pauseDownload, resumeDownload, cancelDownload, retryDownload } = useOffline();
 
   const allDownloadItems = useMemo(() => Object.values(downloads).sort((a, b) => b.updatedAt - a.updatedAt), [downloads]);
   const allDownloads: Track[] = useMemo(() => allDownloadItems.map((d) => ({ ...d.track, localUri: d.localUri, isDownloaded: d.status === 'completed' })), [allDownloadItems]);
@@ -77,22 +79,60 @@ export default function DownloadsScreen() {
     }
   };
 
+  const StatusBadge = ({ status, progress }: { status?: string; progress: number }) => {
+    if (!status) return null;
+    const pct = Math.round(progress * 100);
+    let text = "";
+    let color = "#9CA3AF";
+    switch (status) {
+      case 'queued':
+        text = 'Queued';
+        color = '#9CA3AF';
+        break;
+      case 'downloading':
+        text = `Downloading ${pct}%`;
+        color = '#60A5FA';
+        break;
+      case 'paused':
+        text = `Paused ${pct}%`;
+        color = '#F59E0B';
+        break;
+      case 'completed':
+        text = 'Available Offline';
+        color = '#10B981';
+        break;
+      case 'error':
+        text = 'Error';
+        color = '#EF4444';
+        break;
+      case 'canceled':
+        text = 'Canceled';
+        color = '#9CA3AF';
+        break;
+      default:
+        break;
+    }
+    return <Text style={[styles.statusBadge, { color }]}>{text}</Text>;
+  };
+
   const renderTrackItem = useCallback(
     ({ item }: { item: Track }) => {
       const d = downloads[item.id];
       const progress = d?.progress ?? 0;
       const status = d?.status ?? undefined;
       const inQueue = queue.includes(item.id);
+      const disabled = !!status && status !== 'completed';
       return (
         <TouchableOpacity
           style={styles.trackItem}
-          onPress={() => playTrack(item)}
+          onPress={() => !disabled && playTrack(item)}
           activeOpacity={0.8}
+          disabled={disabled}
           testID={`download-item-${item.id}`}
         >
           <View style={styles.trackArtworkContainer}>
             <Image source={{ uri: item.artwork }} style={styles.trackArtwork} />
-            <View style={styles.trackPlayButton}>
+            <View style={[styles.trackPlayButton, disabled ? { opacity: 0.4 } : null]}>
               <Play size={12} color="#0B0B0C" fill="#0B0B0C" />
             </View>
           </View>
@@ -109,9 +149,13 @@ export default function DownloadsScreen() {
                 <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
               </View>
             )}
-            {status === 'completed' && (
-              <Text style={styles.completedLabel}>Available Offline</Text>
-            )}
+            <StatusBadge status={status} progress={progress} />
+            {status === 'error' && d?.error ? (
+              <View style={styles.errorRow}>
+                <AlertTriangle size={14} color="#EF4444" />
+                <Text style={styles.errorText} numberOfLines={1}>{d.error}</Text>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.rowActions}>
@@ -133,6 +177,11 @@ export default function DownloadsScreen() {
             {status === 'paused' && (
               <TouchableOpacity onPress={() => resumeDownload(item.id)} style={styles.iconBtn}>
                 <PlayCircle size={18} color="#FFF" />
+              </TouchableOpacity>
+            )}
+            {status === 'error' && (
+              <TouchableOpacity onPress={() => retryDownload(item.id)} style={styles.iconBtn}>
+                <RefreshCw size={18} color="#FFF" />
               </TouchableOpacity>
             )}
             {status === 'completed' && (
@@ -172,7 +221,7 @@ export default function DownloadsScreen() {
         </TouchableOpacity>
       );
     },
-    [playTrack, showMenu, downloads, queue, requestDownload, pauseDownload, resumeDownload, cancelDownload, removeDownload]
+    [playTrack, showMenu, downloads, queue, requestDownload, pauseDownload, resumeDownload, cancelDownload, removeDownload, retryDownload]
   );
 
   return (
@@ -350,6 +399,22 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 4,
     backgroundColor: '#FF0080',
+  },
+  statusBadge: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  errorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    flexShrink: 1,
   },
   completedLabel: {
     marginTop: 6,

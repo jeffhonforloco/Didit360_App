@@ -34,7 +34,10 @@
         "USE_BIOMETRIC",
         "USE_FINGERPRINT",
         "android.permission.VIBRATE",
-        "RECORD_AUDIO"
+        "RECORD_AUDIO",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "INTERNET"
       ]
     },
     "web": {
