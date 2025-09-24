@@ -93,7 +93,18 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
         AsyncStorage.getItem(PROFILE_KEY),
         AsyncStorage.getItem(SETTINGS_KEY),
       ]);
-      if (p) setProfile(JSON.parse(p));
+      if (p) {
+        setProfile(JSON.parse(p));
+      } else {
+        // Set default profile if none exists
+        const defaultProfile = {
+          displayName: 'didit360',
+          email: 'didit360@gmail.com',
+          avatarUrl: 'https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop'
+        };
+        setProfile(defaultProfile);
+        await persist(PROFILE_KEY, defaultProfile);
+      }
       if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
     } catch (err) {
       console.error("[UserContext] load error", err);
