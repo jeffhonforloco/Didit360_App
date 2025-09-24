@@ -10,14 +10,6 @@ export default function SettingsScreen() {
   const { profile } = useUser();
   const insets = useSafeAreaInsets();
   
-  const showFeatureAlert = (title: string, message: string = 'This feature is coming soon!') => {
-    if (Platform.OS === 'web') {
-      console.log(`${title}: ${message}`);
-    } else {
-      Alert.alert(title, message);
-    }
-  };
-  
   // Settings state
   const [dataSaver, setDataSaver] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
@@ -31,11 +23,7 @@ export default function SettingsScreen() {
   const [autoPlaySimilarContent, setAutoPlaySimilarContent] = useState(true);
   const [showLocalFilesOnLock, setShowLocalFilesOnLock] = useState(false);
   const [spotifyConnectInBackground, setSpotifyConnectInBackground] = useState(true);
-  const [socialSession, setSocialSession] = useState(false);
-  const [listeningActivity, setListeningActivity] = useState(true);
   const [recentlyPlayedArtists, setRecentlyPlayedArtists] = useState(true);
-  const [removeAtDownload, setRemoveAtDownload] = useState(false);
-  const [downloadUsingMobileData, setDownloadUsingMobileData] = useState(false);
 
   return (
     <View style={styles.container} testID="settings-screen">
@@ -120,7 +108,7 @@ export default function SettingsScreen() {
         >
           <View>
             <Text style={styles.settingsItemText}>Email</Text>
-            <Text style={styles.settingsItemSubtext}>{profile?.email ?? 'No email set'}</Text>
+            <Text style={styles.settingsItemSubtext}>{profile?.email ?? 'didit360@gmail.com'}</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -300,36 +288,12 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Navigation & Apps', 'Configure how other apps can control your music player.')}
+          onPress={() => router.push('/voice-assistant-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>Navigation & other apps</Text>
-            <Text style={styles.settingsItemSubtext}>Let other apps control your music</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Voice Assistant', 'Configure voice assistant integration for hands-free control.')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Voice Assistant</Text>
-            <Text style={styles.settingsItemSubtext}>Use voice commands with your music</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Car Integration', 'Connect and control your music in your car.')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Car Integration</Text>
-            <Text style={styles.settingsItemSubtext}>Connect and control your music in car</Text>
+            <Text style={styles.settingsItemText}>Voice Assistant & Apps</Text>
+            <Text style={styles.settingsItemSubtext}>Configure voice control and app integration</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -338,12 +302,12 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Social Connections', 'Manage your followers and who you follow.')}
+          onPress={() => router.push('/privacy-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>Followers & Following</Text>
-            <Text style={styles.settingsItemSubtext}>Manage who can follow you</Text>
+            <Text style={styles.settingsItemText}>Privacy Settings</Text>
+            <Text style={styles.settingsItemSubtext}>Control your data and privacy preferences</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -376,66 +340,28 @@ export default function SettingsScreen() {
         
         <Text style={styles.sectionTitle}>Social</Text>
         
-        <View style={styles.settingsItemWithSwitch}>
+        <TouchableOpacity 
+          style={styles.settingsItem}
+          onPress={() => router.push('/social-settings')}
+          activeOpacity={0.8}
+        >
           <View>
-            <Text style={styles.settingsItemText}>Social Session</Text>
-            <Text style={styles.settingsItemSubtext}>Let friends see what you&apos;re listening to and add to the queue</Text>
+            <Text style={styles.settingsItemText}>Social Features</Text>
+            <Text style={styles.settingsItemSubtext}>Manage social sharing and connections</Text>
           </View>
-          <Switch
-            value={socialSession}
-            onValueChange={setSocialSession}
-            trackColor={{ false: '#333', true: '#1DB954' }}
-            thumbColor={socialSession ? '#FFF' : '#FFF'}
-          />
-        </View>
-        
-        <View style={styles.settingsItemWithSwitch}>
-          <View>
-            <Text style={styles.settingsItemText}>Listening Activity</Text>
-            <Text style={styles.settingsItemSubtext}>Friends can see what you&apos;re listening to</Text>
-          </View>
-          <Switch
-            value={listeningActivity}
-            onValueChange={setListeningActivity}
-            trackColor={{ false: '#333', true: '#1DB954' }}
-            thumbColor={listeningActivity ? '#FFF' : '#FFF'}
-          />
-        </View>
+          <ChevronRight size={20} color="#666" />
+        </TouchableOpacity>
         
         <Text style={styles.sectionTitle}>Audio Quality</Text>
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('WiFi Streaming Quality', 'Configure audio quality when connected to WiFi.')}
+          onPress={() => router.push('/audio-quality-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>WiFi Streaming</Text>
-            <Text style={styles.settingsItemSubtext}>High Quality</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Mobile Streaming Quality', 'Configure audio quality when using mobile data.')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Mobile Streaming</Text>
-            <Text style={styles.settingsItemSubtext}>Normal Quality</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Auto-adjust Quality', 'Automatically adjust quality based on connection speed.')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Auto-adjust quality</Text>
-            <Text style={styles.settingsItemSubtext}>Enabled</Text>
+            <Text style={styles.settingsItemText}>Audio Quality Settings</Text>
+            <Text style={styles.settingsItemSubtext}>Configure streaming and download quality</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -444,39 +370,26 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Download Quality', 'Choose the quality for downloaded music.')}
+          onPress={() => router.push('/download-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>Download quality</Text>
-            <Text style={styles.settingsItemSubtext}>High</Text>
+            <Text style={styles.settingsItemText}>Download Settings</Text>
+            <Text style={styles.settingsItemSubtext}>Manage downloads and offline content</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
-        
-        <View style={styles.settingsItemWithSwitch}>
-          <View>
-            <Text style={styles.settingsItemText}>Download using mobile data</Text>
-            <Text style={styles.settingsItemSubtext}>You can always download using Wi-Fi</Text>
-          </View>
-          <Switch
-            value={downloadUsingMobileData}
-            onValueChange={setDownloadUsingMobileData}
-            trackColor={{ false: '#333', true: '#1DB954' }}
-            thumbColor={downloadUsingMobileData ? '#FFF' : '#FFF'}
-          />
-        </View>
         
         <Text style={styles.sectionTitle}>Equalizer</Text>
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Equalizer', 'Customize your audio with equalizer settings.')}
+          onPress={() => router.push('/equalizer-settings')}
           activeOpacity={0.8}
         >
           <View>
             <Text style={styles.settingsItemText}>Equalizer</Text>
-            <Text style={styles.settingsItemSubtext}>Use your device&apos;s audio effects</Text>
+            <Text style={styles.settingsItemSubtext}>Customize your audio experience</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -485,88 +398,27 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Video WiFi Streaming', 'Configure video quality when connected to WiFi.')}
+          onPress={() => router.push('/video-quality-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>WiFi Streaming</Text>
-            <Text style={styles.settingsItemSubtext}>High Quality</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Video Mobile Streaming', 'Configure video quality when using mobile data.')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Mobile Streaming</Text>
-            <Text style={styles.settingsItemSubtext}>Normal Quality</Text>
+            <Text style={styles.settingsItemText}>Video Quality Settings</Text>
+            <Text style={styles.settingsItemSubtext}>Configure video streaming quality</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
         <Text style={styles.sectionTitle}>Storage</Text>
         
-        <View style={styles.storageItem}>
-          <View style={styles.storageRow}>
-            <View style={styles.storageIndicator}>
-              <View style={[styles.storageDot, { backgroundColor: '#1DB954' }]} />
-              <Text style={styles.storageText}>Cache</Text>
-            </View>
-            <Text style={styles.storageValue}>1.2GB</Text>
-          </View>
-          <View style={styles.storageRow}>
-            <View style={styles.storageIndicator}>
-              <View style={[styles.storageDot, { backgroundColor: '#FF6B6B' }]} />
-              <Text style={styles.storageText}>Other</Text>
-            </View>
-            <Text style={styles.storageValue}>1.2GB</Text>
-          </View>
-          <View style={styles.storageRow}>
-            <View style={styles.storageIndicator}>
-              <View style={[styles.storageDot, { backgroundColor: '#4ECDC4' }]} />
-              <Text style={styles.storageText}>Free space</Text>
-            </View>
-            <Text style={styles.storageValue}>1.2GB</Text>
-          </View>
-        </View>
-        
-        <View style={styles.settingsItemWithSwitch}>
-          <View>
-            <Text style={styles.settingsItemText}>Remove At Download</Text>
-            <Text style={styles.settingsItemSubtext}>Save storage space on your device</Text>
-          </View>
-          <Switch
-            value={removeAtDownload}
-            onValueChange={setRemoveAtDownload}
-            trackColor={{ false: '#333', true: '#1DB954' }}
-            thumbColor={removeAtDownload ? '#FFF' : '#FFF'}
-          />
-        </View>
-        
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => {
-            if (Platform.OS === 'web') {
-              console.log('Cache cleared');
-            } else {
-              Alert.alert(
-                'Clear Cache',
-                'This will clear all cached data and free up storage space. Continue?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Clear', style: 'destructive', onPress: () => {
-                    Alert.alert('Success', 'Cache cleared successfully!');
-                  }}
-                ]
-              );
-            }
-          }}
+          onPress={() => router.push('/storage-settings')}
           activeOpacity={0.8}
         >
-          <Text style={styles.settingsItemText}>Clear cache</Text>
+          <View>
+            <Text style={styles.settingsItemText}>Storage Management</Text>
+            <Text style={styles.settingsItemSubtext}>Manage downloads, cache, and storage</Text>
+          </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
@@ -588,12 +440,12 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Local Files', 'Import and play music files stored on your device.')}
+          onPress={() => router.push('/local-files-settings')}
           activeOpacity={0.8}
         >
           <View>
             <Text style={styles.settingsItemText}>Local Files</Text>
-            <Text style={styles.settingsItemSubtext}>Play music files stored on this device</Text>
+            <Text style={styles.settingsItemSubtext}>Import and manage music files on your device</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
@@ -602,12 +454,12 @@ export default function SettingsScreen() {
         
         <TouchableOpacity 
           style={styles.settingsItem}
-          onPress={() => showFeatureAlert('Partner Preferences', 'Control how we share information with our business partners.')}
+          onPress={() => router.push('/advanced-settings')}
           activeOpacity={0.8}
         >
           <View>
-            <Text style={styles.settingsItemText}>Partner preferences</Text>
-            <Text style={styles.settingsItemSubtext}>Control how we share information with our business partners</Text>
+            <Text style={styles.settingsItemText}>Advanced Settings</Text>
+            <Text style={styles.settingsItemSubtext}>Developer options and advanced features</Text>
           </View>
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
