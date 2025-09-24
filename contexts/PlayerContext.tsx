@@ -16,6 +16,7 @@ interface PlayerState {
   skipPrevious: () => void;
   addToQueue: (track: Track) => void;
   clearQueue: () => void;
+  stopPlayer: () => void;
 }
 
 export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => {
@@ -122,6 +123,22 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     setQueue([]);
   }, []);
 
+  const stopPlayer = useCallback(async () => {
+    console.log("[Player] Stopping player and clearing state");
+    setCurrentTrack(null);
+    setQueue([]);
+    setIsPlaying(false);
+    if (guestTimerRef.current) {
+      clearTimeout(guestTimerRef.current);
+      guestTimerRef.current = null;
+    }
+    try {
+      await AsyncStorage.removeItem("lastPlayedTrack");
+    } catch (error) {
+      console.error("Error clearing last played track:", error);
+    }
+  }, []);
+
   return {
     currentTrack,
     queue,
@@ -132,5 +149,6 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     skipPrevious,
     addToQueue,
     clearQueue,
+    stopPlayer,
   };
 });

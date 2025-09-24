@@ -7,17 +7,17 @@ import {
   Image,
   Platform,
 } from "react-native";
-import { Play, Pause, SkipForward, Video } from "lucide-react-native";
+import { Play, Pause, SkipForward, Video, X } from "lucide-react-native";
 import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export function MiniPlayer() {
-  const { currentTrack, isPlaying, togglePlayPause, skipNext } = usePlayer();
+  const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer } = usePlayer();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
-  // Hide MiniPlayer when full player is open
+  // Hide MiniPlayer when full player is open or no track is loaded
   if (!currentTrack || pathname === '/player') return null;
 
   const tabBarHeight = Platform.OS === "ios" ? 80 + insets.bottom : 60;
@@ -68,6 +68,16 @@ export function MiniPlayer() {
         }}
       >
         <SkipForward size={20} color="#FFF" fill="#FFF" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.controlButton}
+        onPress={(e) => {
+          e.stopPropagation();
+          stopPlayer();
+        }}
+      >
+        <X size={18} color="#999" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
