@@ -5,9 +5,10 @@ export interface Track {
   album?: string;
   artwork: string;
   duration: number;
-  type: "song" | "podcast" | "audiobook";
+  type: "song" | "podcast" | "audiobook" | "video";
   description?: string;
   videoUrl?: string;
+  isVideo?: boolean;
 }
 
 export interface Playlist {

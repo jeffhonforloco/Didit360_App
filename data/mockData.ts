@@ -1030,6 +1030,65 @@ export const allPodcastEpisodes: Track[] = [
   ...whatADayEpisodes,
 ];
 
+// Video content
+export const videoTracks: Track[] = [
+  {
+    id: "v1",
+    title: "Blinding Lights (Official Music Video)",
+    artist: "The Weeknd",
+    album: "After Hours",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 200,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  {
+    id: "v2",
+    title: "Starboy (Official Video)",
+    artist: "The Weeknd ft. Daft Punk",
+    album: "Starboy",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 230,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  },
+  {
+    id: "v3",
+    title: "7 rings (Official Video)",
+    artist: "Ariana Grande",
+    album: "Thank U, Next",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 178,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  },
+  {
+    id: "v4",
+    title: "Firework (Official Music Video)",
+    artist: "Katy Perry",
+    album: "Teenage Dream",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 228,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+  },
+  {
+    id: "v5",
+    title: "Live Concert: Midnight Dreams",
+    artist: "Luna Echo",
+    album: "Live Sessions",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 300,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+  },
+];
+
 export const allTracks: Track[] = [
   ...featuredContent,
   ...recentlyPlayed,
@@ -1039,6 +1098,7 @@ export const allTracks: Track[] = [
   ...audiobooks,
   ...searchTracks,
   ...allPodcastEpisodes,
+  ...videoTracks,
 ];
 
 export const trendingNow: Track[] = [

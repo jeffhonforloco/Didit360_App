@@ -7,7 +7,7 @@ import {
   Image,
   Platform,
 } from "react-native";
-import { Play, Pause, SkipForward } from "lucide-react-native";
+import { Play, Pause, SkipForward, Video } from "lucide-react-native";
 import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -28,7 +28,14 @@ export function MiniPlayer() {
       activeOpacity={0.95}
       onPress={() => router.push("/player")}
     >
-      <Image source={{ uri: currentTrack.artwork }} style={styles.artwork} />
+      <View style={styles.artworkContainer}>
+        <Image source={{ uri: currentTrack.artwork }} style={styles.artwork} />
+        {(currentTrack.isVideo || currentTrack.type === "video") && (
+          <View style={styles.videoIndicator}>
+            <Video size={12} color="#FFF" />
+          </View>
+        )}
+      </View>
       
       <View style={styles.info}>
         <Text style={styles.title} numberOfLines={1}>
@@ -80,11 +87,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#2A2A2A",
   },
+  artworkContainer: {
+    position: "relative",
+    marginRight: 12,
+  },
   artwork: {
     width: 44,
     height: 44,
     borderRadius: 6,
-    marginRight: 12,
+  },
+  videoIndicator: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    borderRadius: 8,
+    padding: 2,
   },
   info: {
     flex: 1,

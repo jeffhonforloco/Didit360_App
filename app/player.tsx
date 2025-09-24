@@ -39,6 +39,7 @@ import {
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
+import { VideoPlayer } from "@/components/VideoPlayer";
 import type { Track } from "@/types";
 
 
@@ -257,12 +258,21 @@ export default function PlayerScreen() {
             </View>
 
             <View style={styles.artworkContainer}>
-              <View style={styles.artworkWrapper}>
-                <Image
-                  source={{ uri: currentTrack.artwork }}
-                  style={styles.artwork}
+              {currentTrack.isVideo || currentTrack.type === "video" ? (
+                <VideoPlayer
+                  track={currentTrack}
+                  isPlaying={isPlaying}
+                  onPlayPause={togglePlayPause}
+                  style={styles.videoPlayerContainer}
                 />
-              </View>
+              ) : (
+                <View style={styles.artworkWrapper}>
+                  <Image
+                    source={{ uri: currentTrack.artwork }}
+                    style={styles.artwork}
+                  />
+                </View>
+              )}
             </View>
 
             <View style={styles.infoContainer}>
@@ -568,6 +578,16 @@ const styles = StyleSheet.create({
   artwork: {
     width: '100%',
     height: '100%',
+  },
+  videoPlayerContainer: {
+    width: 320,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   infoContainer: {
     flex: 1,
