@@ -111,19 +111,21 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
       // Clear library data when user signs out
       clearUserLibrary();
     }
-  }, [profile?.email, loadLibraryData]);
+  }, [profile?.email, loadLibraryData, clearUserLibrary]);
 
   useEffect(() => {
     // Initialize with mock data if empty
-    if (downloads.length === 0 && profile?.email) {
-      const mockDownloads = [...downloadedTracks, ...downloadedPodcasts];
-      setDownloads(mockDownloads);
-      saveLibraryData("downloads", mockDownloads);
-    }
-    
-    if (userAudiobooks.length === 0 && profile?.email) {
-      setUserAudiobooks(audiobooks);
-      saveLibraryData("audiobooks", audiobooks);
+    if (profile?.email) {
+      if (downloads.length === 0) {
+        const mockDownloads = [...downloadedTracks, ...downloadedPodcasts];
+        setDownloads(mockDownloads);
+        saveLibraryData("downloads", mockDownloads);
+      }
+      
+      if (userAudiobooks.length === 0) {
+        setUserAudiobooks(audiobooks);
+        saveLibraryData("audiobooks", audiobooks);
+      }
     }
   }, [downloads.length, userAudiobooks.length, profile?.email, saveLibraryData]);
 

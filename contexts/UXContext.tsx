@@ -256,7 +256,14 @@ export const [UXProvider, useUX] = createContextHook<UXState>(() => {
 
   useEffect(() => {
     void loadSettings();
-    void detectSystemPreferences();
+    
+    // Detect system preferences inline to avoid dependency issues
+    if (Platform.OS !== 'web') {
+      const systemSettings: Partial<AccessibilitySettings> = {};
+      // This would typically use system APIs to detect preferences
+      // For now, we'll use some basic detection
+      setAccessibility(prev => ({ ...prev, ...systemSettings }));
+    }
     
     const subscription = Dimensions.addEventListener('change', ({ window }) => {
       setDeviceInfo(prev => ({

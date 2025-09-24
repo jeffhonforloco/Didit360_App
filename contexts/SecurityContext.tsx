@@ -155,13 +155,20 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if (checkSessionTimeout()) {
-        void lock();
+      // Check session timeout inline to avoid dependency issues
+      if (settings.sessionTimeout === 'never' || !isAuthenticated) {
+        return;
+      }
+      const timeoutMs = getSessionTimeout(settings.sessionTimeout);
+      const timeSinceActivity = Date.now() - lastActivity;
+      if (timeSinceActivity > timeoutMs) {
+        setIsLocked(true);
+        setIsAuthenticated(false);
       }
     }, 60000); // Check every minute
 
     return () => clearInterval(interval);
-  }, [settings.sessionTimeout, lastActivity]);
+  }, [settings.sessionTimeout, lastActivity, isAuthenticated]);
 
   const loadSecurityData = async () => {
     try {

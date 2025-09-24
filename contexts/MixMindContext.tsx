@@ -788,7 +788,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
         console.error('[MixMind] Error loading data:', error);
       }
     };
-    loadData();
+    void loadData();
   }, [mockStorage]);
 
   const saveSettings = useCallback(async (newSettings: Partial<MixMindSettings>) => {
