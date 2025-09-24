@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
+  Platform,
 } from "react-native";
 import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import {
@@ -28,7 +29,14 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    console.log('[VideoPlayer] Playback status:', status.isLoaded ? 'loaded' : 'loading');
+    if (status.isLoaded) {
+      console.log('[VideoPlayer] Playback status: loaded');
+      if ('isFullscreen' in status && typeof status.isFullscreen === 'boolean') {
+        setIsFullscreen(status.isFullscreen);
+      }
+    } else {
+      console.log('[VideoPlayer] Playback status: loading');
+    }
   };
 
   const toggleMute = () => {
@@ -39,12 +47,21 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
   };
 
   const toggleFullscreen = () => {
+    if (Platform.OS === 'web') {
+      console.log('Fullscreen not supported on web');
+      return;
+    }
+    
     setIsFullscreen(!isFullscreen);
     if (videoRef.current) {
-      if (!isFullscreen) {
-        videoRef.current.presentFullscreenPlayer();
-      } else {
-        videoRef.current.dismissFullscreenPlayer();
+      try {
+        if (!isFullscreen) {
+          videoRef.current.presentFullscreenPlayer();
+        } else {
+          videoRef.current.dismissFullscreenPlayer();
+        }
+      } catch (error) {
+        console.log('Fullscreen error:', error);
       }
     }
   };
@@ -83,16 +100,18 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
       {showControls && (
         <View style={styles.controlsOverlay}>
           <View style={styles.topControls}>
-            <TouchableOpacity
-              style={styles.controlButton}
-              onPress={toggleFullscreen}
-            >
-              {isFullscreen ? (
-                <Minimize size={24} color="#FFF" />
-              ) : (
-                <Maximize size={24} color="#FFF" />
-              )}
-            </TouchableOpacity>
+            {Platform.OS !== 'web' && (
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={toggleFullscreen}
+              >
+                {isFullscreen ? (
+                  <Minimize size={24} color="#FFF" />
+                ) : (
+                  <Maximize size={24} color="#FFF" />
+                )}
+              </TouchableOpacity>
+            )}
           </View>
           
           <View style={styles.centerControls}>

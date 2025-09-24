@@ -114,7 +114,7 @@ const generateId = () => Math.random().toString(36).substr(2, 9);
 const getDeviceInfo = () => {
   let version = 'unknown';
   try {
-    if (Platform.Version) {
+    if (Platform.Version !== undefined && Platform.Version !== null) {
       version = typeof Platform.Version === 'string' ? Platform.Version : String(Platform.Version);
     }
   } catch (error) {

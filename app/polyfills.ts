@@ -1,5 +1,10 @@
 import { Platform } from 'react-native';
 
+// Fix Platform.Version issue for web
+if (Platform.OS === 'web' && !Platform.Version) {
+  (Platform as any).Version = '0.0.0';
+}
+
 if (typeof (globalThis as any).__LOG_BUFFER === 'undefined') {
   (globalThis as any).__LOG_BUFFER = [] as { level: 'log' | 'warn' | 'error'; ts: number; args: unknown[] }[];
 }
