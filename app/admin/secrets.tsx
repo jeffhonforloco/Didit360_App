@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Pressable } from 'react-native';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { useSecrets } from '@/contexts/SecretsContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { useRouter } from 'expo-router';
+import { Video } from 'lucide-react-native';
 
 export default function AdminSecrets() {
-  const insets = useSafeAreaInsets();
+  const router = useRouter();
   const { list, setSecret, deleteSecret, hasSecureStorage } = useSecrets();
   const [k, setK] = useState<string>('');
   const [v, setV] = useState<string>('');
@@ -13,6 +15,18 @@ export default function AdminSecrets() {
   return (
     <AdminLayout title="Secure Keys">
       <Text style={styles.hint} testID="secure-hint">{hasSecureStorage ? 'SecureStore enabled (iOS/Android)' : 'Web: Stored in AsyncStorage (development only)'}</Text>
+      
+      <View style={styles.quickActions}>
+        <Pressable 
+          style={styles.quickAction} 
+          onPress={() => router.push('/admin/video-api-keys')}
+          testID="video-api-keys-link"
+        >
+          <Video color="#22c55e" size={20} />
+          <Text style={styles.quickActionText}>Video API Keys</Text>
+          <Text style={styles.quickActionDesc}>Mux, Cloudflare, NVIDIA</Text>
+        </Pressable>
+      </View>
       <View style={styles.row}>
         <TextInput placeholder="Key name (ex: NGC_API_KEY)" placeholderTextColor="#94a3b8" value={k} onChangeText={setK} style={styles.input} testID="key-name" />
         <TextInput placeholder="Paste secret value" placeholderTextColor="#94a3b8" value={v} onChangeText={setV} style={styles.input} secureTextEntry testID="key-value" />
@@ -47,6 +61,19 @@ export default function AdminSecrets() {
 
 const styles = StyleSheet.create({
   hint: { color: '#94a3b8', marginBottom: 8 },
+  quickActions: { marginBottom: 16 },
+  quickAction: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#0b0f12', 
+    borderColor: '#1f2937', 
+    borderWidth: 1, 
+    padding: 16, 
+    borderRadius: 10, 
+    gap: 12 
+  },
+  quickActionText: { color: '#fff', fontWeight: '600' as const, flex: 1 },
+  quickActionDesc: { color: '#94a3b8', fontSize: 12 },
   row: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   input: { flex: 1, backgroundColor: '#0b0f12', color: '#e5e7eb', borderColor: '#1f2937', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 },
   save: { backgroundColor: '#22c55e', paddingHorizontal: 16, justifyContent: 'center', borderRadius: 10 },
