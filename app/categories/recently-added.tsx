@@ -9,19 +9,67 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Play } from "lucide-react-native";
+import { ArrowLeft, Play, Video, Headphones, BookOpen, Mic } from "lucide-react-native";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { recentlyPlayed } from "@/data/mockData";
+import { recentlyAddedContent } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function RecentlyAddedScreen() {
   const { playTrack } = usePlayer();
 
+  const getContentTypeIcon = (type: string) => {
+    switch (type) {
+      case "video":
+        return <Video size={14} color="#10B981" />;
+      case "podcast":
+        return <Mic size={14} color="#10B981" />;
+      case "audiobook":
+        return <BookOpen size={14} color="#10B981" />;
+      default:
+        return <Headphones size={14} color="#10B981" />;
+    }
+  };
+
+  const getContentTypeLabel = (type: string) => {
+    switch (type) {
+      case "video":
+        return "Video";
+      case "podcast":
+        return "Podcast";
+      case "audiobook":
+        return "Audiobook";
+      default:
+        return "Music";
+    }
+  };
+
+  const handleItemPress = (item: Track) => {
+    if (item.type === "video" && item.isVideo) {
+      // Navigate to video player for video content
+      router.push({
+        pathname: "/player",
+        params: {
+          trackId: item.id,
+          isVideo: "true",
+        },
+      });
+    } else if (item.type === "audiobook") {
+      // Navigate to audiobook player
+      router.push(`/audiobook/${item.id}`);
+    } else if (item.type === "podcast") {
+      // Navigate to podcast player
+      router.push(`/podcast-episode/${item.id}`);
+    } else {
+      // Play regular audio content
+      playTrack(item);
+    }
+  };
+
   const renderTrack = ({ item }: { item: Track }) => (
     <TouchableOpacity
       style={styles.trackCard}
-      onPress={() => playTrack(item)}
+      onPress={() => handleItemPress(item)}
       activeOpacity={0.8}
       testID={`track-${item.id}`}
     >
@@ -33,9 +81,18 @@ export default function RecentlyAddedScreen() {
         <Text style={styles.trackArtist} numberOfLines={1}>
           {item.artist}
         </Text>
-        <Text style={styles.recentLabel}>Recently Added</Text>
+        <View style={styles.labelContainer}>
+          {getContentTypeIcon(item.type)}
+          <Text style={styles.contentTypeLabel}>
+            {getContentTypeLabel(item.type)}
+          </Text>
+          <Text style={styles.recentLabel}>• Recently Added</Text>
+        </View>
       </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)}>
+      <TouchableOpacity 
+        style={styles.playButton} 
+        onPress={() => handleItemPress(item)}
+      >
         <Play size={16} color="#000" fill="#FFF" />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -57,7 +114,7 @@ export default function RecentlyAddedScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <FlatList
-          data={recentlyPlayed}
+          data={recentlyAddedContent}
           renderItem={renderTrack}
           keyExtractor={(item) => `recent-${item.id}`}
           scrollEnabled={false}
@@ -127,7 +184,17 @@ const styles = StyleSheet.create({
   trackArtist: {
     color: "#999",
     fontSize: 14,
-    marginBottom: 2,
+    marginBottom: 4,
+  },
+  labelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  contentTypeLabel: {
+    color: "#10B981",
+    fontSize: 12,
+    fontWeight: "600",
   },
   recentLabel: {
     color: "#10B981",

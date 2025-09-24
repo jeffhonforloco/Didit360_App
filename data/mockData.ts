@@ -84,6 +84,154 @@ export const recentlyPlayed: Track[] = [
   },
 ];
 
+// Recently Added Content - Mixed content types (audio, video, audiobook, podcast)
+export const recentlyAddedContent: Track[] = [
+  // Recently added music
+  {
+    id: "ra1",
+    title: "Midnight Dreams",
+    artist: "Luna Echo",
+    album: "Celestial Vibes",
+    artwork: "https://picsum.photos/400/400?random=1",
+    duration: 225,
+    type: "song",
+  },
+  {
+    id: "ra2",
+    title: "Electric Pulse",
+    artist: "Neon Waves",
+    album: "Digital Horizon",
+    artwork: "https://picsum.photos/400/400?random=2",
+    duration: 198,
+    type: "song",
+  },
+  // Recently added video
+  {
+    id: "rav1",
+    title: "Blinding Lights (Official Music Video)",
+    artist: "The Weeknd",
+    album: "After Hours",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 200,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  {
+    id: "rav2",
+    title: "7 rings (Official Video)",
+    artist: "Ariana Grande",
+    album: "Thank U, Next",
+    artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+    duration: 178,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+  },
+  // Recently added live performance video
+  {
+    id: "ralp1",
+    title: "Live at Madison Square Garden",
+    artist: "Luna Echo",
+    album: "Live Sessions",
+    artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+    duration: 300,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+    description: "Live Performance",
+  },
+  // Recently added podcast
+  {
+    id: "rap1",
+    title: "The Future of AI Technology",
+    artist: "Tech Insights Daily",
+    artwork: "https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=400&h=400&fit=crop",
+    duration: 2850,
+    type: "podcast",
+    description: "Deep dive into artificial intelligence trends",
+  },
+  {
+    id: "rap2",
+    title: "Mind & Body Wellness",
+    artist: "Wellness Warriors",
+    artwork: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop",
+    duration: 1800,
+    type: "podcast",
+    description: "Health and wellness tips for daily life",
+  },
+  // Recently added audiobook
+  {
+    id: "raa1",
+    title: "The Psychology of Success",
+    artist: "Dr. Sarah Johnson",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600,
+    type: "audiobook",
+    description: "Understanding the mindset of high achievers",
+  },
+  {
+    id: "raa2",
+    title: "Digital Minimalism",
+    artist: "Cal Newport",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 19800,
+    type: "audiobook",
+    description: "A philosophy for technology in a cluttered world",
+  },
+  // More recently added music
+  {
+    id: "ra3",
+    title: "Golden Hour",
+    artist: "Sunset Boulevard",
+    album: "California Dreams",
+    artwork: "https://picsum.photos/400/400?random=3",
+    duration: 242,
+    type: "song",
+  },
+  {
+    id: "ra4",
+    title: "Future Bass",
+    artist: "Tomorrow Sound",
+    album: "Next Generation",
+    artwork: "https://picsum.photos/400/400?random=11",
+    duration: 178,
+    type: "song",
+  },
+  // Recently added podcast episode
+  {
+    id: "rap3",
+    title: "True Crime: The Missing Hour",
+    artist: "Mystery Files Podcast",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
+    duration: 3240,
+    type: "podcast",
+    description: "Investigating unsolved mysteries from around the world",
+  },
+  // Recently added music video
+  {
+    id: "rav3",
+    title: "Starboy (Official Video)",
+    artist: "The Weeknd ft. Daft Punk",
+    album: "Starboy",
+    artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+    duration: 230,
+    type: "video",
+    isVideo: true,
+    videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  },
+  // Recently added audiobook
+  {
+    id: "raa3",
+    title: "Atomic Habits",
+    artist: "James Clear",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 19800,
+    type: "audiobook",
+    description: "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+  },
+];
+
 export const topCharts: Track[] = [
   {
     id: "7",
