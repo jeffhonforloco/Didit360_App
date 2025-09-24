@@ -12,43 +12,113 @@ import {
   Pressable,
   Animated,
   Keyboard,
+  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from 'expo-router';
-import { Search as SearchIcon, X, MoreHorizontal, Play, Heart, Plus, Download, User, Disc, Share2, Ban, Mic } from "lucide-react-native";
+import { router } from "expo-router";
+import {
+  Search as SearchIcon,
+  X,
+  MoreHorizontal,
+  Play,
+  Heart,
+  Plus,
+  Download,
+  User,
+  Disc,
+  Share2,
+  Ban,
+  Mic,
+  Music2,
+} from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
-import { allTracks, searchArtists, searchAlbums, podcastShows, allPodcastEpisodes, audiobooks } from "@/data/mockData";
+import {
+  allTracks,
+  searchArtists,
+  searchAlbums,
+  podcastShows,
+  allPodcastEpisodes,
+} from "@/data/mockData";
 import type { Track } from "@/types";
 import { trpc, trpcClient } from "@/lib/trpc";
 
-const browseCategories = [
-  { name: "Charts", color: "#10B981", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Podcasts", color: "#8B5CF6", image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=100&h=100&fit=crop" },
-  { name: "New Releases", color: "#F59E0B", image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=100&h=100&fit=crop" },
-  { name: "Only You", color: "#3B82F6", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Pop", color: "#EC4899", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "K-Pop", color: "#F97316", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Rock", color: "#10B981", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Hip-Hop", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Jazz", color: "#6B7280", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
-  { name: "Romance", color: "#06B6D4", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop" },
+const browseCategories: Array<{ name: string; color: string; image: string; route?: string }> = [
+  {
+    name: "Charts",
+    color: "#10B981",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/trending-now",
+  },
+  {
+    name: "Podcasts",
+    color: "#8B5CF6",
+    image: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=100&h=100&fit=crop",
+    route: "/podcasts",
+  },
+  {
+    name: "New Releases",
+    color: "#F59E0B",
+    image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=100&h=100&fit=crop",
+    route: "/recently-added",
+  },
+  {
+    name: "Only You",
+    color: "#3B82F6",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+  },
+  {
+    name: "Pop",
+    color: "#EC4899",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
+  {
+    name: "K‑Pop",
+    color: "#F97316",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
+  {
+    name: "Rock",
+    color: "#10B981",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
+  {
+    name: "Hip‑Hop",
+    color: "#6B7280",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
+  {
+    name: "Jazz",
+    color: "#6B7280",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
+  {
+    name: "Romance",
+    color: "#06B6D4",
+    image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=100&h=100&fit=crop",
+    route: "/categories/genres",
+  },
 ];
 
-const audiobookCategories = [
-  { name: "Lorem", color: "#10B981", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#8B5CF6", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#F59E0B", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#3B82F6", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#EC4899", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#F97316", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#10B981", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#6B7280", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#6B7280", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
-  { name: "Lorem", color: "#06B6D4", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
+const audiobookCategories: Array<{ name: string; color: string; image: string }> = [
+  { name: "Fiction", color: "#10B981", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Non‑fiction", color: "#8B5CF6", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
+  { name: "Mystery", color: "#F59E0B", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
+  { name: "Sci‑Fi", color: "#3B82F6", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
+  { name: "Fantasy", color: "#EC4899", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Biography", color: "#F97316", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
+  { name: "History", color: "#10B981", image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" },
+  { name: "Self‑Help", color: "#6B7280", image: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=100&h=100&fit=crop" },
+  { name: "Business", color: "#6B7280", image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=100&h=100&fit=crop" },
+  { name: "Kids", color: "#06B6D4", image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=100&h=100&fit=crop" },
 ];
 
-type FilterTab = 'Top' | 'Songs' | 'Artists' | 'Albums' | 'Podcasts' | 'Playlists' | 'Profiles';
+type FilterTab = "Top" | "Songs" | "Artists" | "Albums" | "Podcasts" | "Playlists" | "Profiles";
 
 interface ContextMenuProps {
   visible: boolean;
@@ -92,27 +162,24 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
     }
   }, [visible, fadeAnim, scaleAnim]);
 
-  const menuItems = track.type === 'podcast' ? [
-    { icon: Heart, label: 'Mark as Played', onPress: () => console.log('Mark as Played', track.title) },
-    { icon: User, label: 'Go to Podcast', onPress: () => console.log('Go to Podcast', track.artist) },
-    { icon: Share2, label: 'Share', onPress: () => console.log('Share', track.title) },
-  ] : [
-    { icon: Heart, label: 'Like', onPress: () => console.log('Like', track.title) },
-    { icon: Plus, label: 'Add to Playlist', onPress: () => console.log('Add to Playlist', track.title) },
-    { icon: Ban, label: "Don't Play This", onPress: () => console.log("Don't Play This", track.title) },
-    { icon: Download, label: 'Download', onPress: () => console.log('Download', track.title) },
-    { icon: User, label: 'View Artist', onPress: () => console.log('View Artist', track.artist) },
-    { icon: Disc, label: 'Go to Album', onPress: () => console.log('Go to Album', track.album) },
-    { icon: Share2, label: 'Share', onPress: () => console.log('Share', track.title) },
-  ];
+  const menuItems = track.type === "podcast"
+    ? [
+        { icon: Heart, label: "Mark as Played", onPress: () => console.log("Mark as Played", track.title) },
+        { icon: User, label: "Go to Podcast", onPress: () => console.log("Go to Podcast", track.artist) },
+        { icon: Share2, label: "Share", onPress: () => console.log("Share", track.title) },
+      ]
+    : [
+        { icon: Heart, label: "Like", onPress: () => console.log("Like", track.title) },
+        { icon: Plus, label: "Add to Playlist", onPress: () => console.log("Add to Playlist", track.title) },
+        { icon: Ban, label: "Don't Play This", onPress: () => console.log("Don't Play This", track.title) },
+        { icon: Download, label: "Download", onPress: () => console.log("Download", track.title) },
+        { icon: User, label: "View Artist", onPress: () => console.log("View Artist", track.artist) },
+        { icon: Disc, label: "Go to Album", onPress: () => console.log("Go to Album", track.album) },
+        { icon: Share2, label: "Share", onPress: () => console.log("Share", track.title) },
+      ];
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="none"
-      onRequestClose={onClose}
-    >
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
       <Pressable style={styles.contextMenuOverlay} onPress={onClose}>
         <Animated.View
           style={[
@@ -145,9 +212,9 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
 }
 
 export default function SearchScreen() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterTab>('Top');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [activeFilter, setActiveFilter] = useState<FilterTab>("Top");
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
     track: Track | null;
@@ -162,44 +229,40 @@ export default function SearchScreen() {
     (track) =>
       track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      track.album?.toLowerCase().includes(searchQuery.toLowerCase())
+      (track.album?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   );
 
-  const filteredArtists = searchArtists.filter(
-    (artist) =>
-      artist.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredArtists = searchArtists.filter((artist) => artist.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const filteredAlbums = searchAlbums.filter(
-    (album) =>
-      album.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      album.artist.toLowerCase().includes(searchQuery.toLowerCase())
+    (album) => album.title.toLowerCase().includes(searchQuery.toLowerCase()) || album.artist.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredPodcasts = [...allPodcastEpisodes, ...podcastShows].filter(
-    (item) => {
-      if ('title' in item) {
-        return item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               (item as any).host?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-               (item as any).artist?.toLowerCase().includes(searchQuery.toLowerCase());
-      }
-      return false;
+  const filteredPodcasts = [...allPodcastEpisodes, ...podcastShows].filter((item) => {
+    if ("title" in item) {
+      const anyItem = item as unknown as { title?: string; host?: string; artist?: string };
+      return (
+        (anyItem.title?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (anyItem.host?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (anyItem.artist?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+      );
     }
-  );
+    return false;
+  });
 
   const getFilteredResults = () => {
     switch (activeFilter) {
-      case 'Songs':
-        return filteredTracks.filter(track => track.type === 'song');
-      case 'Artists':
+      case "Songs":
+        return filteredTracks.filter((track) => track.type === "song");
+      case "Artists":
         return filteredArtists;
-      case 'Albums':
+      case "Albums":
         return filteredAlbums;
-      case 'Podcasts':
+      case "Podcasts":
         return filteredPodcasts;
-      case 'Playlists':
-        return []; // TODO: Add playlist filtering
-      case 'Profiles':
+      case "Playlists":
+        return [];
+      case "Profiles":
         return filteredArtists;
       default:
         return [...filteredTracks, ...filteredArtists, ...filteredAlbums, ...filteredPodcasts].slice(0, 10);
@@ -208,9 +271,6 @@ export default function SearchScreen() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    if (query.trim()) {
-      addToSearchHistory(query.trim());
-    }
   };
 
   const handleRecentSearchPress = (query: string) => {
@@ -219,63 +279,80 @@ export default function SearchScreen() {
     Keyboard.dismiss();
   };
 
-  const showContextMenu = useCallback((track: Track, event: any) => {
+  const showContextMenu = useCallback((track: Track, event: { nativeEvent: { pageX: number; pageY: number } }) => {
     const { pageX, pageY } = event.nativeEvent;
-    setContextMenu({
-      visible: true,
-      track,
-      position: { x: pageX, y: pageY },
-    });
+    setContextMenu({ visible: true, track, position: { x: pageX, y: pageY } });
   }, []);
 
   const hideContextMenu = useCallback(() => {
     setContextMenu({ visible: false, track: null, position: { x: 0, y: 0 } });
   }, []);
 
-  const renderCategory = ({ item }: { item: typeof browseCategories[0] }) => (
+  const navigateCategory = useCallback((route?: string) => {
+    if (!route) {
+      console.log("[Search] Category tapped without route – no navigation");
+      return;
+    }
+    router.push(route as never);
+  }, []);
+
+  const renderCategory = ({ item }: { item: (typeof browseCategories)[number] }) => (
     <TouchableOpacity
       style={[styles.categoryCard, { backgroundColor: item.color }]}
       activeOpacity={0.8}
+      onPress={() => navigateCategory(item.route)}
+      testID={`browse-${item.name}`}
     >
       <Text style={styles.categoryText}>{item.name}</Text>
       <Image source={{ uri: item.image }} style={styles.categoryImage} />
     </TouchableOpacity>
   );
 
-  const renderAudiobookCategory = ({ item }: { item: typeof audiobookCategories[0] }) => (
+  const renderAudiobookCategory = ({ item }: { item: (typeof audiobookCategories)[number] }) => (
     <TouchableOpacity
       style={[styles.audiobookCard, { backgroundColor: item.color }]}
       activeOpacity={0.8}
-      onPress={() => router.push('/categories/audiobooks')}
+      onPress={() => console.log("[Search] Audiobook category", item.name)}
+      testID={`ab-${item.name}`}
     >
       <Text style={styles.audiobookText}>{item.name}</Text>
       <Image source={{ uri: item.image }} style={styles.audiobookImage} />
     </TouchableOpacity>
   );
 
-  const renderSearchResult = ({ item }: { item: Track | typeof searchArtists[0] | typeof searchAlbums[0] | typeof podcastShows[0] }) => {
-    if ('name' in item && 'image' in item) {
-      const artist = item as typeof searchArtists[0];
+  const backendResults = trpc.catalog.search.useQuery(
+    { q: searchQuery || "", type: "all", limit: 20 },
+    { enabled: searchQuery.trim().length > 0 }
+  );
+
+  const isUsingBackend = useMemo(() => searchQuery.trim().length > 0, [searchQuery]);
+
+  const typePill = (label: string) => (
+    <View style={styles.typePill}>
+      <Music2 color="#0A0A0A" size={12} />
+      <Text style={styles.typePillText}>{label}</Text>
+    </View>
+  );
+
+  const renderLocalResult = ({ item }: { item: Track | (typeof searchArtists)[number] | (typeof searchAlbums)[number] | (typeof podcastShows)[number] }) => {
+    if ("name" in item && "image" in item) {
+      const artist = item as (typeof searchArtists)[number];
       return (
-        <TouchableOpacity
-          style={styles.searchResult}
-          onPress={() => router.push(`/profile/${artist.id}`)}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.searchResult} onPress={() => router.push(`/profile/${artist.id}` as never)} activeOpacity={0.8} testID={`artist-${artist.id}`}>
           <Image source={{ uri: artist.image }} style={[styles.resultImage, styles.artistImage]} />
           <View style={styles.resultInfo}>
             <View style={styles.artistHeader}>
               <Text style={styles.resultTitle} numberOfLines={1}>
                 {artist.name}
               </Text>
-              {artist.verified && (
+              {artist.verified ? (
                 <View style={styles.verifiedBadge}>
                   <Text style={styles.verifiedText}>✓</Text>
                 </View>
-              )}
+              ) : null}
             </View>
             <Text style={styles.resultArtist} numberOfLines={1}>
-              {activeFilter === 'Profiles' ? 'Profile' : 'Artist'}
+              Artist
             </Text>
           </View>
           <TouchableOpacity style={styles.followButton}>
@@ -285,21 +362,17 @@ export default function SearchScreen() {
       );
     }
 
-    if ('type' in item && item.type === 'album') {
-      const album = item as typeof searchAlbums[0];
+    if ("type" in item && (item as { type?: string }).type === "album") {
+      const album = item as (typeof searchAlbums)[number];
       return (
-        <TouchableOpacity
-          style={styles.searchResult}
-          onPress={() => router.push(`/album/${album.id}`)}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.searchResult} onPress={() => router.push(`/album/${album.id}` as never)} activeOpacity={0.8} testID={`album-${album.id}`}>
           <Image source={{ uri: album.artwork }} style={styles.resultImage} />
           <View style={styles.resultInfo}>
             <Text style={styles.resultTitle} numberOfLines={1}>
               {album.title}
             </Text>
             <Text style={styles.resultArtist} numberOfLines={1}>
-              {album.artist} • {album.year}
+              {album.artist} • Album • {album.year}
             </Text>
           </View>
           <TouchableOpacity style={styles.moreButton}>
@@ -309,15 +382,10 @@ export default function SearchScreen() {
       );
     }
 
-    // Handle podcast shows
-    if ('host' in item) {
-      const show = item as typeof podcastShows[0];
+    if ("host" in item) {
+      const show = item as (typeof podcastShows)[number];
       return (
-        <TouchableOpacity
-          style={styles.searchResult}
-          onPress={() => router.push(`/podcast-show/${show.id}`)}
-          activeOpacity={0.8}
-        >
+        <TouchableOpacity style={styles.searchResult} onPress={() => router.push(`/podcast-show/${show.id}` as never)} activeOpacity={0.8} testID={`podcast-${show.id}`}>
           <Image source={{ uri: show.artwork }} style={styles.resultImage} />
           <View style={styles.resultInfo}>
             <Text style={styles.resultTitle} numberOfLines={1}>
@@ -340,139 +408,113 @@ export default function SearchScreen() {
         style={styles.searchResult}
         onPress={async () => {
           try {
-            const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: 'track', id: track.id, country: 'US', explicitOk: true });
-            if (rights.streamable) {
+            const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: "track", id: track.id, country: "US", explicitOk: true });
+            if ((rights as { streamable?: boolean }).streamable) {
               playTrack(track);
-              router.push(`/song/${track.id}`);
+              router.push(`/song/${track.id}` as never);
             } else {
-              console.log('[Search] Track not streamable', rights.reasons);
-              alert('This track is not streamable in your region or settings.');
+              console.log("[Search] Track not streamable", (rights as { reasons?: string[] }).reasons ?? []);
+              alert("This track is not streamable in your region or settings.");
             }
           } catch (e) {
-            console.log('[Search] rights check error', e);
-            alert('Unable to verify streamability. Please try again.');
+            console.log("[Search] rights check error", e);
+            alert("Unable to verify streamability. Please try again.");
           }
         }}
         activeOpacity={0.8}
+        testID={`track-${track.id}`}
       >
         <View style={styles.resultImageContainer}>
           <Image source={{ uri: track.artwork }} style={styles.resultImage} />
-          <TouchableOpacity 
-            style={styles.playButton}
+          <TouchableOpacity
+            style={styles.fabPlay}
             onPress={async (e) => {
               e.stopPropagation();
               try {
-                const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: 'track', id: track.id, country: 'US', explicitOk: true });
-                if (rights.streamable) {
+                const rights = await trpcClient.catalog.rights.isStreamable.query({ entityType: "track", id: track.id, country: "US", explicitOk: true });
+                if ((rights as { streamable?: boolean }).streamable) {
                   playTrack(track);
                 } else {
-                  console.log('[Search] Track not streamable', rights.reasons);
-                  alert('This track is not streamable in your region or settings.');
+                  console.log("[Search] Track not streamable", (rights as { reasons?: string[] }).reasons ?? []);
+                  alert("This track is not streamable in your region or settings.");
                 }
               } catch (err) {
-                console.log('[Search] rights check error', err);
-                alert('Unable to verify streamability.');
+                console.log("[Search] rights check error", err);
+                alert("Unable to verify streamability.");
               }
             }}
+            accessibilityLabel={`Play ${track.title}`}
           >
-            <Play size={20} color="#E91E63" fill="#E91E63" />
+            <Play size={16} color="#0A0A0A" />
           </TouchableOpacity>
         </View>
         <View style={styles.resultInfo}>
           <Text style={styles.resultTitle} numberOfLines={1}>
             {track.title}
           </Text>
-          <Text style={styles.resultArtist} numberOfLines={1}>
-            {track.type === "song"
-              ? `${track.artist} • Song`
-              : track.type === "podcast"
-              ? `${track.artist} • ${Math.floor(track.duration / 60)} mins`
-              : `${track.artist} • Audiobook`}
-          </Text>
+          <View style={styles.inlineRow}>
+            <Text style={styles.resultArtist} numberOfLines={1}>
+              {track.artist}
+            </Text>
+            {typePill(track.type === "song" ? "Song" : track.type === "podcast" ? "Podcast" : "Audiobook")}
+          </View>
         </View>
-        <TouchableOpacity
-          style={styles.moreButton}
-          onPress={(event) => showContextMenu(track, event)}
-        >
+        <TouchableOpacity style={styles.moreButton} onPress={(event) => showContextMenu(track, event as unknown as { nativeEvent: { pageX: number; pageY: number } })}>
           <MoreHorizontal size={20} color="#999" />
         </TouchableOpacity>
       </TouchableOpacity>
     );
   };
 
-  const renderRecentSearch = ({ item }: { item: string }) => (
-    <TouchableOpacity
-      style={styles.recentSearchItem}
-      onPress={() => handleRecentSearchPress(item)}
-      activeOpacity={0.8}
-    >
-      <Text style={styles.recentSearchText} numberOfLines={1}>
-        {item}
-      </Text>
+  const renderBackendItem = ({
+    item,
+  }: {
+    item: { id: string; type: string; title: string; subtitle?: string; artwork?: string };
+  }) => {
+    return (
       <TouchableOpacity
-        style={styles.removeSearchButton}
-        onPress={() => removeFromSearchHistory(item)}
+        style={styles.searchResult}
+        testID={`result-${item.type}-${item.id}`}
+        onPress={() => {
+          if (item.type === "track") router.push(`/song/${item.id}` as never);
+          else if (item.type === "artist") router.push(`/profile/${item.id}` as never);
+          else if (item.type === "release") router.push(`/album/${item.id}` as never);
+          else if (item.type === "podcast") router.push(`/podcast-show/${item.id}` as never);
+          else if (item.type === "episode") router.push(`/podcast-episode/${item.id}` as never);
+          else console.log("[Search] Unsupported navigate for type", item.type);
+        }}
+        activeOpacity={0.8}
       >
-        <X size={16} color="#666" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderNotFound = () => (
-    <View style={styles.notFoundContainer}>
-      <View style={styles.notFoundIllustration}>
-        <View style={styles.notFoundCircle}>
-          <Text style={styles.notFoundEmoji}>😞</Text>
-        </View>
-        <View style={styles.notFoundPerson}>
-          <View style={styles.personBody} />
-          <View style={styles.personHead} />
-        </View>
-      </View>
-      <Text style={styles.notFoundTitle}>Not Found</Text>
-      <Text style={styles.notFoundDescription}>
-        Sorry, the keyword you entered cannot be found, please check again or search with another keyword.
-      </Text>
-    </View>
-  );
-
-  const renderFilterTabs = () => (
-    <View style={styles.filterTabs}>
-      {(['Top', 'Songs', 'Artists', 'Albums', 'Podcasts', 'Playlists', 'Profiles'] as FilterTab[]).map((filter) => (
-        <TouchableOpacity
-          key={filter}
-          style={[
-            styles.filterTab,
-            activeFilter === filter && styles.activeFilterTab,
-          ]}
-          onPress={() => setActiveFilter(filter)}
-        >
-          <Text
-            style={[
-              styles.filterTabText,
-              activeFilter === filter && styles.activeFilterTabText,
-            ]}
-          >
-            {filter}
+        {item.artwork ? (
+          <Image source={{ uri: item.artwork }} style={styles.resultImage} />
+        ) : (
+          <View style={[styles.resultImage, styles.fallbackArt]}>
+            <Text style={{ color: "#666" }}>{item.type}</Text>
+          </View>
+        )}
+        <View style={styles.resultInfo}>
+          <Text style={styles.resultTitle} numberOfLines={1}>
+            {item.title}
           </Text>
+          {item.subtitle ? (
+            <Text style={styles.resultArtist} numberOfLines={1}>
+              {item.subtitle}
+            </Text>
+          ) : null}
+        </View>
+        <TouchableOpacity style={styles.moreButton}>
+          <MoreHorizontal size={20} color="#999" />
         </TouchableOpacity>
-      ))}
-    </View>
-  );
-
-  const backendResults = trpc.catalog.search.useQuery(
-    { q: searchQuery || "", type: 'all', limit: 20 },
-    { enabled: searchQuery.trim().length > 0 }
-  );
-
-  const isUsingBackend = useMemo(() => searchQuery.trim().length > 0, [searchQuery]);
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} testID="search-screen">
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Search</Text>
-          <TouchableOpacity onPress={() => router.push('/settings')}>
+          <TouchableOpacity onPress={() => router.push("/settings" as never)} testID="search-settings">
             <MoreHorizontal size={24} color="#FFF" />
           </TouchableOpacity>
         </View>
@@ -481,22 +523,30 @@ export default function SearchScreen() {
           <TextInput
             ref={searchInputRef}
             style={styles.searchInput}
-            placeholder={isSearchFocused ? "Abcdefghijklm" : "Artists, Songs, Podcasts, & More"}
-            placeholderTextColor={isSearchFocused ? "#E91E63" : "#666"}
+            placeholder={"Search artists, songs, albums, podcasts…"}
+            placeholderTextColor="#666"
             value={searchQuery}
             onChangeText={handleSearch}
             onFocus={() => setIsSearchFocused(true)}
             onBlur={() => setIsSearchFocused(false)}
+            onSubmitEditing={() => {
+              const q = searchQuery.trim();
+              if (q.length > 0) {
+                addToSearchHistory(q);
+                backendResults.refetch();
+              }
+            }}
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
+            testID="search-input"
           />
           {searchQuery.length > 0 ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")}>
+            <TouchableOpacity onPress={() => setSearchQuery("")} accessibilityLabel="Clear search" testID="clear-search">
               <X size={20} color="#999" />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.micButton}>
+            <TouchableOpacity style={styles.micButton} onPress={() => console.log("[Search] Voice search", Platform.OS)} testID="voice-search">
               <Mic size={20} color="#999" />
             </TouchableOpacity>
           )}
@@ -506,91 +556,97 @@ export default function SearchScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {searchQuery.length > 0 ? (
           <View style={styles.results}>
-            {renderFilterTabs()}
+            <View style={styles.filterTabs}>
+              {(["Top", "Songs", "Artists", "Albums", "Podcasts", "Playlists", "Profiles"] as FilterTab[]).map((filter) => (
+                <TouchableOpacity
+                  key={filter}
+                  style={[styles.filterTab, activeFilter === filter && styles.activeFilterTab]}
+                  onPress={() => setActiveFilter(filter)}
+                  testID={`filter-${filter}`}
+                >
+                  <Text style={[styles.filterTabText, activeFilter === filter && styles.activeFilterTabText]}>
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             {(() => {
               if (isUsingBackend) {
                 if (backendResults.isLoading) {
-                  return <Text style={styles.resultsTitle} testID="search-loading">Searching…</Text>;
+                  return (
+                    <Text style={styles.resultsTitle} testID="search-loading">
+                      Searching…
+                    </Text>
+                  );
                 }
                 if (backendResults.error) {
-                  return <Text style={styles.resultsTitle} testID="search-error">Search error</Text>;
+                  return (
+                    <Text style={styles.resultsTitle} testID="search-error">
+                      Search error
+                    </Text>
+                  );
                 }
-                const data = backendResults.data ?? [];
-                if (data.length === 0) return renderNotFound();
+                const data = (backendResults.data ?? []) as Array<{
+                  id: string;
+                  type: string;
+                  title: string;
+                  subtitle?: string;
+                  artwork?: string;
+                }>;
+                if (data.length === 0) {
+                  return (
+                    <View style={styles.marginTop16}>{renderNotFound()}</View>
+                  );
+                }
                 return (
                   <FlatList
                     data={data}
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={(item) => `${item.type}-${item.id}`}
                     scrollEnabled={false}
                     style={styles.resultsList}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={styles.searchResult}
-                        testID={`result-${item.type}-${item.id}`}
-                        onPress={() => {
-                          if (item.type === 'track') router.push(`/song/${item.id}`);
-                          else if (item.type === 'artist') router.push(`/profile/${item.id}`);
-                          else if (item.type === 'release') router.push(`/album/${item.id}`);
-                          else if (item.type === 'podcast') router.push(`/podcast-show/${item.id}`);
-                          else if (item.type === 'episode') router.push(`/podcast-episode/${item.id}`);
-                          else {
-                            console.log('[Search] Unsupported navigate for type', item.type);
-                          }
-                        }}
-                        activeOpacity={0.8}
-                      >
-                        {item.artwork ? (
-                          <Image source={{ uri: item.artwork }} style={styles.resultImage} />
-                        ) : (
-                          <View style={[styles.resultImage, { backgroundColor: '#222', justifyContent: 'center', alignItems: 'center' }]}>
-                            <Text style={{ color: '#666' }}>{item.type}</Text>
-                          </View>
-                        )}
-                        <View style={styles.resultInfo}>
-                          <Text style={styles.resultTitle} numberOfLines={1}>{item.title}</Text>
-                          {item.subtitle ? (
-                            <Text style={styles.resultArtist} numberOfLines={1}>{item.subtitle}</Text>
-                          ) : null}
-                        </View>
-                        <TouchableOpacity style={styles.moreButton}>
-                          <MoreHorizontal size={20} color="#999" />
-                        </TouchableOpacity>
-                      </TouchableOpacity>
-                    )}
+                    renderItem={renderBackendItem}
                   />
                 );
               }
-              const results = getFilteredResults();
+              const results = getFilteredResults() as Array<unknown>;
               if (results.length === 0) {
                 return renderNotFound();
               }
               return (
                 <FlatList
                   data={results}
-                  renderItem={renderSearchResult}
+                  renderItem={renderLocalResult as unknown as ({ item }: { item: unknown }) => React.ReactElement}
                   keyExtractor={(item) => {
-                    if ('id' in item) return item.id;
-                    if ('name' in item) return (item as typeof searchArtists[0]).name;
-                    return (item as typeof podcastShows[0]).title;
+                    if (typeof item === "object" && item && "id" in (item as Record<string, unknown>)) return String((item as Record<string, unknown>)["id"]);
+                    if (typeof item === "object" && item && "name" in (item as Record<string, unknown>)) return String((item as Record<string, unknown>)["name"]);
+                    return String(Math.random());
                   }}
                   scrollEnabled={false}
                   style={styles.resultsList}
                 />
               );
-            })()
-            }
+            })()}
           </View>
         ) : isSearchFocused && recentSearches.length > 0 ? (
           <View style={styles.recentSearches}>
             <View style={styles.recentSearchesHeader}>
               <Text style={styles.recentSearchesTitle}>Recent Searches</Text>
-              <TouchableOpacity onPress={clearSearchHistory}>
+              <TouchableOpacity onPress={clearSearchHistory} testID="clear-all-searches">
                 <Text style={styles.clearAllText}>Clear All</Text>
               </TouchableOpacity>
             </View>
             <FlatList
               data={recentSearches}
-              renderItem={renderRecentSearch}
+              renderItem={({ item }: { item: string }) => (
+                <TouchableOpacity style={styles.recentSearchItem} onPress={() => handleRecentSearchPress(item)} activeOpacity={0.8}>
+                  <Text style={styles.recentSearchText} numberOfLines={1}>
+                    {item}
+                  </Text>
+                  <TouchableOpacity style={styles.removeSearchButton} onPress={() => removeFromSearchHistory(item)}>
+                    <X size={16} color="#666" />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
               keyExtractor={(item, index) => `${item}-${index}`}
               scrollEnabled={false}
             />
@@ -607,14 +663,23 @@ export default function SearchScreen() {
                 </View>
                 <FlatList
                   data={recentSearches}
-                  renderItem={renderRecentSearch}
+                  renderItem={({ item }: { item: string }) => (
+                    <TouchableOpacity style={styles.recentSearchItem} onPress={() => handleRecentSearchPress(item)} activeOpacity={0.8}>
+                      <Text style={styles.recentSearchText} numberOfLines={1}>
+                        {item}
+                      </Text>
+                      <TouchableOpacity style={styles.removeSearchButton} onPress={() => removeFromSearchHistory(item)}>
+                        <X size={16} color="#666" />
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  )}
                   keyExtractor={(item, index) => `${item}-${index}`}
                   scrollEnabled={false}
                 />
               </View>
             )}
             <View style={styles.browse}>
-              <Text style={styles.browseTitle}>Browse All Audio Books</Text>
+              <Text style={styles.browseTitle}>Browse All Audiobooks</Text>
               <FlatList
                 data={audiobookCategories}
                 renderItem={renderAudiobookCategory}
@@ -638,15 +703,10 @@ export default function SearchScreen() {
           </View>
         )}
       </ScrollView>
-      
-      {contextMenu.visible && contextMenu.track && (
-        <ContextMenu
-          visible={contextMenu.visible}
-          onClose={hideContextMenu}
-          track={contextMenu.track}
-          position={contextMenu.position}
-        />
-      )}
+
+      {contextMenu.visible && contextMenu.track ? (
+        <ContextMenu visible={contextMenu.visible} onClose={hideContextMenu} track={contextMenu.track} position={contextMenu.position} />
+      ) : null}
     </View>
   );
 }
@@ -708,6 +768,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginRight: 12,
   },
+  fallbackArt: {
+    backgroundColor: "#222",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   resultInfo: {
     flex: 1,
   },
@@ -721,6 +786,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
   },
+  inlineRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
   browse: {
     paddingHorizontal: 20,
     paddingTop: 16,
@@ -733,9 +803,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
   categoryRow: {
@@ -748,7 +818,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 16,
     justifyContent: "space-between",
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   categoryText: {
     fontSize: 18,
@@ -756,72 +826,69 @@ const styles = StyleSheet.create({
     color: "#FFF",
   },
   categoryImage: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -10,
     right: -10,
     width: 60,
     height: 60,
     borderRadius: 8,
-    transform: [{ rotate: '15deg' }],
+    transform: [{ rotate: "15deg" }],
   },
-  // Audiobook Cards
   audiobookCard: {
     flex: 0.48,
     height: 120,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
-    justifyContent: 'space-between',
-    overflow: 'hidden',
+    justifyContent: "space-between",
+    overflow: "hidden",
   },
   audiobookText: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#FFF',
+    fontWeight: "700",
+    color: "#FFF",
     zIndex: 2,
   },
   audiobookImage: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -15,
     right: -15,
     width: 80,
     height: 80,
     borderRadius: 12,
-    transform: [{ rotate: '12deg' }],
+    transform: [{ rotate: "12deg" }],
   },
-  // Context Menu Styles
   contextMenuOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   contextMenu: {
-    position: 'absolute',
-    backgroundColor: '#1A1A1A',
+    position: "absolute",
+    backgroundColor: "#1A1A1A",
     borderRadius: 12,
     paddingVertical: 8,
     minWidth: 200,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
   contextMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
   contextMenuText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
     marginLeft: 12,
   },
-  // Filter Tabs
   filterTabs: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 20,
     gap: 8,
   },
@@ -830,69 +897,66 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: "#333",
   },
   activeFilterTab: {
-    backgroundColor: '#E91E63',
-    borderColor: '#E91E63',
+    backgroundColor: "#E91E63",
+    borderColor: "#E91E63",
   },
   filterTabText: {
-    color: '#999',
+    color: "#999",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   activeFilterTabText: {
-    color: '#FFF',
+    color: "#FFF",
   },
-  // Artist Results
   artistImage: {
     borderRadius: 28,
   },
   artistHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   verifiedBadge: {
-    backgroundColor: '#1DB954',
+    backgroundColor: "#1DB954",
     borderRadius: 10,
     width: 20,
     height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   verifiedText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 12,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   followButton: {
-    backgroundColor: '#E91E63',
+    backgroundColor: "#E91E63",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   followButtonText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  // Track Results
   resultImageContainer: {
-    position: 'relative',
+    position: "relative",
     marginRight: 12,
   },
-  playButton: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    opacity: 1,
+  fabPlay: {
+    position: "absolute",
+    right: -6,
+    bottom: -6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#E91E63",
+    justifyContent: "center",
+    alignItems: "center",
   },
   moreButton: {
     padding: 8,
@@ -900,94 +964,130 @@ const styles = StyleSheet.create({
   resultsList: {
     marginTop: 16,
   },
-  // Recent Searches
+  marginTop16: {
+    marginTop: 16,
+  },
   recentSearches: {
     paddingHorizontal: 20,
     paddingTop: 16,
   },
   recentSearchesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   recentSearchesTitle: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#FFF',
+    fontWeight: "600",
+    color: "#FFF",
   },
   clearAllText: {
-    color: '#E91E63',
+    color: "#E91E63",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   recentSearchItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 12,
   },
   recentSearchText: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 16,
     flex: 1,
   },
   removeSearchButton: {
     padding: 4,
   },
-  // Not Found
   notFoundContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 60,
     paddingHorizontal: 40,
   },
   notFoundIllustration: {
-    position: 'relative',
+    position: "relative",
     marginBottom: 24,
   },
   notFoundCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#E91E63',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E91E63",
+    justifyContent: "center",
+    alignItems: "center",
   },
   notFoundEmoji: {
     fontSize: 48,
   },
   notFoundPerson: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -20,
     right: -30,
   },
   personBody: {
     width: 30,
     height: 40,
-    backgroundColor: '#4A5568',
+    backgroundColor: "#4A5568",
     borderRadius: 15,
   },
   personHead: {
     width: 20,
     height: 20,
-    backgroundColor: '#F7FAFC',
+    backgroundColor: "#F7FAFC",
     borderRadius: 10,
     marginTop: -5,
     marginLeft: 5,
   },
   notFoundTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: "bold",
+    color: "#FFF",
     marginBottom: 12,
   },
   notFoundDescription: {
     fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    color: "#999",
+    textAlign: "center",
     lineHeight: 24,
+  },
+  typePill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 8,
+    gap: 4,
+  },
+  typePillText: {
+    color: "#0A0A0A",
+    fontSize: 11,
+    fontWeight: "700",
   },
   micButton: {
     padding: 4,
   },
 });
+
+function renderNotFound() {
+  return (
+    <View style={styles.notFoundContainer}>
+      <View style={styles.notFoundIllustration}>
+        <View style={styles.notFoundCircle}>
+          <Text style={styles.notFoundEmoji}>😞</Text>
+        </View>
+        <View style={styles.notFoundPerson}>
+          <View style={styles.personBody} />
+          <View style={styles.personHead} />
+        </View>
+      </View>
+      <Text style={styles.notFoundTitle}>No results</Text>
+      <Text style={styles.notFoundDescription}>
+        Try a different keyword, or browse categories below.
+      </Text>
+    </View>
+  );
+}
