@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createContextHook from "@nkzw/create-context-hook";
+import { router } from "expo-router";
 
 export type StreamQuality = 'low' | 'normal' | 'high';
 export type DownloadQuality = 'normal' | 'high';
@@ -47,6 +48,7 @@ interface UserState {
   changePassword: (current: string, next: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearStorage: () => Promise<void>;
+  isSignedIn: boolean;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -76,6 +78,27 @@ const DEFAULT_SETTINGS: AppSettings = {
 const PROFILE_KEY = "user_profile";
 const SETTINGS_KEY = "user_settings";
 const PASSWORD_KEY = "user_password";
+
+// Custom hook for sign out with navigation
+export const useSignOut = () => {
+  const { signOut } = useUser();
+  
+  const signOutWithNavigation = useCallback(async () => {
+    console.log('[useSignOut] Starting sign out process');
+    try {
+      await signOut();
+      console.log('[useSignOut] Sign out completed, navigating to auth');
+      
+      // Use replace to completely replace the current screen with auth
+      router.replace('/auth');
+    } catch (error) {
+      console.error('[useSignOut] Sign out error:', error);
+      throw error;
+    }
+  }, [signOut]);
+  
+  return signOutWithNavigation;
+};
 
 export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -168,7 +191,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] signOut completed - profile set to null');
       
       // Force a small delay to ensure state updates are processed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (err) {
       console.error("[UserContext] signOut error", err);
       throw err; // Re-throw the error so the caller can handle it
@@ -185,6 +208,8 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     }
   }, []);
 
+  const isSignedIn = profile !== null;
+
   return {
     profile,
     settings,
@@ -195,5 +220,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     changePassword,
     signOut,
     clearStorage,
+    isSignedIn,
   };
 });

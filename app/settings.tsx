@@ -1,13 +1,14 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
-import { useUser } from "@/contexts/UserContext";
+import { useUser, useSignOut } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 
 
 export default function SettingsScreen() {
-  const { profile, settings, updateSetting, signOut, isLoading } = useUser();
+  const { profile, settings, updateSetting, isLoading } = useUser();
+  const signOutWithNavigation = useSignOut();
   const insets = useSafeAreaInsets();
   
   // Settings state - all hooks must be at the top
@@ -504,11 +505,8 @@ export default function SettingsScreen() {
                 { text: 'Sign Out', style: 'destructive', onPress: async () => {
                   console.log('[Settings] Sign out confirmed');
                   try {
-                    await signOut();
-                    console.log('[Settings] Sign out completed, navigating to auth');
-                    // Use dismissAll to clear the entire navigation stack, then navigate to auth
-                    router.dismissAll();
-                    router.replace('/auth');
+                    await signOutWithNavigation();
+                    console.log('[Settings] Sign out with navigation completed');
                   } catch (error) {
                     console.error('[Settings] Sign out error:', error);
                     if (Platform.OS !== 'web') {

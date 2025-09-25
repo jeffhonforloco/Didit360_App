@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from
 import { SafeAreaView } from "react-native-safe-area-context";
 import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car } from "lucide-react-native";
 import { router, type Href } from "expo-router";
-import { useUser } from "@/contexts/UserContext";
+import { useUser, useSignOut } from "@/contexts/UserContext";
 
 export default function ProfileScreen() {
-  const { profile, signOut, isLoading } = useUser();
+  const { profile, isLoading } = useUser();
+  const signOutWithNavigation = useSignOut();
   
   console.log('[ProfileScreen] profile:', profile);
-  console.log('[ProfileScreen] signOut function:', typeof signOut);
+  console.log('[ProfileScreen] signOutWithNavigation function:', typeof signOutWithNavigation);
   console.log('[ProfileScreen] isLoading:', isLoading);
 
   const items = useMemo(
@@ -57,11 +58,8 @@ export default function ProfileScreen() {
         { text: "Sign out", style: "destructive", onPress: async () => { 
           console.log('[ProfileScreen] sign out confirmed');
           try { 
-            await signOut(); 
-            console.log('[ProfileScreen] signOut completed, navigating to auth');
-            // Use dismissAll to clear the entire navigation stack, then navigate to auth
-            router.dismissAll();
-            router.replace('/auth' as Href);
+            await signOutWithNavigation(); 
+            console.log('[ProfileScreen] signOut with navigation completed');
           } catch (e) { 
             console.error('[ProfileScreen] signOut error:', e); 
             Alert.alert('Error', 'Failed to sign out. Please try again.');
