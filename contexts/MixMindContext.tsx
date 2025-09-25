@@ -340,63 +340,65 @@ const defaultSettings: MixMindSettings = {
   partyMode: false,
 };
 
+const defaultHistory: MixMindHistory = {
+  sets: [],
+  favoritePrompts: [],
+  totalSetsGenerated: 0,
+  totalListeningTime: 0,
+  voiceSessions: [],
+  collaborationSessions: [],
+  sharedSets: [],
+  likedSets: [],
+  followedDJs: [],
+  achievements: [],
+  streaks: {},
+  preferences: {
+    favoriteGenres: [],
+    favoriteArtists: [],
+    favoriteDecades: [],
+    favoriteRegions: [],
+    preferredLanguages: ['en'],
+    avoidedGenres: [],
+    avoidedArtists: [],
+    energyPreference: 0.5,
+    diversityPreference: 0.7,
+    tempoPreference: { min: 80, max: 140 },
+    moodPreferences: [],
+    timeOfDayPreferences: {},
+    activityPreferences: {},
+    socialPreferences: {
+      allowCollaboration: true,
+      allowPublicSets: false,
+      allowComments: true,
+      allowSharing: true,
+    },
+  },
+  statistics: {
+    totalSetsCreated: 0,
+    totalListeningHours: 0,
+    favoriteGenre: '',
+    averageSetLength: 30,
+    mostActiveTimeOfDay: '',
+    longestStreak: 0,
+    currentStreak: 0,
+    totalShares: 0,
+    totalLikes: 0,
+    totalCollaborations: 0,
+    averageSetRating: 0,
+    topArtists: {},
+    topGenres: {},
+    monthlyStats: {},
+    yearlyStats: {},
+  },
+  socialActivity: [],
+  exportHistory: [],
+  feedbackGiven: [],
+  reportedIssues: [],
+};
+
 export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [settings, setSettings] = useState<MixMindSettings>(defaultSettings);
-  const [history, setHistory] = useState<MixMindHistory>({
-    sets: [],
-    favoritePrompts: [],
-    totalSetsGenerated: 0,
-    totalListeningTime: 0,
-    voiceSessions: [],
-    collaborationSessions: [],
-    sharedSets: [],
-    likedSets: [],
-    followedDJs: [],
-    achievements: [],
-    streaks: {},
-    preferences: {
-      favoriteGenres: [],
-      favoriteArtists: [],
-      favoriteDecades: [],
-      favoriteRegions: [],
-      preferredLanguages: ['en'],
-      avoidedGenres: [],
-      avoidedArtists: [],
-      energyPreference: 0.5,
-      diversityPreference: 0.7,
-      tempoPreference: { min: 80, max: 140 },
-      moodPreferences: [],
-      timeOfDayPreferences: {},
-      activityPreferences: {},
-      socialPreferences: {
-        allowCollaboration: true,
-        allowPublicSets: false,
-        allowComments: true,
-        allowSharing: true,
-      },
-    },
-    statistics: {
-      totalSetsCreated: 0,
-      totalListeningHours: 0,
-      favoriteGenre: '',
-      averageSetLength: 30,
-      mostActiveTimeOfDay: '',
-      longestStreak: 0,
-      currentStreak: 0,
-      totalShares: 0,
-      totalLikes: 0,
-      totalCollaborations: 0,
-      averageSetRating: 0,
-      topArtists: {},
-      topGenres: {},
-      monthlyStats: {},
-      yearlyStats: {},
-    },
-    socialActivity: [],
-    exportHistory: [],
-    feedbackGiven: [],
-    reportedIssues: [],
-  });
+  const [history, setHistory] = useState<MixMindHistory>(defaultHistory);
   const [currentSet, setCurrentSet] = useState<GeneratedSet | null>(null);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
@@ -895,7 +897,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     // Achievement system
     checkAchievements,
   }), [
-    // Core dependencies
     settings,
     history,
     currentSet,
@@ -908,28 +909,16 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     removeFavoritePrompt,
     clearHistory,
     generateSet,
-    
-    // Voice dependencies
     isRecording,
     startVoiceInput,
     stopVoiceInput,
-    
-    // Analysis dependencies
     analyzeCurrentSet,
-    
-    // Collaboration dependencies
     startCollaboration,
     joinCollaboration,
     sendChatMessage,
-    
-    // Social dependencies
     shareSet,
     likeSet,
-    
-    // Export dependencies
     exportSet,
-    
-    // Achievement dependencies
     checkAchievements,
   ]);
 });
