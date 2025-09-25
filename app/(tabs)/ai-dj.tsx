@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -46,25 +46,13 @@ const presetMoods = [
 
 
 export default function MixMindScreen() {
-  // Debug hook order - always call hooks in the same order
-  console.log('[MixMindScreen] Component render start');
-  
+  // Always call hooks in the same order - no conditional hooks
   const insets = useSafeAreaInsets();
-  console.log('[MixMindScreen] useSafeAreaInsets called');
-  
   const [prompt, setPrompt] = useState<string>("");
-  console.log('[MixMindScreen] useState prompt called');
-  
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  console.log('[MixMindScreen] useState selectedMood called');
-  
   const { playTrack } = usePlayer();
-  console.log('[MixMindScreen] usePlayer called');
   
-  const mixMindContext = useMixMind();
-  console.log('[MixMindScreen] useMixMind called');
-  
-  // Destructure after hook call to ensure stable hook order
+  // Get MixMind context
   const { 
     currentSet, 
     isGenerating, 
@@ -75,9 +63,7 @@ export default function MixMindScreen() {
     isRecording,
     startVoiceInput,
     stopVoiceInput,
-  } = mixMindContext;
-  
-  console.log('[MixMindScreen] All hooks called successfully');
+  } = useMixMind();
 
   const buildPrompt = useCallback(() => {
     const moodText = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? ""} mood` : "";
@@ -85,10 +71,7 @@ export default function MixMindScreen() {
     return base.trim();
   }, [prompt, selectedMood]);
   
-  // Debug effect to track renders
-  useEffect(() => {
-    console.log('[MixMindScreen] Component mounted/updated');
-  });
+
 
   const handleGenerate = useCallback(async () => {
     try {

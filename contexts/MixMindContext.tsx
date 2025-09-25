@@ -735,7 +735,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     } catch (error) {
       console.error('[MixMind] Error clearing history:', error);
     }
-  }, [mockStorage, history.preferences, history.statistics]);
+  }, [history.preferences, history.statistics, mockStorage]);
 
   const generateSet = useCallback(async (prompt: string, customSettings?: Partial<MixMindSettings>): Promise<GeneratedSet | null> => {
     // Input validation
@@ -794,8 +794,8 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     }
   }, [settings, addRecentPrompt, addToHistory]);
 
-  // Return stable context value - avoid recreating on every render
-  const contextValue = useMemo(() => ({
+  // Return memoized context value to satisfy linter and prevent unnecessary re-renders
+  return useMemo(() => ({
     // Core features
     settings,
     history,
@@ -858,8 +858,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     exportSet,
     checkAchievements,
   ]);
-  
-  return contextValue;
 });
 
 function buildAIPrompt(userPrompt: string, settings: MixMindSettings): string {
