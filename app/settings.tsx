@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -496,34 +496,25 @@ export default function SettingsScreen() {
           style={styles.logoutButton}
           onPress={() => {
             console.log('[Settings] Sign out button pressed');
-            if (Platform.OS === 'web') {
-              signOut().then(() => {
-                console.log('[Settings] Web sign out completed, navigating to auth');
-                router.push('/auth');
-              }).catch((error) => {
-                console.error('[Settings] Web sign out error:', error);
-              });
-            } else {
-              Alert.alert(
-                'Sign Out',
-                'Are you sure you want to sign out?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Sign Out', style: 'destructive', onPress: async () => {
-                    console.log('[Settings] Mobile sign out confirmed');
-                    try {
-                      await signOut();
-                      console.log('[Settings] Mobile sign out completed, navigating to auth');
-                      // Use replace instead of push to prevent going back to settings
-                      router.replace('/auth');
-                    } catch (error) {
-                      console.error('[Settings] Mobile sign out error:', error);
-                      Alert.alert('Error', 'Failed to sign out. Please try again.');
-                    }
-                  }}
-                ]
-              );
-            }
+            Alert.alert(
+              'Sign Out',
+              'Are you sure you want to sign out?',
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Sign Out', style: 'destructive', onPress: async () => {
+                  console.log('[Settings] Sign out confirmed');
+                  try {
+                    await signOut();
+                    console.log('[Settings] Sign out completed, navigating to auth');
+                    // Use replace instead of push to prevent going back to settings
+                    router.replace('/auth');
+                  } catch (error) {
+                    console.error('[Settings] Sign out error:', error);
+                    Alert.alert('Error', 'Failed to sign out. Please try again.');
+                  }
+                }}
+              ]
+            );
           }}
           activeOpacity={0.8}
           testID="logout-button"

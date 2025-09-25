@@ -116,8 +116,11 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   };
 
   const updateProfile = useCallback(async (patch: Partial<UserProfile>) => {
+    console.log('[UserContext] updateProfile called with patch:', patch);
     setProfile(prev => {
       const next = { ...(prev ?? { displayName: "", email: "", avatarUrl: null }), ...patch };
+      console.log('[UserContext] updateProfile - prev profile:', prev);
+      console.log('[UserContext] updateProfile - next profile:', next);
       void persist(PROFILE_KEY, next);
       return next;
     });

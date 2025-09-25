@@ -112,6 +112,7 @@ export default function AccountScreen() {
     }
     setSaving(true);
     try {
+      console.log('[Account] Saving profile with avatarUrl:', avatarUrl);
       await updateProfile({ displayName: n, email: e, avatarUrl: avatarUrl || null });
       if (newPw) {
         await changePassword(currentPw, newPw);
@@ -128,14 +129,18 @@ export default function AccountScreen() {
     }
   }, [name, email, avatarUrl, updateProfile, nav, currentPw, newPw, confirmPw, changePassword]);
 
-  // Update local state when profile changes
+  // Update local state when profile changes - but don't override if user is actively editing
   useEffect(() => {
-    if (profile) {
+    if (profile && !saving) {
       setName(profile.displayName);
       setEmail(profile.email);
-      setAvatarUrl(profile.avatarUrl ?? "");
+      // Only update avatar URL if it's different from what we have locally
+      // This prevents overriding user's changes before they save
+      if (profile.avatarUrl !== avatarUrl) {
+        setAvatarUrl(profile.avatarUrl ?? "");
+      }
     }
-  }, [profile]);
+  }, [profile, saving, avatarUrl]);
 
   // Redirect to auth if user is not signed in
   useEffect(() => {
