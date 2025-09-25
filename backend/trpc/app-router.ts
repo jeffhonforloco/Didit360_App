@@ -30,6 +30,13 @@ import {
   findSimilarProcedure 
 } from "./routes/enrichment/audio-features/route";
 
+// DJ Instinct Live
+import { liveStartProcedure } from "./routes/dj-instinct/live/start/route";
+import { liveParamsProcedure } from "./routes/dj-instinct/live/params/route";
+import { livePairingStartProcedure } from "./routes/dj-instinct/live/pair/start/route";
+import { liveSafetyProcedure } from "./routes/dj-instinct/live/safety/route";
+import { liveEmergencyFadeProcedure } from "./routes/dj-instinct/live/emergency/fade/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute,
@@ -66,6 +73,19 @@ export const appRouter = createTRPCRouter({
   admin: createTRPCRouter({
     db: createTRPCRouter({
       ddl: getDDLProcedure,
+    }),
+  }),
+  djInstinct: createTRPCRouter({
+    live: createTRPCRouter({
+      start: liveStartProcedure,
+      params: liveParamsProcedure,
+      pair: createTRPCRouter({
+        start: livePairingStartProcedure,
+      }),
+      safety: liveSafetyProcedure,
+      emergency: createTRPCRouter({
+        fade: liveEmergencyFadeProcedure,
+      }),
     }),
   }),
 });

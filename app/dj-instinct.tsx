@@ -368,6 +368,23 @@ export default function DJInstinctScreen() {
               </View>
             )}
 
+            {/* Live DJ Entry */}
+            <TouchableOpacity 
+              style={styles.liveDJEntry}
+              onPress={() => router.push('/dj-instinct/live')}
+            >
+              <View style={styles.liveDJIcon}>
+                <Headphones size={24} color="#FF6B35" />
+              </View>
+              <View style={styles.liveDJContent}>
+                <Text style={styles.liveDJTitle}>Live DJ</Text>
+                <Text style={styles.liveDJSubtitle}>Professional event mixing</Text>
+              </View>
+              <View style={styles.liveDJBadge}>
+                <Text style={styles.liveDJBadgeText}>PRO</Text>
+              </View>
+            </TouchableOpacity>
+
             {/* Action Bar */}
             <View style={styles.actionBar}>
               <TouchableOpacity
@@ -933,5 +950,48 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     paddingVertical: 40,
+  },
+  liveDJEntry: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1A1A1A",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 53, 0.3)",
+  },
+  liveDJIcon: {
+    width: 48,
+    height: 48,
+    backgroundColor: "rgba(255, 107, 53, 0.1)",
+    borderRadius: 24,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  liveDJContent: {
+    flex: 1,
+  },
+  liveDJTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#FFF",
+    marginBottom: 2,
+  },
+  liveDJSubtitle: {
+    fontSize: 12,
+    color: "#999",
+  },
+  liveDJBadge: {
+    backgroundColor: "#FF6B35",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  liveDJBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#FFF",
   },
 });

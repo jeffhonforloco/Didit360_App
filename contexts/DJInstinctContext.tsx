@@ -2,9 +2,43 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import createContextHook from "@nkzw/create-context-hook";
 import type { Track } from "@/types";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { trpc } from "@/lib/trpc";
 
 export type DJInstinctMode = "automix" | "livePrompt" | "party";
 export type TransitionStyle = "fade" | "echo" | "cut" | "drop";
+export type ExplicitFilter = "off" | "moderate" | "strict";
+export type Mood = "chill" | "groove" | "hype" | "ecstatic";
+export type CastStatus = "idle" | "pairing" | "casting" | "error";
+
+interface LivePromptConfig {
+  vibe: string;
+  genres: string[];
+  decades?: string[];
+  regions?: string[];
+  mood: Mood;
+  energy: number;
+  tempoRangeBPM: [number, number];
+  transitionStyle: TransitionStyle;
+  keyLock: boolean;
+  doNotPlay: string[];
+  explicitFilter: ExplicitFilter;
+  durationMinutes: number;
+}
+
+interface LiveDJState {
+  sessionId: string | null;
+  promptConfig: LivePromptConfig;
+  params: {
+    energy: number;
+    transitionStyle: TransitionStyle;
+  };
+  safeMode: boolean;
+  castStatus: CastStatus;
+  nowPlaying: Track | null;
+  nextUp: Track[];
+  mixHistory: MixHistoryItem[];
+  loading: boolean;
+}
 
 interface MixHistoryItem {
   id: string;
@@ -36,6 +70,9 @@ interface DJInstinctState {
   mixHistory: MixHistoryItem[];
   loading: boolean;
   
+  // Live DJ State
+  liveDJ: LiveDJState;
+  
   // Actions
   setActive: (active: boolean) => void;
   setMode: (mode: DJInstinctMode) => void;
@@ -47,9 +84,21 @@ interface DJInstinctState {
   startPartySession: () => Promise<void>;
   saveMix: () => Promise<void>;
   updateParams: () => Promise<void>;
+  
+  // Live DJ Actions
+  setLiveDJPromptConfig: (config: Partial<LivePromptConfig>) => void;
+  setLiveDJParams: (params: Partial<LiveDJState['params']>) => void;
+  setLiveDJSafeMode: (safeMode: boolean) => void;
+  startLiveDJ: () => Promise<void>;
+  updateLiveDJParams: () => Promise<void>;
+  startPairing: () => Promise<void>;
+  emergencyFade: () => Promise<void>;
+  saveLiveMix: () => Promise<void>;
+  updateSafetySettings: () => Promise<void>;
 }
 
 export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctState>(() => {
+  const trpcClient = trpc.useUtils().client;
   const { currentTrack, queue } = usePlayer();
   const [active, setActive] = useState<boolean>(false);
   const [mode, setMode] = useState<DJInstinctMode>("automix");
@@ -64,6 +113,35 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
   });
   const [mixHistory, setMixHistory] = useState<MixHistoryItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  
+  // Live DJ State
+  const [liveDJ, setLiveDJ] = useState<LiveDJState>({
+    sessionId: null,
+    promptConfig: {
+      vibe: "",
+      genres: [],
+      decades: [],
+      regions: [],
+      mood: "groove",
+      energy: 65,
+      tempoRangeBPM: [96, 128],
+      transitionStyle: "fade",
+      keyLock: true,
+      doNotPlay: [],
+      explicitFilter: "moderate",
+      durationMinutes: 120
+    },
+    params: {
+      energy: 65,
+      transitionStyle: "fade"
+    },
+    safeMode: true,
+    castStatus: "idle",
+    nowPlaying: null,
+    nextUp: [],
+    mixHistory: [],
+    loading: false
+  });
 
   useEffect(() => {
     if (currentTrack && active) {
@@ -211,6 +289,131 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
       console.error('[DJInstinct] Save mix error:', error);
     }
   }, [mixHistory, saveMixHistory]);
+  
+  // Live DJ Actions
+  const setLiveDJPromptConfig = useCallback((config: Partial<LivePromptConfig>) => {
+    setLiveDJ(prev => ({
+      ...prev,
+      promptConfig: { ...prev.promptConfig, ...config }
+    }));
+  }, []);
+  
+  const setLiveDJParams = useCallback((params: Partial<LiveDJState['params']>) => {
+    setLiveDJ(prev => ({
+      ...prev,
+      params: { ...prev.params, ...params }
+    }));
+  }, []);
+  
+  const setLiveDJSafeMode = useCallback((safeMode: boolean) => {
+    setLiveDJ(prev => ({ ...prev, safeMode }));
+  }, []);
+  
+  const startLiveDJ = useCallback(async () => {
+    console.log('[DJInstinct] Starting Live DJ with config:', liveDJ.promptConfig);
+    setLiveDJ(prev => ({ ...prev, loading: true }));
+    
+    try {
+      const result = await trpcClient.djInstinct.live.start.mutate(liveDJ.promptConfig);
+      
+      if (result.success) {
+        // Generate tracks based on prompt config
+        const filteredQueue = queue.filter(track => {
+          if (liveDJ.safeMode && liveDJ.promptConfig.explicitFilter !== 'off') {
+            // Filter explicit content based on settings
+            return true; // In real app, would check track.explicit
+          }
+          return true;
+        });
+        
+        const nextUp = filteredQueue.slice(0, 8);
+        
+        setLiveDJ(prev => ({
+          ...prev,
+          sessionId: result.sessionId,
+          nowPlaying: currentTrack,
+          nextUp,
+          castStatus: "casting",
+          loading: false
+        }));
+        
+        console.log('[DJInstinct] Live DJ started successfully with session:', result.sessionId);
+      } else {
+        throw new Error('Failed to start Live DJ session');
+      }
+    } catch (error) {
+      console.error('[DJInstinct] Live DJ start error:', error);
+      setLiveDJ(prev => ({ ...prev, loading: false, castStatus: "error" }));
+    }
+  }, [liveDJ.promptConfig, liveDJ.safeMode, queue, currentTrack]);
+  
+  const updateLiveDJParams = useCallback(async () => {
+    console.log('[DJInstinct] Updating Live DJ params:', liveDJ.params);
+    try {
+      await trpcClient.djInstinct.live.params.mutate(liveDJ.params);
+      console.log('[DJInstinct] Live DJ params updated successfully');
+    } catch (error) {
+      console.error('[DJInstinct] Live DJ params update error:', error);
+    }
+  }, [liveDJ.params]);
+  
+  const startPairing = useCallback(async () => {
+    console.log('[DJInstinct] Starting device pairing');
+    setLiveDJ(prev => ({ ...prev, castStatus: "pairing" }));
+    
+    try {
+      const result = await trpcClient.djInstinct.live.pair.start.mutate();
+      
+      if (result.success) {
+        setLiveDJ(prev => ({
+          ...prev,
+          sessionId: result.sessionId,
+          castStatus: "casting"
+        }));
+        
+        console.log('[DJInstinct] Pairing started with session:', result.sessionId);
+      } else {
+        throw new Error('Failed to start pairing');
+      }
+    } catch (error) {
+      console.error('[DJInstinct] Pairing error:', error);
+      setLiveDJ(prev => ({ ...prev, castStatus: "error" }));
+    }
+  }, [trpcClient.djInstinct.live.pair.start]);
+  
+  const emergencyFade = useCallback(async () => {
+    console.log('[DJInstinct] Emergency fade triggered');
+    try {
+      await trpcClient.djInstinct.live.emergency.fade.mutate();
+      console.log('[DJInstinct] Emergency fade executed successfully');
+    } catch (error) {
+      console.error('[DJInstinct] Emergency fade error:', error);
+    }
+  }, [trpcClient.djInstinct.live.emergency.fade]);
+  
+  const saveLiveMix = useCallback(async () => {
+    console.log('[DJInstinct] Saving live mix with', liveDJ.mixHistory.length, 'tracks');
+    try {
+      await saveMixHistory(liveDJ.mixHistory);
+      console.log('[DJInstinct] Live mix saved successfully');
+    } catch (error) {
+      console.error('[DJInstinct] Save live mix error:', error);
+    }
+  }, [liveDJ.mixHistory, saveMixHistory]);
+  
+  // Add safety settings update function
+  const updateSafetySettings = useCallback(async () => {
+    try {
+      await trpcClient.djInstinct.live.safety.mutate({
+        doNotPlay: liveDJ.promptConfig.doNotPlay,
+        explicitFilter: liveDJ.promptConfig.explicitFilter,
+        safeMode: liveDJ.safeMode
+      });
+      console.log('[DJInstinct] Safety settings updated successfully');
+    } catch (error) {
+      console.error('[DJInstinct] Safety settings update error:', error);
+    }
+  }, [liveDJ.promptConfig.doNotPlay, liveDJ.promptConfig.explicitFilter, liveDJ.safeMode, trpcClient.djInstinct.live.safety]);
 
   useEffect(() => {
     loadMixHistory();
@@ -227,6 +430,7 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
     party,
     mixHistory,
     loading,
+    liveDJ,
     setActive,
     setMode,
     setEnergy,
@@ -236,6 +440,15 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
     startLivePrompt,
     startPartySession,
     saveMix,
-    updateParams
+    updateParams,
+    setLiveDJPromptConfig,
+    setLiveDJParams,
+    setLiveDJSafeMode,
+    startLiveDJ,
+    updateLiveDJParams,
+    startPairing,
+    emergencyFade,
+    saveLiveMix,
+    updateSafetySettings
   };
 });
