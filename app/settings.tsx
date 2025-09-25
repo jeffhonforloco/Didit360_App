@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
@@ -7,10 +7,10 @@ import { router } from "expo-router";
 
 
 export default function SettingsScreen() {
-  const { profile, settings, updateSetting, signOut } = useUser();
+  const { profile, settings, updateSetting, signOut, isLoading } = useUser();
   const insets = useSafeAreaInsets();
   
-  // Settings state
+  // Settings state - all hooks must be at the top
   const [dataSaver, setDataSaver] = useState(false);
   const [offlineMode, setOfflineMode] = useState(false);
   const crossfade = useMemo(() => (settings?.crossfadeSeconds ?? 0) > 0, [settings?.crossfadeSeconds]);
@@ -24,6 +24,27 @@ export default function SettingsScreen() {
   const [showLocalFilesOnLock, setShowLocalFilesOnLock] = useState(false);
   const [spotifyConnectInBackground, setSpotifyConnectInBackground] = useState(true);
   const [recentlyPlayedArtists, setRecentlyPlayedArtists] = useState(true);
+  
+  // Redirect to auth if user is not signed in
+  useEffect(() => {
+    if (!isLoading && !profile) {
+      console.log('[Settings] No profile found, redirecting to auth');
+      router.replace('/auth');
+    }
+  }, [profile, isLoading]);
+  
+  // Show loading or return early if no profile
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top + 20 }]}>
+        <Text style={[styles.title, { textAlign: 'center', marginTop: 50 }]}>Loading...</Text>
+      </View>
+    );
+  }
+  
+  if (!profile) {
+    return null; // Will redirect to auth
+  }
 
   return (
     <View style={styles.container} testID="settings-screen">
@@ -469,28 +490,34 @@ export default function SettingsScreen() {
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
-        <Text style={styles.sectionTitle}>Log out</Text>
+        <Text style={styles.sectionTitle}>Sign Out</Text>
         
         <TouchableOpacity 
           style={styles.logoutButton}
           onPress={() => {
+            console.log('[Settings] Sign out button pressed');
             if (Platform.OS === 'web') {
               signOut().then(() => {
-                console.log('Logged out');
+                console.log('[Settings] Web sign out completed, navigating to auth');
                 router.push('/auth');
-              }).catch(console.error);
+              }).catch((error) => {
+                console.error('[Settings] Web sign out error:', error);
+              });
             } else {
               Alert.alert(
-                'Log Out',
-                'Are you sure you want to log out?',
+                'Sign Out',
+                'Are you sure you want to sign out?',
                 [
                   { text: 'Cancel', style: 'cancel' },
-                  { text: 'Log Out', style: 'destructive', onPress: async () => {
+                  { text: 'Sign Out', style: 'destructive', onPress: async () => {
+                    console.log('[Settings] Mobile sign out confirmed');
                     try {
                       await signOut();
-                      router.push('/auth');
+                      console.log('[Settings] Mobile sign out completed, navigating to auth');
+                      // Use replace instead of push to prevent going back to settings
+                      router.replace('/auth');
                     } catch (error) {
-                      console.error('Sign out error:', error);
+                      console.error('[Settings] Mobile sign out error:', error);
                       Alert.alert('Error', 'Failed to sign out. Please try again.');
                     }
                   }}
@@ -501,7 +528,7 @@ export default function SettingsScreen() {
           activeOpacity={0.8}
           testID="logout-button"
         >
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Text style={styles.logoutText}>Sign Out</Text>
         </TouchableOpacity>
 
 
