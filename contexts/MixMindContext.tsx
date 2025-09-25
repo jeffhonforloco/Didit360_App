@@ -341,21 +341,6 @@ const defaultSettings: MixMindSettings = {
 };
 
 export const [MixMindProvider, useMixMind] = createContextHook(() => {
-  // Mock storage functions for now - will be replaced with proper storage provider
-  const mockStorage = useMemo(() => ({
-    getItem: async (key: string) => {
-      // Mock implementation - replace with actual storage
-      if (!key.trim() || key.length > 100) return null;
-      return null;
-    },
-    setItem: async (key: string, value: string) => {
-      // Mock implementation - replace with actual storage
-      if (!key.trim() || key.length > 100) return;
-      if (!value.trim() || value.length > 10000) return;
-      console.log(`[MixMind] Would store ${key}:`, value.slice(0, 100));
-    },
-  }), []);
-
   const [settings, setSettings] = useState<MixMindSettings>(defaultSettings);
   const [history, setHistory] = useState<MixMindHistory>({
     sets: [],
@@ -419,6 +404,21 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
+
+  // Mock storage functions for now - will be replaced with proper storage provider
+  const mockStorage = useMemo(() => ({
+    getItem: async (key: string) => {
+      // Mock implementation - replace with actual storage
+      if (!key.trim() || key.length > 100) return null;
+      return null;
+    },
+    setItem: async (key: string, value: string) => {
+      // Mock implementation - replace with actual storage
+      if (!key.trim() || key.length > 100) return;
+      if (!value.trim() || value.length > 10000) return;
+      console.log(`[MixMind] Would store ${key}:`, value.slice(0, 100));
+    },
+  }), []);
 
   // Voice Input Feature
   const startVoiceInput = useCallback(async (): Promise<boolean> => {
