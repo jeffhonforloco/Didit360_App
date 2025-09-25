@@ -494,10 +494,15 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     try {
       setIsRecording(false);
       
-      if (Platform.OS === 'web') {
-        // Web implementation
+      // Handle web recording
+      const handleWebRecording = async (): Promise<string | null> => {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
           return new Promise((resolve) => {
+            if (!mediaRecorder) {
+              resolve(null);
+              return;
+            }
+            
             mediaRecorder.onstop = async () => {
               try {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
@@ -519,7 +524,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
                 }
                 
                 // Clean up
-                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                if (mediaRecorder && mediaRecorder.stream) {
+                  mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                }
                 setMediaRecorder(null);
                 setAudioChunks([]);
               } catch (error) {
@@ -531,8 +538,11 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
             mediaRecorder.stop();
           });
         }
-      } else {
-        // Mobile implementation
+        return null;
+      };
+      
+      // Handle mobile recording
+      const handleMobileRecording = async (): Promise<string | null> => {
         if (recording) {
           try {
             await recording.stopAndUnloadAsync();
@@ -578,9 +588,15 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
             return null;
           }
         }
-      }
+        return null;
+      };
       
-      return null;
+      // Execute the appropriate handler based on platform
+      if (Platform.OS === 'web') {
+        return await handleWebRecording();
+      } else {
+        return await handleMobileRecording();
+      }
     } catch (error) {
       console.error('[MixMind] Voice processing error:', error);
       setIsRecording(false);
