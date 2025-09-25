@@ -282,7 +282,7 @@ export default function PlayerScreen() {
               style={styles.headerOptionsButton}
               activeOpacity={0.7}
             >
-              <MoreVertical size={24} color="#FFF" />
+              <MoreVertical size={24} color="#FF0080" />
             </TouchableOpacity>
           </View>
 
@@ -518,7 +518,7 @@ export default function PlayerScreen() {
                 style={styles.headerOptionsButton}
                 activeOpacity={0.7}
               >
-                <MoreVertical size={24} color="#FFF" />
+                <MoreVertical size={24} color="#FF0080" />
               </TouchableOpacity>
             </View>
 
