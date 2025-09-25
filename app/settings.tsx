@@ -28,6 +28,7 @@ export default function SettingsScreen() {
   
   // Redirect to auth if user is not signed in
   useEffect(() => {
+    console.log('[Settings] useEffect - isLoading:', isLoading, 'profile:', !!profile);
     if (!isLoading && !profile) {
       console.log('[Settings] No profile found, redirecting to auth');
       router.replace('/auth');
