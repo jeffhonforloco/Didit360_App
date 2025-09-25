@@ -132,15 +132,21 @@ export default function AccountScreen() {
   // Update local state when profile changes - but don't override if user is actively editing
   useEffect(() => {
     if (profile && !saving) {
-      setName(profile.displayName);
-      setEmail(profile.email);
-      // Only update avatar URL if it's different from what we have locally
-      // This prevents overriding user's changes before they save
-      if (profile.avatarUrl !== avatarUrl) {
-        setAvatarUrl(profile.avatarUrl ?? "");
+      // Only update if the local state is empty or significantly different
+      // This prevents overriding user's unsaved changes
+      if (!name || name !== profile.displayName) {
+        setName(profile.displayName);
+      }
+      if (!email || email !== profile.email) {
+        setEmail(profile.email);
+      }
+      // Only update avatar URL if local state is empty or if it's a completely different URL
+      // Don't update if user has made local changes (like picking a new image)
+      if (!avatarUrl && profile.avatarUrl) {
+        setAvatarUrl(profile.avatarUrl);
       }
     }
-  }, [profile, saving, avatarUrl]);
+  }, [profile, saving]); // Removed avatarUrl from dependencies to prevent loops
 
   // Redirect to auth if user is not signed in
   useEffect(() => {

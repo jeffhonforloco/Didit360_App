@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Switch, Alert, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -510,7 +510,9 @@ export default function SettingsScreen() {
                     router.replace('/auth');
                   } catch (error) {
                     console.error('[Settings] Sign out error:', error);
-                    Alert.alert('Error', 'Failed to sign out. Please try again.');
+                    if (Platform.OS !== 'web') {
+                      Alert.alert('Error', 'Failed to sign out. Please try again.');
+                    }
                   }
                 }}
               ]

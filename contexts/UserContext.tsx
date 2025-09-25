@@ -161,8 +161,9 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] Removing profile from AsyncStorage');
       await Promise.all([
         AsyncStorage.removeItem(PROFILE_KEY),
+        AsyncStorage.removeItem(PASSWORD_KEY), // Also clear password
       ]);
-      console.log('[UserContext] Profile removed from AsyncStorage, setting profile to null');
+      console.log('[UserContext] Profile and password removed from AsyncStorage, setting profile to null');
       setProfile(null);
       console.log('[UserContext] signOut completed - profile set to null');
       // Note: Library data will be cleared automatically when profile changes

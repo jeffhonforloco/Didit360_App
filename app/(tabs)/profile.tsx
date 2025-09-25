@@ -58,9 +58,12 @@ export default function ProfileScreen() {
           console.log('[ProfileScreen] sign out confirmed');
           try { 
             await signOut(); 
-            console.log('[ProfileScreen] signOut completed');
+            console.log('[ProfileScreen] signOut completed, navigating to auth');
+            // Use replace to prevent going back to profile after sign out
+            router.replace('/auth' as Href);
           } catch (e) { 
             console.error('[ProfileScreen] signOut error:', e); 
+            Alert.alert('Error', 'Failed to sign out. Please try again.');
           } 
         } },
       ]);
