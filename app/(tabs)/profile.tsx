@@ -7,6 +7,9 @@ import { useUser } from "@/contexts/UserContext";
 
 export default function ProfileScreen() {
   const { profile, signOut } = useUser();
+  
+  console.log('[ProfileScreen] profile:', profile);
+  console.log('[ProfileScreen] signOut function:', typeof signOut);
 
   const items = useMemo(
     () => [
@@ -24,10 +27,20 @@ export default function ProfileScreen() {
   );
 
   const onPress = (key: string) => {
+    console.log('[ProfileScreen] onPress called with key:', key);
     if (key === "logout") {
+      console.log('[ProfileScreen] logout pressed, showing alert');
       Alert.alert("Sign out", "Are you sure?", [
         { text: "Cancel", style: "cancel" },
-        { text: "Sign out", style: "destructive", onPress: async () => { try { await signOut(); } catch (e) { console.error(e); } } },
+        { text: "Sign out", style: "destructive", onPress: async () => { 
+          console.log('[ProfileScreen] sign out confirmed');
+          try { 
+            await signOut(); 
+            console.log('[ProfileScreen] signOut completed');
+          } catch (e) { 
+            console.error('[ProfileScreen] signOut error:', e); 
+          } 
+        } },
       ]);
       return;
     }
@@ -62,6 +75,7 @@ export default function ProfileScreen() {
 
       <View style={styles.card} testID="profile-card">
         {items.map((item, idx) => {
+          console.log('[ProfileScreen] rendering item:', item.key, item.title, 'danger:', item.danger);
           const IconComp = item.icon;
           const isLast = idx === items.length - 1;
           return (

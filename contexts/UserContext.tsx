@@ -160,11 +160,13 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   }, []);
 
   const signOut = useCallback(async () => {
+    console.log('[UserContext] signOut called');
     try {
       await Promise.all([
         AsyncStorage.removeItem(PROFILE_KEY),
       ]);
       setProfile(null);
+      console.log('[UserContext] signOut completed - profile set to null');
       // Note: Library data will be cleared automatically when profile changes
     } catch (err) {
       console.error("[UserContext] signOut error", err);
