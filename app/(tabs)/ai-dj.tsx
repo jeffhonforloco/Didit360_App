@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -27,13 +27,12 @@ import {
   Download,
   StopCircle,
   Volume2,
-  Headphones
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useMixMind } from "@/contexts/MixMindContext";
-import { aiDjPrompts, type AIDJPromptCategoryKey } from "@/data/aiDjPrompts";
+
 
 const presetMoods = [
   { id: "energetic", label: "Energetic", emoji: "⚡", gradient: ["#FF6B6B", "#FF8E53"] },
@@ -44,12 +43,7 @@ const presetMoods = [
   { id: "workout", label: "Workout", emoji: "💪", gradient: ["#FF0080", "#7928CA"] },
 ] as const;
 
-const quickActions = [
-  { id: "voice", icon: Mic, label: "Voice Prompt", color: "#FF6B6B" },
-  { id: "shuffle", icon: Shuffle, label: "Surprise Me", color: "#4ECDC4" },
-  { id: "history", icon: History, label: "History", color: "#667eea" },
-  { id: "settings", icon: Settings, label: "Settings", color: "#f093fb" },
-];
+
 
 export default function MixMindScreen() {
   const insets = useSafeAreaInsets();
@@ -60,7 +54,6 @@ export default function MixMindScreen() {
     currentSet, 
     isGenerating, 
     history, 
-    recentPrompts, 
     generateSet, 
     addFavoritePrompt,
     settings,
@@ -68,8 +61,6 @@ export default function MixMindScreen() {
     startVoiceInput,
     stopVoiceInput,
   } = useMixMind();
-
-  const suggestionCategories = useMemo(() => Object.keys(aiDjPrompts) as AIDJPromptCategoryKey[], []);
 
   const buildPrompt = useCallback(() => {
     const moodText = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? ""} mood` : "";
@@ -139,9 +130,7 @@ export default function MixMindScreen() {
     }
   }, [currentSet]);
 
-  const appendPrompt = useCallback((text: string) => {
-    setPrompt((p) => (p ? `${p}\n${text}` : text));
-  }, []);
+
 
   const formatDuration = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -172,91 +161,68 @@ export default function MixMindScreen() {
           </View>
         </View>
 
-        {/* Hero Card */}
+        {/* Simplified Hero Card */}
         <LinearGradient
-          colors={["#FF0080", "#8B5CF6", "#3B82F6"]}
+          colors={["#FF0080", "#8B5CF6"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.heroCard}
         >
-          <Sparkles size={56} color="#FFF" />
-          <Text style={styles.heroTitle}>Intelligent Music Curation</Text>
+          <Sparkles size={48} color="#FFF" />
+          <Text style={styles.heroTitle}>AI Music Curator</Text>
           <Text style={styles.heroDescription}>
-            Describe your vibe, and I&apos;ll craft the perfect mix with seamless transitions, 
-            harmonic mixing, and tracks that flow together beautifully.
+            Tell me what you want to hear, and I&apos;ll create the perfect mix for you.
           </Text>
-          <View style={styles.heroFeatures}>
-            <View style={styles.featureItem}>
-              <Music size={16} color="#FFF" />
-              <Text style={styles.featureText}>Smart Transitions</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <BarChart3 size={16} color="#FFF" />
-              <Text style={styles.featureText}>BPM Matching</Text>
-            </View>
-            <View style={styles.featureItem}>
-              <Headphones size={16} color="#FFF" />
-              <Text style={styles.featureText}>Harmonic Mixing</Text>
-            </View>
-          </View>
         </LinearGradient>
+
+        {/* Voice Input Button */}
+        <View style={styles.voiceSection}>
+          <TouchableOpacity
+            style={[
+              styles.voiceButton,
+              isRecording && styles.voiceButtonActive
+            ]}
+            onPress={() => handleQuickAction('voice')}
+            testID="mixmind-voice-button"
+          >
+            {isRecording ? (
+              <>
+                <StopCircle size={32} color="#FFF" />
+                <Text style={styles.voiceButtonText}>Stop Recording</Text>
+                <Text style={styles.voiceButtonSubtext}>Tap to finish</Text>
+              </>
+            ) : (
+              <>
+                <Mic size={32} color="#FFF" />
+                <Text style={styles.voiceButtonText}>Voice Prompt</Text>
+                <Text style={styles.voiceButtonSubtext}>Tap and speak</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
 
         {/* Quick Actions */}
         <View style={styles.quickActionsSection}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.quickActionsGrid}>
-            {quickActions.map((action) => {
-              const isVoiceActive = action.id === 'voice' && isRecording;
-              return (
-                <TouchableOpacity
-                  key={action.id}
-                  style={[
-                    styles.quickActionCard, 
-                    { borderColor: action.color },
-                    isVoiceActive && styles.quickActionCardActive
-                  ]}
-                  onPress={() => handleQuickAction(action.id)}
-                  testID={`mixmind-quick-${action.id}`}
-                >
-                  {action.id === 'voice' && isRecording ? (
-                    <StopCircle size={24} color={action.color} />
-                  ) : (
-                    <action.icon size={24} color={action.color} />
-                  )}
-                  <Text style={styles.quickActionLabel}>
-                    {action.id === 'voice' && isRecording ? 'Stop Recording' : action.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('shuffle')}
+              testID="mixmind-quick-shuffle"
+            >
+              <Shuffle size={24} color="#4ECDC4" />
+              <Text style={styles.quickActionLabel}>Surprise Me</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.quickActionCard}
+              onPress={() => handleQuickAction('history')}
+              testID="mixmind-quick-history"
+            >
+              <History size={24} color="#667eea" />
+              <Text style={styles.quickActionLabel}>History</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
-        {/* Recent Prompts */}
-        {recentPrompts.length > 0 && (
-          <View style={styles.recentSection}>
-            <Text style={styles.sectionTitle}>Recent Prompts</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {recentPrompts.slice(0, 5).map((recentPrompt, index) => (
-                <TouchableOpacity
-                  key={`recent-${index}`}
-                  style={styles.recentPromptChip}
-                  onPress={() => {
-                    const sanitized = recentPrompt.trim();
-                    if (sanitized && sanitized.length <= 500) {
-                      setPrompt(sanitized);
-                    }
-                  }}
-                  testID={`mixmind-recent-${recentPrompt.slice(0, 10)}`}
-                >
-                  <Text style={styles.recentPromptText} numberOfLines={2}>
-                    {recentPrompt}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        )}
 
         {/* Main Prompt Input */}
         <View style={styles.promptSection}>
@@ -309,37 +275,33 @@ export default function MixMindScreen() {
           </View>
         </View>
 
-        {/* AI Suggestions */}
+        {/* Quick Suggestions */}
         <View style={styles.suggestionsSection}>
-          <Text style={styles.sectionTitle}>AI Suggestions</Text>
-          {suggestionCategories.slice(0, 3).map((cat) => {
-            const items = aiDjPrompts[cat] ?? [];
-            if (!items || items.length === 0) return null;
-            const title = cat
-              .replace(/_/g, " ")
-              .replace(/\b\w/g, (m) => m.toUpperCase());
-            return (
-              <View key={cat} style={styles.suggestionBlock}>
-                <Text style={styles.suggestionTitle}>{title}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionRow}>
-                  {items.slice(0, 5).map((suggestion, idx) => (
-                    <TouchableOpacity
-                      key={`${cat}-${idx}`}
-                      style={styles.suggestionChip}
-                      onPress={() => {
-                        const text = (suggestion ?? "").toString().trim();
-                        if (!text || text.length > 280) return;
-                        appendPrompt(text);
-                      }}
-                      testID={`mixmind-chip-${cat}-${idx}`}
-                    >
-                      <Text style={styles.suggestionText}>{suggestion}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            );
-          })}
+          <Text style={styles.sectionTitle}>Quick Ideas</Text>
+          <View style={styles.suggestionGrid}>
+            {[
+              "Energetic workout mix",
+              "Chill study vibes",
+              "Party dance hits",
+              "Romantic dinner music",
+              "Focus deep work",
+              "Road trip classics"
+            ].map((suggestion, index) => {
+              const sanitizedSuggestion = suggestion.trim();
+              if (!sanitizedSuggestion || sanitizedSuggestion.length > 100) return null;
+              
+              return (
+                <TouchableOpacity
+                  key={`suggestion-${sanitizedSuggestion.slice(0, 10)}`}
+                  style={styles.suggestionChip}
+                  onPress={() => setPrompt(sanitizedSuggestion)}
+                  testID={`mixmind-suggestion-${index}`}
+                >
+                  <Text style={styles.suggestionText}>{sanitizedSuggestion}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* Generate Button */}
@@ -481,14 +443,14 @@ export default function MixMindScreen() {
           </View>
         )}
 
-        {/* Advanced Settings Button */}
+        {/* Settings Button */}
         <TouchableOpacity 
-          style={styles.advancedButton} 
+          style={styles.settingsButton} 
           onPress={() => router.push("/ai-dj-setup")}
-          testID="mixmind-advanced"
+          testID="mixmind-settings"
         >
-          <Settings size={20} color="#999" />
-          <Text style={styles.advancedButtonText}>Advanced Settings</Text>
+          <Settings size={18} color="#666" />
+          <Text style={styles.settingsButtonText}>Settings</Text>
         </TouchableOpacity>
       </ScrollView>
     </View>
@@ -879,5 +841,50 @@ const styles = StyleSheet.create({
     backgroundColor: "#2A2A2A",
     justifyContent: "center",
     alignItems: "center",
+  },
+  voiceSection: {
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    alignItems: "center",
+  },
+  voiceButton: {
+    backgroundColor: "#FF0080",
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 32,
+    alignItems: "center",
+    minWidth: 200,
+  },
+  voiceButtonActive: {
+    backgroundColor: "#FF4081",
+  },
+  voiceButtonText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFF",
+    marginTop: 8,
+  },
+  voiceButtonSubtext: {
+    fontSize: 14,
+    color: "#FFF",
+    opacity: 0.8,
+    marginTop: 4,
+  },
+  suggestionGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  settingsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    marginBottom: 120,
+    gap: 8,
+  },
+  settingsButtonText: {
+    fontSize: 14,
+    color: "#666",
   },
 });

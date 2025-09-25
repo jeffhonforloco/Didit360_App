@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Platform } from 'react-native';
+import { Audio } from 'expo-av';
 import createContextHook from '@nkzw/create-context-hook';
 
 export interface MixMindSettings {
@@ -316,7 +318,7 @@ const defaultSettings: MixMindSettings = {
   preferredGenres: [],
   excludedGenres: [],
   favoriteArtists: [],
-  voicePrompts: false,
+  voicePrompts: true,
   smartTransitions: true,
   adaptiveEQ: false,
   // New advanced features defaults
@@ -414,6 +416,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
   // Voice Input Feature
   const startVoiceInput = useCallback(async (): Promise<boolean> => {
@@ -425,7 +430,57 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       
       setIsRecording(true);
       console.log('[MixMind] Starting voice recording...');
-      return true;
+      
+      if (Platform.OS === 'web') {
+        // Web implementation using MediaRecorder
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const recorder = new MediaRecorder(stream);
+          const chunks: Blob[] = [];
+          
+          recorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              chunks.push(event.data);
+            }
+          };
+          
+          recorder.start();
+          setMediaRecorder(recorder);
+          setAudioChunks(chunks);
+          
+          return true;
+        } catch (webError) {
+          console.error('[MixMind] Web audio error:', webError);
+          setIsRecording(false);
+          return false;
+        }
+      } else {
+        // Mobile implementation using expo-av
+        try {
+          const { status } = await Audio.requestPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('[MixMind] Audio permission denied');
+            setIsRecording(false);
+            return false;
+          }
+          
+          await Audio.setAudioModeAsync({
+            allowsRecordingIOS: true,
+            playsInSilentModeIOS: true,
+          });
+          
+          const { recording: newRecording } = await Audio.Recording.createAsync(
+            Audio.RecordingOptionsPresets.HIGH_QUALITY
+          );
+          
+          setRecording(newRecording);
+          return true;
+        } catch (mobileError) {
+          console.error('[MixMind] Mobile audio error:', mobileError);
+          setIsRecording(false);
+          return false;
+        }
+      }
     } catch (error) {
       console.error('[MixMind] Voice input error:', error);
       setIsRecording(false);
@@ -437,17 +492,101 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     try {
       setIsRecording(false);
       
-      // Mock transcription - in real implementation, use speech-to-text API
-      const mockTranscript = 'Create an energetic Afrobeats mix for my workout';
-      console.log('[MixMind] Mock voice transcript:', mockTranscript);
+      if (Platform.OS === 'web') {
+        // Web implementation
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          return new Promise((resolve) => {
+            mediaRecorder.onstop = async () => {
+              try {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'recording.wav');
+                
+                const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
+                  method: 'POST',
+                  body: formData,
+                });
+                
+                if (response.ok) {
+                  const data = await response.json();
+                  console.log('[MixMind] Transcription:', data.text);
+                  resolve(data.text);
+                } else {
+                  console.error('[MixMind] Transcription failed:', response.status);
+                  resolve(null);
+                }
+                
+                // Clean up
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                setMediaRecorder(null);
+                setAudioChunks([]);
+              } catch (error) {
+                console.error('[MixMind] Web transcription error:', error);
+                resolve(null);
+              }
+            };
+            
+            mediaRecorder.stop();
+          });
+        }
+      } else {
+        // Mobile implementation
+        if (recording) {
+          try {
+            await recording.stopAndUnloadAsync();
+            await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+            
+            const uri = recording.getURI();
+            if (!uri) {
+              console.error('[MixMind] No recording URI');
+              setRecording(null);
+              return null;
+            }
+            
+            const uriParts = uri.split('.');
+            const fileType = uriParts[uriParts.length - 1];
+            
+            const audioFile = {
+              uri,
+              name: "recording." + fileType,
+              type: "audio/" + fileType
+            };
+            
+            const formData = new FormData();
+            formData.append('audio', audioFile as any);
+            
+            const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
+              method: 'POST',
+              body: formData,
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('[MixMind] Transcription:', data.text);
+              setRecording(null);
+              return data.text;
+            } else {
+              console.error('[MixMind] Transcription failed:', response.status);
+              setRecording(null);
+              return null;
+            }
+          } catch (error) {
+            console.error('[MixMind] Mobile transcription error:', error);
+            setRecording(null);
+            return null;
+          }
+        }
+      }
       
-      return mockTranscript;
+      return null;
     } catch (error) {
       console.error('[MixMind] Voice processing error:', error);
       setIsRecording(false);
+      setRecording(null);
+      setMediaRecorder(null);
       return null;
     }
-  }, []);
+  }, [mediaRecorder, audioChunks, recording]);
 
   // Simplified analysis feature
   const analyzeCurrentSet = useCallback(async (set: GeneratedSet) => {
@@ -469,20 +608,40 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   }, []);
 
   const sendChatMessage = useCallback(async (message: string, userId: string, username: string) => {
-    console.log('[MixMind] Sending chat message:', message, userId, username);
+    const sanitizedMessage = message.trim();
+    const sanitizedUserId = userId.trim();
+    const sanitizedUsername = username.trim();
+    
+    if (!sanitizedMessage || sanitizedMessage.length > 500) return;
+    if (!sanitizedUserId || sanitizedUserId.length > 50) return;
+    if (!sanitizedUsername || sanitizedUsername.length > 50) return;
+    
+    console.log('[MixMind] Sending chat message:', sanitizedMessage, sanitizedUserId, sanitizedUsername);
     // In a real implementation, this would send a chat message
   }, []);
 
   // Simplified export feature
   const exportSet = useCallback(async (setId: string, format: 'mp3' | 'wav' | 'flac' | 'playlist' | 'json', quality: 'low' | 'medium' | 'high' | 'lossless' = 'medium'): Promise<string | null> => {
-    console.log('[MixMind] Exporting set:', setId, format, quality);
+    const sanitizedSetId = setId.trim();
+    const sanitizedFormat = format.trim();
+    
+    if (!sanitizedSetId || sanitizedSetId.length > 50) return null;
+    if (!sanitizedFormat || sanitizedFormat.length > 20) return null;
+    
+    console.log('[MixMind] Exporting set:', sanitizedSetId, sanitizedFormat, quality);
     // In a real implementation, this would export the set
-    return `https://example.com/exports/${setId}.${format}`;
+    return `https://example.com/exports/${sanitizedSetId}.${sanitizedFormat}`;
   }, []);
 
   // Simplified social features
   const shareSet = useCallback(async (setId: string, platform: string): Promise<boolean> => {
-    console.log('[MixMind] Sharing set:', setId, 'on', platform);
+    const sanitizedSetId = setId.trim();
+    const sanitizedPlatform = platform.trim();
+    
+    if (!sanitizedSetId || sanitizedSetId.length > 50) return false;
+    if (!sanitizedPlatform || sanitizedPlatform.length > 30) return false;
+    
+    console.log('[MixMind] Sharing set:', sanitizedSetId, 'on', sanitizedPlatform);
     // In a real implementation, this would share the set
     return true;
   }, []);
