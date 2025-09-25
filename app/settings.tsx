@@ -7,7 +7,7 @@ import { router } from "expo-router";
 
 
 export default function SettingsScreen() {
-  const { profile, settings, updateSetting } = useUser();
+  const { profile, settings, updateSetting, signOut } = useUser();
   const insets = useSafeAreaInsets();
   
   // Settings state
@@ -475,21 +475,31 @@ export default function SettingsScreen() {
           style={styles.logoutButton}
           onPress={() => {
             if (Platform.OS === 'web') {
-              console.log('Logged out');
+              signOut().then(() => {
+                console.log('Logged out');
+                router.push('/auth');
+              }).catch(console.error);
             } else {
               Alert.alert(
                 'Log Out',
                 'Are you sure you want to log out?',
                 [
                   { text: 'Cancel', style: 'cancel' },
-                  { text: 'Log Out', style: 'destructive', onPress: () => {
-                    router.push('/auth');
+                  { text: 'Log Out', style: 'destructive', onPress: async () => {
+                    try {
+                      await signOut();
+                      router.push('/auth');
+                    } catch (error) {
+                      console.error('Sign out error:', error);
+                      Alert.alert('Error', 'Failed to sign out. Please try again.');
+                    }
                   }}
                 ]
               );
             }
           }}
           activeOpacity={0.8}
+          testID="logout-button"
         >
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>

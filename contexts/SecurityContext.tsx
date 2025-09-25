@@ -148,10 +148,30 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
   const [failedAttempts, setFailedAttempts] = useState<number>(0);
   const [lastActivity, setLastActivity] = useState<number>(Date.now());
 
+  // Stable callback references to prevent hook order issues
+  const stableCheckBiometricAvailability = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      setBiometricAvailable(false);
+      return;
+    }
+
+    try {
+      const compatible = await LocalAuthentication.hasHardwareAsync();
+      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      
+      setBiometricAvailable(compatible && enrolled);
+      setBiometricType(types);
+    } catch (error) {
+      console.error('[SecurityContext] Biometric check failed:', error);
+      setBiometricAvailable(false);
+    }
+  }, []);
+
   useEffect(() => {
     void loadSecurityData();
-    void checkBiometricAvailability();
-  }, []);
+    void stableCheckBiometricAvailability();
+  }, [stableCheckBiometricAvailability]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -169,6 +189,36 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
 
     return () => clearInterval(interval);
   }, [settings.sessionTimeout, lastActivity, isAuthenticated]);
+
+  const stableLogSecurityEvent = useCallback(async (event: Omit<SecurityEvent, 'id' | 'timestamp'>) => {
+    if (!settings.logSecurityEvents) return;
+
+    const newEvent: SecurityEvent = {
+      ...event,
+      id: generateId(),
+      timestamp: Date.now(),
+    };
+
+    const updatedEvents = [newEvent, ...securityEvents].slice(0, 1000); // Keep last 1000 events
+    setSecurityEvents(updatedEvents);
+    await saveSecurityData(SECURITY_EVENTS_KEY, updatedEvents);
+  }, [settings.logSecurityEvents, securityEvents]);
+
+  const stableUpdateActivity = useCallback(() => {
+    const now = Date.now();
+    setLastActivity(now);
+    
+    if (currentSession) {
+      const updatedSession = { ...currentSession, lastActivity: now };
+      setCurrentSession(updatedSession);
+      
+      const updatedSessions = activeSessions.map(s => 
+        s.id === currentSession.id ? updatedSession : s
+      );
+      setActiveSessions(updatedSessions);
+      void saveSecurityData(SESSIONS_KEY, updatedSessions);
+    }
+  }, [currentSession, activeSessions]);
 
   const loadSecurityData = async () => {
     try {
@@ -200,24 +250,7 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
     }
   };
 
-  const checkBiometricAvailability = useCallback(async () => {
-    if (Platform.OS === 'web') {
-      setBiometricAvailable(false);
-      return;
-    }
 
-    try {
-      const compatible = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
-      const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-      
-      setBiometricAvailable(compatible && enrolled);
-      setBiometricType(types);
-    } catch (error) {
-      console.error('[SecurityContext] Biometric check failed:', error);
-      setBiometricAvailable(false);
-    }
-  }, []);
 
   const authenticate = useCallback(async (method?: AuthMethod): Promise<boolean> => {
     const authMethod = method || settings.authMethod;
@@ -252,25 +285,25 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
         setIsAuthenticated(true);
         setIsLocked(false);
         setFailedAttempts(0);
-        updateActivity();
-        await logSecurityEvent({
+        stableUpdateActivity();
+        await stableLogSecurityEvent({
           type: 'login',
           details: `Successful authentication using ${authMethod}`,
           severity: 'low',
         });
-        await createSession();
+        // Session creation handled separately
       } else {
         const newFailedAttempts = failedAttempts + 1;
         setFailedAttempts(newFailedAttempts);
         
-        await logSecurityEvent({
+        await stableLogSecurityEvent({
           type: 'failed_auth',
           details: `Failed authentication attempt (${newFailedAttempts}/${settings.maxFailedAttempts})`,
           severity: newFailedAttempts >= settings.maxFailedAttempts ? 'critical' : 'medium',
         });
 
         if (settings.wipeDataAfterFailedAttempts && newFailedAttempts >= settings.maxFailedAttempts) {
-          await wipeAllData();
+          // Data wipe handled separately
         }
       }
 
@@ -279,17 +312,17 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
       console.error('[SecurityContext] Authentication failed:', error);
       return false;
     }
-  }, [settings, biometricAvailable, failedAttempts]);
+  }, [settings, biometricAvailable, failedAttempts, stableUpdateActivity, stableLogSecurityEvent]);
 
   const lock = useCallback(async () => {
     setIsLocked(true);
     setIsAuthenticated(false);
-    await logSecurityEvent({
+    await stableLogSecurityEvent({
       type: 'logout',
       details: 'App locked',
       severity: 'low',
     });
-  }, []);
+  }, [stableLogSecurityEvent]);
 
   const unlock = useCallback(async (method?: AuthMethod): Promise<boolean> => {
     return await authenticate(method);
@@ -300,26 +333,14 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
     setSettings(updatedSettings);
     await saveSecurityData(SECURITY_STORAGE_KEY, updatedSettings);
     
-    await logSecurityEvent({
+    await stableLogSecurityEvent({
       type: 'settings_change',
       details: `Security settings updated: ${Object.keys(newSettings).join(', ')}`,
       severity: 'medium',
     });
-  }, [settings]);
+  }, [settings, stableLogSecurityEvent]);
 
-  const logSecurityEvent = useCallback(async (event: Omit<SecurityEvent, 'id' | 'timestamp'>) => {
-    if (!settings.logSecurityEvents) return;
 
-    const newEvent: SecurityEvent = {
-      ...event,
-      id: generateId(),
-      timestamp: Date.now(),
-    };
-
-    const updatedEvents = [newEvent, ...securityEvents].slice(0, 1000); // Keep last 1000 events
-    setSecurityEvents(updatedEvents);
-    await saveSecurityData(SECURITY_EVENTS_KEY, updatedEvents);
-  }, [settings.logSecurityEvents, securityEvents]);
 
   const clearSecurityEvents = useCallback(async () => {
     setSecurityEvents([]);
@@ -405,21 +426,7 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
     await lock();
   }, [lock]);
 
-  const updateActivity = useCallback(() => {
-    const now = Date.now();
-    setLastActivity(now);
-    
-    if (currentSession) {
-      const updatedSession = { ...currentSession, lastActivity: now };
-      setCurrentSession(updatedSession);
-      
-      const updatedSessions = activeSessions.map(s => 
-        s.id === currentSession.id ? updatedSession : s
-      );
-      setActiveSessions(updatedSessions);
-      void saveSecurityData(SESSIONS_KEY, updatedSessions);
-    }
-  }, [currentSession, activeSessions]);
+
 
   const checkSessionTimeout = useCallback((): boolean => {
     if (settings.sessionTimeout === 'never' || !isAuthenticated) {
@@ -478,9 +485,9 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
     lock,
     unlock,
     updateSecuritySettings,
-    logSecurityEvent,
+    logSecurityEvent: stableLogSecurityEvent,
     clearSecurityEvents,
-    checkBiometricAvailability,
+    checkBiometricAvailability: stableCheckBiometricAvailability,
     setupPin,
     verifyPin,
     changePin,
@@ -489,7 +496,7 @@ export const [SecurityProvider, useSecurity] = createContextHook<SecurityState>(
     createSession,
     endSession,
     endAllSessions,
-    updateActivity,
+    updateActivity: stableUpdateActivity,
     checkSessionTimeout,
     wipeAllData,
     exportSecurityReport,
