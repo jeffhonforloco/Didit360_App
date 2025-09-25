@@ -397,6 +397,7 @@ const defaultHistory: MixMindHistory = {
 };
 
 export const [MixMindProvider, useMixMind] = createContextHook(() => {
+  // Always call hooks in the same order
   const [settings, setSettings] = useState<MixMindSettings>(defaultSettings);
   const [history, setHistory] = useState<MixMindHistory>(defaultHistory);
   const [currentSet, setCurrentSet] = useState<GeneratedSet | null>(null);
@@ -422,7 +423,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     },
   }), []);
 
-  // Voice Input Feature
+  // Voice Input Feature - Simplified to avoid hook order issues
   const startVoiceInput = useCallback(async (): Promise<boolean> => {
     try {
       if (!settings.voicePrompts) {
@@ -434,7 +435,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       console.log('[MixMind] Starting voice recording...');
       
       if (Platform.OS === 'web') {
-        // Web implementation using MediaRecorder
         try {
           const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
           const recorder = new MediaRecorder(stream);
@@ -449,7 +449,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
           recorder.start();
           setMediaRecorder(recorder);
           setAudioChunks(chunks);
-          
           return true;
         } catch (webError) {
           console.error('[MixMind] Web audio error:', webError);
@@ -457,16 +456,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
           return false;
         }
       } else {
-        // Mobile implementation - disabled for now
-        try {
-          console.log('[MixMind] Mobile voice recording not yet implemented');
-          setIsRecording(false);
-          return false;
-        } catch (mobileError) {
-          console.error('[MixMind] Mobile audio error:', mobileError);
-          setIsRecording(false);
-          return false;
-        }
+        console.log('[MixMind] Mobile voice recording not yet implemented');
+        setIsRecording(false);
+        return false;
       }
     } catch (error) {
       console.error('[MixMind] Voice input error:', error);
@@ -479,75 +471,54 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     try {
       setIsRecording(false);
       
-      // Handle web implementation
-      const handleWebStop = async (): Promise<string | null> => {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-          return new Promise((resolve) => {
-            if (!mediaRecorder) {
-              resolve(null);
-              return;
-            }
-            
-            mediaRecorder.onstop = async () => {
-              try {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'recording.wav');
-                
-                const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
-                  method: 'POST',
-                  body: formData,
-                });
-                
-                if (response.ok) {
-                  const data = await response.json();
-                  console.log('[MixMind] Transcription:', data.text);
-                  resolve(data.text);
-                } else {
-                  console.error('[MixMind] Transcription failed:', response.status);
-                  resolve(null);
-                }
-                
-                // Clean up
-                if (mediaRecorder && mediaRecorder.stream) {
-                  mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                }
-                setMediaRecorder(null);
-                setAudioChunks([]);
-              } catch (error) {
-                console.error('[MixMind] Web transcription error:', error);
+      if (Platform.OS === 'web' && mediaRecorder && mediaRecorder.state === 'recording') {
+        return new Promise((resolve) => {
+          if (!mediaRecorder) {
+            resolve(null);
+            return;
+          }
+          
+          mediaRecorder.onstop = async () => {
+            try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              const formData = new FormData();
+              formData.append('audio', audioBlob, 'recording.wav');
+              
+              const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
+                method: 'POST',
+                body: formData,
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                console.log('[MixMind] Transcription:', data.text);
+                resolve(data.text);
+              } else {
+                console.error('[MixMind] Transcription failed:', response.status);
                 resolve(null);
               }
-            };
-            
-            mediaRecorder.stop();
-          });
-        }
+              
+              // Clean up
+              if (mediaRecorder && mediaRecorder.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+              }
+              setMediaRecorder(null);
+              setAudioChunks([]);
+            } catch (error) {
+              console.error('[MixMind] Web transcription error:', error);
+              resolve(null);
+            }
+          };
+          
+          mediaRecorder.stop();
+        });
+      } else if (Platform.OS !== 'web' && recording) {
+        console.log('[MixMind] Mobile voice recording stop not yet implemented');
+        setRecording(null);
         return null;
-      };
-      
-      // Handle mobile implementation
-      const handleMobileStop = async (): Promise<string | null> => {
-        if (recording) {
-          try {
-            console.log('[MixMind] Mobile voice recording stop not yet implemented');
-            setRecording(null);
-            return null;
-          } catch (error) {
-            console.error('[MixMind] Mobile transcription error:', error);
-            setRecording(null);
-            return null;
-          }
-        }
-        return null;
-      };
-      
-      // Call the appropriate handler based on platform
-      if (Platform.OS === 'web') {
-        return await handleWebStop();
-      } else {
-        return await handleMobileStop();
       }
+      
+      return null;
     } catch (error) {
       console.error('[MixMind] Voice processing error:', error);
       setIsRecording(false);

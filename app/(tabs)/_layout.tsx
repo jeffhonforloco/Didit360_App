@@ -9,7 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { currentTrack } = usePlayer();
-  const { settings, profile } = useUser();
+  const { settings } = useUser();
 
   const tabBarPadding = currentTrack ? 60 : 0;
   const activeTint = settings?.accentColor ?? "#FF0080";
@@ -22,8 +22,8 @@ export default function TabLayout() {
     paddingTop: 10,
     height: Platform.OS === "ios" ? 80 + insets.bottom + tabBarPadding : 60 + tabBarPadding,
     position: "absolute" as const,
-    display: profile ? "flex" : "none",
-  }), [insets.bottom, tabBarPadding, profile]);
+    display: "flex",
+  }), [insets.bottom, tabBarPadding]);
 
   return (
     <Tabs
@@ -50,7 +50,6 @@ export default function TabLayout() {
         options={{
           title: "Search",
           tabBarIcon: ({ color }) => <Search size={24} color={color} />,
-          href: profile ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -58,7 +57,6 @@ export default function TabLayout() {
         options={{
           title: "Library",
           tabBarIcon: ({ color }) => <Library size={24} color={color} />,
-          href: profile ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -66,7 +64,6 @@ export default function TabLayout() {
         options={{
           title: "News",
           tabBarIcon: ({ color }) => <Newspaper size={24} color={color} />,
-          href: profile ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -74,7 +71,6 @@ export default function TabLayout() {
         options={{
           title: "MixMind",
           tabBarIcon: ({ color }) => <Sparkles size={24} color={color} />,
-          href: profile ? undefined : null,
         }}
       />
       <Tabs.Screen
@@ -82,7 +78,6 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color }) => <User size={24} color={color} />,
-          href: profile ? undefined : null,
         }}
       />
 
