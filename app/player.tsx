@@ -76,7 +76,7 @@ export default function PlayerScreen() {
   const total = useMemo(() => formatMs(durationMs), [durationMs]);
 
   if (!currentTrack) {
-    router.back();
+    router.replace('/(tabs)/');
     return null;
   }
 
@@ -269,7 +269,7 @@ export default function PlayerScreen() {
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           <View style={styles.videoHeader}>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
               <ArrowLeft size={28} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.videoTitle} numberOfLines={1}>
@@ -503,7 +503,7 @@ export default function PlayerScreen() {
         >
           <SafeAreaView style={styles.safeArea} edges={["top"]}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.back()}>
+              <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
                 <ArrowLeft size={28} color="#FFF" />
               </TouchableOpacity>
               <View style={styles.progressIndicator}>
