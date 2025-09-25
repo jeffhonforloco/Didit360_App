@@ -43,8 +43,10 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
+      console.log('[Auth] Creating new user profile');
       await updateProfile({ email: e, displayName: n });
-      router.dismissAll();
+      console.log('[Auth] Profile created successfully, navigating back');
+      router.back();
     } catch (err) {
       console.error("[Auth] sign up error", err);
     } finally {
@@ -67,10 +69,12 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
+      console.log('[Auth] Signing in user');
       // For demo purposes, we'll just sign them in with the email
       // In a real app, you'd validate credentials against your backend
       await updateProfile({ email: e, displayName: e.split('@')[0] });
-      router.dismissAll();
+      console.log('[Auth] Sign in successful, navigating back');
+      router.back();
     } catch (err) {
       console.error("[Auth] sign in error", err);
     } finally {
