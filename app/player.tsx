@@ -57,6 +57,7 @@ export default function PlayerScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
   const [showDownloadProgress, setShowDownloadProgress] = useState(false);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
 
   useEffect(() => {
     const unsub = audioEngine.subscribeProgress((p: Progress) => {
@@ -487,7 +488,7 @@ export default function PlayerScreen() {
                 <View style={styles.progressDot} />
                 <View style={styles.progressDot} />
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowOptionsMenu(true)}>
                 <MoreVertical size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
@@ -735,6 +736,82 @@ export default function PlayerScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.downloadModal}>
             <Text style={styles.downloadText}>Downloading music for this song...</Text>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Options Menu Modal */}
+      <Modal
+        visible={showOptionsMenu}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowOptionsMenu(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.optionsModal}>
+            <Text style={styles.optionsTitle}>OPTIONS</Text>
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setShowAddToPlaylistModal(true);
+              }}
+            >
+              <List size={24} color="#FFF" />
+              <Text style={styles.optionText}>Add to Playlist</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setShowShareModal(true);
+              }}
+            >
+              <Share2 size={24} color="#FFF" />
+              <Text style={styles.optionText}>Share</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                handleDownload();
+              }}
+            >
+              <Download size={24} color="#FFF" />
+              <Text style={styles.optionText}>Download</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setCurrentView('details');
+              }}
+            >
+              <BookOpen size={24} color="#FFF" />
+              <Text style={styles.optionText}>Song Details</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.optionItem}
+              onPress={() => {
+                setShowOptionsMenu(false);
+                setCurrentView('queue');
+              }}
+            >
+              <List size={24} color="#FFF" />
+              <Text style={styles.optionText}>View Queue</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowOptionsMenu(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1256,5 +1333,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
     fontWeight: "500",
+  },
+  optionsModal: {
+    backgroundColor: '#2A2A2A',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  optionsTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#FFF',
+    fontWeight: '500',
+    marginLeft: 16,
   },
 });
