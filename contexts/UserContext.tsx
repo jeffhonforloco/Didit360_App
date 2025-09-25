@@ -166,6 +166,9 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] Profile and password removed from AsyncStorage, setting profile to null');
       setProfile(null);
       console.log('[UserContext] signOut completed - profile set to null');
+      
+      // Force a small delay to ensure state updates are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
     } catch (err) {
       console.error("[UserContext] signOut error", err);
       throw err; // Re-throw the error so the caller can handle it

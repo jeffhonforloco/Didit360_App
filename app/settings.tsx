@@ -506,7 +506,8 @@ export default function SettingsScreen() {
                   try {
                     await signOut();
                     console.log('[Settings] Sign out completed, navigating to auth');
-                    // Use replace instead of push to prevent going back to settings
+                    // Use dismissAll to clear the entire navigation stack, then navigate to auth
+                    router.dismissAll();
                     router.replace('/auth');
                   } catch (error) {
                     console.error('[Settings] Sign out error:', error);

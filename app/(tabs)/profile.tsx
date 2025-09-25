@@ -59,7 +59,8 @@ export default function ProfileScreen() {
           try { 
             await signOut(); 
             console.log('[ProfileScreen] signOut completed, navigating to auth');
-            // Use replace to prevent going back to profile after sign out
+            // Use dismissAll to clear the entire navigation stack, then navigate to auth
+            router.dismissAll();
             router.replace('/auth' as Href);
           } catch (e) { 
             console.error('[ProfileScreen] signOut error:', e); 
