@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -60,20 +60,89 @@ export default function PlayerScreen() {
   const [showDownloadProgress, setShowDownloadProgress] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
 
-  useEffect(() => {
-    const unsub = audioEngine.subscribeProgress((p: Progress) => {
-      setPositionMs(p.position);
-      setDurationMs(p.duration);
-      const pct = p.duration > 0 ? p.position / p.duration : 0;
-      setProgress(Math.max(0, Math.min(1, pct)));
-    });
-    return () => {
-      unsub();
-    };
+  // Memoize progress update callback for better performance
+  const updateProgress = useCallback((p: Progress) => {
+    setPositionMs(p.position);
+    setDurationMs(p.duration);
+    const pct = p.duration > 0 ? p.position / p.duration : 0;
+    setProgress(Math.max(0, Math.min(1, pct)));
   }, []);
 
+  useEffect(() => {
+    const unsub = audioEngine.subscribeProgress(updateProgress);
+    return unsub;
+  }, [updateProgress]);
+
+  // Memoize time formatting for better performance
   const elapsed = useMemo(() => formatMs(positionMs), [positionMs]);
   const total = useMemo(() => formatMs(durationMs), [durationMs]);
+
+  // Memoize control handlers
+  const handlePlayPause = useCallback(() => {
+    togglePlayPause();
+  }, [togglePlayPause]);
+
+  const handleSkipNext = useCallback(() => {
+    skipNext();
+  }, [skipNext]);
+
+  const handleSkipPrevious = useCallback(() => {
+    skipPrevious();
+  }, [skipPrevious]);
+
+  const handleSeek = useCallback((e: any) => {
+    const { locationX } = e.nativeEvent;
+    const containerWidth = width - 40;
+    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+    setProgress(newProgress);
+    const target = Math.floor(newProgress * (durationMs || 0));
+    audioEngine.seekTo(target).catch((e) => console.log('[Player] seek error', e));
+  }, [width, durationMs]);
+
+  const renderQueueItem = useCallback(({ item, index }: { item: Track; index: number }) => (
+    <TouchableOpacity
+      style={styles.queueItem}
+      onPress={() => playTrack(item)}
+      activeOpacity={0.8}
+    >
+      <Image source={{ uri: item.artwork }} style={styles.queueItemImage} />
+      <View style={styles.queueItemInfo}>
+        <Text style={styles.queueItemTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.queueItemArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.queueItemMore}>
+        <MoreVertical size={20} color="#999" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), [playTrack]);
+
+  const renderSuggestionItem = useCallback(({ item, index }: { item: Track; index: number }) => (
+    <TouchableOpacity
+      style={styles.suggestionItem}
+      onPress={() => playTrack(item)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.suggestionNumber}>
+        <Text style={styles.suggestionNumberText}>{String(index + 1).padStart(2, '0')}</Text>
+      </View>
+      <Image source={{ uri: item.artwork }} style={styles.suggestionImage} />
+      <View style={styles.suggestionInfo}>
+        <Text style={styles.suggestionTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.suggestionArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </View>
+      <TouchableOpacity style={styles.suggestionMore}>
+        <MoreVertical size={20} color="#999" />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  ), [playTrack]);
 
   if (!currentTrack) {
     router.replace('/(tabs)/');
@@ -107,51 +176,6 @@ export default function PlayerScreen() {
     console.log(`"${currentTrack.title}" added to playlist`);
   };
 
-  const renderQueueItem = ({ item, index }: { item: Track; index: number }) => (
-    <TouchableOpacity
-      style={styles.queueItem}
-      onPress={() => playTrack(item)}
-      activeOpacity={0.8}
-    >
-      <Image source={{ uri: item.artwork }} style={styles.queueItemImage} />
-      <View style={styles.queueItemInfo}>
-        <Text style={styles.queueItemTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.queueItemArtist} numberOfLines={1}>
-          {item.artist}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.queueItemMore}>
-        <MoreVertical size={20} color="#999" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
-  const renderSuggestionItem = ({ item, index }: { item: Track; index: number }) => (
-    <TouchableOpacity
-      style={styles.suggestionItem}
-      onPress={() => playTrack(item)}
-      activeOpacity={0.8}
-    >
-      <View style={styles.suggestionNumber}>
-        <Text style={styles.suggestionNumberText}>{String(index + 1).padStart(2, '0')}</Text>
-      </View>
-      <Image source={{ uri: item.artwork }} style={styles.suggestionImage} />
-      <View style={styles.suggestionInfo}>
-        <Text style={styles.suggestionTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.suggestionArtist} numberOfLines={1}>
-          {item.artist}
-        </Text>
-      </View>
-      <TouchableOpacity style={styles.suggestionMore}>
-        <MoreVertical size={20} color="#999" />
-      </TouchableOpacity>
-    </TouchableOpacity>
-  );
-
   if (currentView === 'queue') {
     return (
       <LinearGradient
@@ -184,6 +208,15 @@ export default function PlayerScreen() {
             style={styles.queueList}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.queueContent}
+            removeClippedSubviews={true}
+            maxToRenderPerBatch={10}
+            windowSize={10}
+            initialNumToRender={8}
+            getItemLayout={(data, index) => ({
+              length: 80,
+              offset: 80 * index,
+              index,
+            })}
           />
         </SafeAreaView>
       </LinearGradient>
@@ -301,14 +334,7 @@ export default function PlayerScreen() {
               <TouchableOpacity 
                 style={styles.sliderContainer}
                 activeOpacity={1}
-                onPress={(e) => {
-                  const { locationX } = e.nativeEvent;
-                  const containerWidth = width - 40;
-                  const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                  setProgress(newProgress);
-                  const target = Math.floor(newProgress * (durationMs || 0));
-                  audioEngine.seekTo(target).catch((e) => console.log('[Player] seek error', e));
-                }}
+                onPress={handleSeek}
               >
                 <View style={styles.sliderTrack}>
                   <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
@@ -322,13 +348,18 @@ export default function PlayerScreen() {
             </View>
 
             <View style={styles.videoMainControls}>
-              <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+              <TouchableOpacity 
+                onPress={handleSkipPrevious} 
+                style={styles.controlButton}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <SkipBack size={28} color="#FFF" fill="#FFF" />
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={togglePlayPause}
+                onPress={handlePlayPause}
                 style={styles.videoPlayButton}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
                 {isPlaying ? (
                   <Pause size={32} color="#FFF" fill="#FFF" />
@@ -337,7 +368,11 @@ export default function PlayerScreen() {
                 )}
               </TouchableOpacity>
 
-              <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+              <TouchableOpacity 
+                onPress={handleSkipNext} 
+                style={styles.controlButton}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
                 <SkipForward size={28} color="#FFF" fill="#FFF" />
               </TouchableOpacity>
             </View>
@@ -568,14 +603,7 @@ export default function PlayerScreen() {
                 <TouchableOpacity 
                   style={styles.sliderContainer}
                   activeOpacity={1}
-                  onPress={(e) => {
-                    const { locationX } = e.nativeEvent;
-                    const containerWidth = width - 40;
-                    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-                    setProgress(newProgress);
-                    const target = Math.floor(newProgress * (durationMs || 0));
-                    audioEngine.seekTo(target).catch((e) => console.log('[Player] seek error', e));
-                  }}
+                  onPress={handleSeek}
                 >
                   <View style={styles.sliderTrack}>
                     <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
@@ -591,13 +619,18 @@ export default function PlayerScreen() {
               {isAudiobookTrack ? (
                 <View style={styles.audiobookControls}>
                   <View style={styles.audiobookMainControls}>
-                    <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                    <TouchableOpacity 
+                      onPress={handleSkipPrevious} 
+                      style={styles.controlButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
                       <SkipBack size={32} color="#FFF" fill="#FFF" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={togglePlayPause}
+                      onPress={handlePlayPause}
                       style={styles.playButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
                       {isPlaying ? (
                         <Pause size={36} color="#FFF" fill="#FFF" />
@@ -606,7 +639,11 @@ export default function PlayerScreen() {
                       )}
                     </TouchableOpacity>
 
-                    <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                    <TouchableOpacity 
+                      onPress={handleSkipNext} 
+                      style={styles.controlButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
                       <SkipForward size={32} color="#FFF" fill="#FFF" />
                     </TouchableOpacity>
                   </View>
@@ -642,13 +679,18 @@ export default function PlayerScreen() {
                     <Shuffle size={24} color={shuffle ? "#FF0080" : "#FFF"} />
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                  <TouchableOpacity 
+                    onPress={handleSkipPrevious} 
+                    style={styles.controlButton}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
                     <SkipBack size={32} color="#FFF" fill="#FFF" />
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={togglePlayPause}
+                    onPress={handlePlayPause}
                     style={styles.playButton}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   >
                     {isPlaying ? (
                       <Pause size={36} color="#FFF" fill="#FFF" />
@@ -657,7 +699,11 @@ export default function PlayerScreen() {
                     )}
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                  <TouchableOpacity 
+                    onPress={handleSkipNext} 
+                    style={styles.controlButton}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
                     <SkipForward size={32} color="#FFF" fill="#FFF" />
                   </TouchableOpacity>
 

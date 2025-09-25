@@ -19,6 +19,21 @@ class SimpleAudioPlayer implements AudioPlayerLike {
   constructor(options: { uri: string }) {
     if (Platform.OS === 'web') {
       this.audio = new Audio(options.uri);
+      if (this.audio) {
+        // Optimize for faster loading and playback
+        this.audio.preload = 'auto';
+        this.audio.crossOrigin = 'anonymous';
+        
+        // Add error handling
+        this.audio.addEventListener('error', (e) => {
+          console.log('[SimpleAudioPlayer] Audio error:', e);
+        });
+        
+        // Add loading optimization
+        this.audio.addEventListener('canplaythrough', () => {
+          console.log('[SimpleAudioPlayer] Can play through');
+        });
+      }
     }
   }
   
@@ -103,14 +118,54 @@ export class AudioEngine {
   private endSub: any = null;
   private isFading = false;
   private progressListeners = new Set<(p: Progress) => void>();
+  private progressInterval: ReturnType<typeof setInterval> | null = null;
+  private isConfigured = false;
 
   async configure() {
+    if (this.isConfigured) return;
     try {
       // expo-audio handles audio mode configuration automatically
       await this.loadPersistedPrefs();
+      this.isConfigured = true;
+      this.startProgressTracking();
     } catch (e) {
       console.log('[AudioEngine] configure error', e);
     }
+  }
+
+  private startProgressTracking() {
+    if (this.progressInterval) return;
+    
+    this.progressInterval = setInterval(() => {
+      const active = this.getActive();
+      if (active.sound && active.track) {
+        try {
+          const currentTime = active.sound.currentTime || 0;
+          const duration = active.sound.duration || 0;
+          const position = currentTime * 1000;
+          const durationMs = duration * 1000;
+          const buffered = durationMs;
+          
+          const progress = { position, duration: durationMs, buffered };
+          if (this.events.onProgress) this.events.onProgress(progress);
+          this.progressListeners.forEach((cb) => cb(progress));
+          
+          // Auto-crossfade logic
+          const remaining = durationMs > 0 ? Math.max(0, durationMs - position) : Number.MAX_SAFE_INTEGER;
+          const shouldAutoFade = this.crossfadeDurationMs > 0 && !!this.nextTrack && !this.isFading && remaining <= (this.crossfadeDurationMs + 200);
+          if (shouldAutoFade && this.nextTrack) {
+            this.crossfadeToNext(this.nextTrack).catch((e) => console.log('[AudioEngine] auto-crossfade error', e));
+          }
+          
+          // Check if track ended
+          if (durationMs > 0 && position >= durationMs - 100) {
+            if (this.events.onTrackEnd && active.track) this.events.onTrackEnd(active.track);
+          }
+        } catch (e) {
+          console.log('[AudioEngine] progress tracking error', e);
+        }
+      }
+    }, 50); // Reduced from 100ms to 50ms for more responsive updates
   }
 
   setEvents(events: AudioEngineEvents) {
@@ -177,47 +232,26 @@ export class AudioEngine {
 
   private attachEndListener(sound: AudioPlayerLike, track: Track) {
     if (this.endSub) {
+      clearInterval(this.endSub);
       this.endSub = null;
     }
     
-    // Set up progress listener
-    const progressInterval = setInterval(() => {
-      try {
-        const currentTime = sound.currentTime || 0;
-        const duration = sound.duration || 0;
-        const position = currentTime * 1000; // Convert to milliseconds
-        const durationMs = duration * 1000;
-        const buffered = durationMs; // Assume fully buffered for simplicity
-        
-        if (this.events.onProgress) this.events.onProgress({ position, duration: durationMs, buffered });
-        this.progressListeners.forEach((cb) => cb({ position, duration: durationMs, buffered }));
-        
-        const remaining = durationMs > 0 ? Math.max(0, durationMs - position) : Number.MAX_SAFE_INTEGER;
-        const shouldAutoFade = this.crossfadeDurationMs > 0 && !!this.nextTrack && !this.isFading && remaining <= (this.crossfadeDurationMs + 200);
-        if (shouldAutoFade && this.nextTrack) {
-          this.crossfadeToNext(this.nextTrack).catch((e) => console.log('[AudioEngine] auto-crossfade error', e));
-        }
-        
-        // Check if track ended
-        if (durationMs > 0 && position >= durationMs - 100) {
-          clearInterval(progressInterval);
-          if (this.events.onTrackEnd && track) this.events.onTrackEnd(track);
-        }
-      } catch (e) {
-        console.log('[AudioEngine] status handler error', e);
-      }
-    }, 100);
-    
-    // Listen for playback end - using a simple check in the progress interval
-    // expo-audio doesn't have addEventListener, so we'll detect end in progress updates
-    
-    this.endSub = progressInterval;
+    // The global progress tracking will handle this now
+    // Just store reference for cleanup
+    this.endSub = track;
   }
 
   async loadAndPlay(track: Track, preloadNext?: Track) {
     console.log('[AudioEngine] loadAndPlay', track.title);
     await this.configure();
     this.setState('loading');
+    
+    // Immediate UI feedback
+    if (this.events.onTrackStart) {
+      // Fire immediately for responsive UI
+      setTimeout(() => this.events.onTrackStart?.(track), 0);
+    }
+    
     try {
       const uri = this.trackToUri(track);
       const prefs = this.contentPrefs[track.type];
@@ -225,10 +259,22 @@ export class AudioEngine {
       this.setGapless(prefs.gapless);
       const active = this.getActive();
       await this.unload(active);
+      
+      // Create and configure sound with optimized settings
       const sound = new SimpleAudioPlayer({ uri });
+      sound.volume = 1.0;
+      sound.loop = false;
+      
+      // Preload for faster start
+      if (Platform.OS === 'web' && sound instanceof SimpleAudioPlayer) {
+        const audio = (sound as any).audio as HTMLAudioElement;
+        if (audio) {
+          audio.preload = 'auto';
+          audio.crossOrigin = 'anonymous';
+        }
+      }
+      
       try {
-        sound.volume = 1.0;
-        sound.loop = false;
         await sound.play();
         active.sound = sound;
       } catch (e1) {
@@ -241,13 +287,17 @@ export class AudioEngine {
         sound.remove();
         active.sound = fallbackSound;
       }
+      
       active.track = track;
       active.uri = uri;
-      this.attachEndListener(sound, track);
+      this.attachEndListener(active.sound, track);
       this.setState('playing');
-      if (this.events.onTrackStart) this.events.onTrackStart(track);
+      
+      // Preload next track immediately for seamless transitions
       if (preloadNext) {
-        this.preload(preloadNext).catch((e) => console.log('[AudioEngine] preload error', e));
+        setTimeout(() => {
+          this.preload(preloadNext).catch((e) => console.log('[AudioEngine] preload error', e));
+        }, 100);
       }
     } catch (e) {
       console.log('[AudioEngine] loadAndPlay error', e);
@@ -342,24 +392,47 @@ export class AudioEngine {
   async play() {
     const active = this.getActive();
     if (active.sound) {
-      await active.sound.play();
-      this.setState('playing');
+      try {
+        await active.sound.play();
+        this.setState('playing');
+      } catch (e) {
+        console.log('[AudioEngine] play error', e);
+        // Try to recover
+        if (active.track) {
+          this.recoverFromError(active.track);
+        }
+      }
     }
   }
 
   async pause() {
     const active = this.getActive();
     if (active.sound) {
-      active.sound.pause();
-      this.setState('paused');
+      try {
+        active.sound.pause();
+        this.setState('paused');
+      } catch (e) {
+        console.log('[AudioEngine] pause error', e);
+      }
     }
   }
 
   async stop() {
     this.clearFade();
+    if (this.progressInterval) {
+      clearInterval(this.progressInterval);
+      this.progressInterval = null;
+    }
+    if (this.endSub) {
+      if (typeof this.endSub === 'number') {
+        clearInterval(this.endSub);
+      }
+      this.endSub = null;
+    }
     await this.unload(this.a);
     await this.unload(this.b);
     this.setState('stopped');
+    this.isConfigured = false;
   }
 
   async seekTo(ms: number) {

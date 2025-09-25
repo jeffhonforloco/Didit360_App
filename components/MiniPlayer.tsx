@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -21,33 +21,66 @@ export function MiniPlayer() {
   const [duration, setDuration] = useState<number>(0);
   void duration;
 
-  useEffect(() => {
-    const unsubscribe = audioEngine.subscribeProgress((p: Progress) => {
-      const d = p.duration > 0 ? p.duration : 0;
-      setDuration(d);
-      const pct = d > 0 ? p.position / d : 0;
-      setProgress(Math.max(0, Math.min(1, pct)));
-    });
-    return () => {
-      unsubscribe();
-    };
+  // Memoize progress update callback for better performance
+  const updateProgress = useCallback((p: Progress) => {
+    const d = p.duration > 0 ? p.duration : 0;
+    setDuration(d);
+    const pct = d > 0 ? p.position / d : 0;
+    setProgress(Math.max(0, Math.min(1, pct)));
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = audioEngine.subscribeProgress(updateProgress);
+    return unsubscribe;
+  }, [updateProgress]);
+
+  // Memoize control handlers for better performance
+  const handlePlayPause = useCallback((e: any) => {
+    e.stopPropagation();
+    togglePlayPause();
+  }, [togglePlayPause]);
+
+  const handleSkipNext = useCallback((e: any) => {
+    e.stopPropagation();
+    skipNext();
+  }, [skipNext]);
+
+  const handleStop = useCallback((e: any) => {
+    e.stopPropagation();
+    stopPlayer();
+  }, [stopPlayer]);
+
+  const handlePress = useCallback(() => {
+    router.push("/player");
+  }, []);
+
+  // Memoize computed values
+  const tabBarHeight = useMemo(() => {
+    return Platform.OS === "ios" ? 80 + insets.bottom : 60;
+  }, [insets.bottom]);
+
+  const isVideoTrack = useMemo(() => {
+    return currentTrack?.isVideo || currentTrack?.type === "video";
+  }, [currentTrack]);
 
   // Hide MiniPlayer when full player is open or no track is loaded
   if (!currentTrack || pathname === '/player') return null;
-
-  const tabBarHeight = Platform.OS === "ios" ? 80 + insets.bottom : 60;
 
   return (
     <TouchableOpacity
       style={[styles.container, { bottom: tabBarHeight }]}
       activeOpacity={0.95}
-      onPress={() => router.push("/player")}
+      onPress={handlePress}
       testID="mini-player"
     >
       <View style={styles.artworkContainer}>
-        <Image source={{ uri: currentTrack.artwork }} style={styles.artwork} />
-        {(currentTrack.isVideo || currentTrack.type === "video") && (
+        <Image 
+          source={{ uri: currentTrack.artwork }} 
+          style={styles.artwork}
+          // Add loading optimization
+          loadingIndicatorSource={{ uri: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIHZpZXdCb3g9IjAgMCA0NCA0NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiBmaWxsPSIjMkEyQTJBIi8+Cjwvc3ZnPgo=' }}
+        />
+        {isVideoTrack && (
           <View style={styles.videoIndicator}>
             <Video size={12} color="#FFF" />
           </View>
@@ -62,17 +95,18 @@ export function MiniPlayer() {
           {currentTrack.artist}
         </Text>
         <View style={styles.barTrack}>
-          <View style={[styles.barProgress, { width: `${progress * 100}%` }]} testID="mini-progress" />
+          <View 
+            style={[styles.barProgress, { width: `${progress * 100}%` }]} 
+            testID="mini-progress" 
+          />
         </View>
       </View>
 
       <TouchableOpacity
         style={styles.controlButton}
-        onPress={(e) => {
-          e.stopPropagation();
-          togglePlayPause();
-        }}
+        onPress={handlePlayPause}
         testID="mini-toggle"
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         {isPlaying ? (
           <Pause size={24} color="#FFF" fill="#FFF" />
@@ -83,22 +117,18 @@ export function MiniPlayer() {
 
       <TouchableOpacity
         style={styles.controlButton}
-        onPress={(e) => {
-          e.stopPropagation();
-          skipNext();
-        }}
+        onPress={handleSkipNext}
         testID="mini-next"
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <SkipForward size={20} color="#FFF" fill="#FFF" />
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.controlButton}
-        onPress={(e) => {
-          e.stopPropagation();
-          stopPlayer();
-        }}
+        onPress={handleStop}
         testID="mini-close"
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
         <X size={18} color="#999" />
       </TouchableOpacity>
@@ -119,6 +149,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: "#2A2A2A",
+    // Add shadow for better visual separation
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   artworkContainer: {
     position: "relative",
