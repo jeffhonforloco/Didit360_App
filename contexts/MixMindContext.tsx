@@ -758,43 +758,48 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       // Build AI prompt with settings
       const aiPrompt = buildAIPrompt(sanitizedPrompt, finalSettings);
       
-      // Use toolkit URL if available, otherwise create a mock response
+      // Try to use toolkit URL, but fallback to mock data on any error
       const toolkitUrl = process.env.EXPO_PUBLIC_TOOLKIT_URL;
+      let parsedSet: GeneratedSet | null = null;
       
-      let response: Response;
       if (toolkitUrl) {
-        response = await fetch(new URL("/agent/chat", toolkitUrl), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messages: [
-              {
-                role: 'system',
-                content: 'You are MixMind, an expert AI DJ and music curator. Create detailed JSON playlists with smooth transitions, BPM matching, and harmonic mixing. Include track metadata like BPM, key, energy level (0-1), and genre.',
-              },
-              {
-                role: 'user',
-                content: aiPrompt,
-              },
-            ],
-          }),
-        });
-      } else {
-        // Create a mock response when toolkit URL is not available
-        console.log('[MixMind] No toolkit URL found, creating mock response');
+        try {
+          console.log('[MixMind] Attempting AI generation with toolkit URL');
+          const response = await fetch(new URL("/agent/chat", toolkitUrl), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              messages: [
+                {
+                  role: 'system',
+                  content: 'You are MixMind, an expert AI DJ and music curator. Create detailed JSON playlists with smooth transitions, BPM matching, and harmonic mixing. Include track metadata like BPM, key, energy level (0-1), and genre.',
+                },
+                {
+                  role: 'user',
+                  content: aiPrompt,
+                },
+              ],
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            parsedSet = parseAIResponse(data.text || data.completion || data.content, sanitizedPrompt, finalSettings);
+            console.log('[MixMind] AI generation successful');
+          } else {
+            console.log(`[MixMind] AI generation failed with HTTP ${response.status}, falling back to mock data`);
+          }
+        } catch (error) {
+          console.log('[MixMind] AI generation error, falling back to mock data:', error);
+        }
+      }
+      
+      // If AI generation failed or no toolkit URL, use mock data
+      if (!parsedSet) {
+        console.log('[MixMind] Using mock playlist generation');
         const mockData = createMockPlaylist(sanitizedPrompt, finalSettings);
-        response = new Response(JSON.stringify({ text: JSON.stringify(mockData) }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' }
-        });
+        parsedSet = parseAIResponse(JSON.stringify(mockData), sanitizedPrompt, finalSettings);
       }
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      const data = await response.json();
-      const parsedSet = parseAIResponse(data.text || data.completion || data.content, sanitizedPrompt, finalSettings);
       
       if (parsedSet) {
         setCurrentSet(parsedSet);
