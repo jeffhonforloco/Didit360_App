@@ -87,11 +87,14 @@ export const useSignOut = () => {
   const signOutWithNavigation = useCallback(async () => {
     console.log('[useSignOut] Starting sign out process');
     try {
+      // First clear the user data
       await signOut();
-      console.log('[useSignOut] Sign out completed, navigating to auth');
+      console.log('[useSignOut] Sign out completed, profile should be null now');
       
-      // Use replace to completely replace the current screen with auth
-      router.replace('/auth');
+      // Navigate to auth screen
+      console.log('[useSignOut] Navigating to auth screen');
+      router.push('/auth');
+      
     } catch (error) {
       console.error('[useSignOut] Sign out error:', error);
       throw error;

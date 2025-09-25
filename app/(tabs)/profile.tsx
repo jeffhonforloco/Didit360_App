@@ -58,11 +58,16 @@ export default function ProfileScreen() {
         { text: "Sign out", style: "destructive", onPress: async () => { 
           console.log('[ProfileScreen] sign out confirmed');
           try { 
+            console.log('[ProfileScreen] calling signOutWithNavigation...');
             await signOutWithNavigation(); 
-            console.log('[ProfileScreen] signOut with navigation completed');
+            console.log('[ProfileScreen] signOut with navigation completed successfully');
           } catch (e) { 
             console.error('[ProfileScreen] signOut error:', e); 
-            Alert.alert('Error', 'Failed to sign out. Please try again.');
+            if (Platform.OS === 'web') {
+              console.log('Failed to sign out. Please try again.');
+            } else {
+              Alert.alert('Error', 'Failed to sign out. Please try again.');
+            }
           } 
         } },
       ]);

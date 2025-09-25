@@ -8,13 +8,15 @@ import { router } from "expo-router";
 type AuthMode = 'signup' | 'signin';
 
 export default function AuthModal() {
-  const { updateProfile } = useUser();
+  const { updateProfile, profile, isLoading } = useUser();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [mode, setMode] = useState<AuthMode>('signup');
+  
+  console.log('[AuthModal] Rendered - profile:', profile, 'isLoading:', isLoading);
 
   const onContinueGuest = useCallback(() => {
     router.back();
