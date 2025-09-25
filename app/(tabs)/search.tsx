@@ -30,6 +30,7 @@ import {
   Ban,
   Mic,
   Music2,
+  Home,
 } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
@@ -562,7 +563,17 @@ export default function SearchScreen() {
     <View style={styles.container} testID="search-screen">
       <View style={[styles.header, { paddingTop: insets.top + 20 }]}>
         <View style={styles.titleRow}>
-          <Text style={styles.title}>Search</Text>
+          <View style={styles.titleLeft}>
+            <TouchableOpacity 
+              onPress={() => router.push("/(tabs)/" as never)} 
+              testID="back-to-home"
+              style={styles.backButton}
+              accessibilityLabel="Go back to home"
+            >
+              <Home size={24} color="#FFF" />
+            </TouchableOpacity>
+            <Text style={styles.title}>Search</Text>
+          </View>
           <TouchableOpacity onPress={() => router.push("/settings" as never)} testID="search-settings">
             <MoreHorizontal size={24} color="#FFF" />
           </TouchableOpacity>
@@ -855,6 +866,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 16,
+  },
+  titleLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  backButton: {
+    padding: 4,
   },
   categoryRow: {
     justifyContent: "space-between",
