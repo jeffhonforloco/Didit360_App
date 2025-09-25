@@ -404,6 +404,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [recording, setRecording] = useState<any | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
@@ -453,12 +454,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
           return false;
         }
       } else {
-        // Mobile implementation - simulate for now
-        console.log('[MixMind] Mobile voice recording simulated');
-        setTimeout(() => {
-          setIsRecording(false);
-        }, 3000);
-        return true;
+        console.log('[MixMind] Mobile voice recording not yet implemented');
+        setIsRecording(false);
+        return false;
       }
     } catch (error) {
       console.error('[MixMind] Voice input error:', error);
@@ -471,63 +469,62 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     try {
       setIsRecording(false);
       
-      if (Platform.OS === 'web') {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-          return new Promise((resolve) => {
-            if (!mediaRecorder) {
-              resolve(null);
-              return;
-            }
-            
-            mediaRecorder.onstop = async () => {
-              try {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'recording.wav');
-                
-                const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
-                  method: 'POST',
-                  body: formData,
-                });
-                
-                if (response.ok) {
-                  const data = await response.json();
-                  console.log('[MixMind] Transcription:', data.text);
-                  resolve(data.text || null);
-                } else {
-                  console.error('[MixMind] Transcription failed:', response.status);
-                  resolve(null);
-                }
-                
-                // Clean up
-                if (mediaRecorder?.stream) {
-                  mediaRecorder.stream.getTracks().forEach(track => track.stop());
-                }
-                setMediaRecorder(null);
-                setAudioChunks([]);
-              } catch (error) {
-                console.error('[MixMind] Web transcription error:', error);
+      if (Platform.OS === 'web' && mediaRecorder && mediaRecorder.state === 'recording') {
+        return new Promise((resolve) => {
+          if (!mediaRecorder) {
+            resolve(null);
+            return;
+          }
+          
+          mediaRecorder.onstop = async () => {
+            try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              const formData = new FormData();
+              formData.append('audio', audioBlob, 'recording.wav');
+              
+              const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
+                method: 'POST',
+                body: formData,
+              });
+              
+              if (response.ok) {
+                const data = await response.json();
+                console.log('[MixMind] Transcription:', data.text);
+                resolve(data.text || null);
+              } else {
+                console.error('[MixMind] Transcription failed:', response.status);
                 resolve(null);
               }
-            };
-            
-            mediaRecorder.stop();
-          });
-        }
+              
+              // Clean up
+              if (mediaRecorder?.stream) {
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+              }
+              setMediaRecorder(null);
+              setAudioChunks([]);
+            } catch (error) {
+              console.error('[MixMind] Web transcription error:', error);
+              resolve(null);
+            }
+          };
+          
+          mediaRecorder.stop();
+        });
+      } else if (Platform.OS !== 'web' && recording) {
+        console.log('[MixMind] Mobile voice recording stop not yet implemented');
+        setRecording(null);
         return null;
-      } else {
-        // Mobile implementation - simulate for now
-        console.log('[MixMind] Mobile voice recording stopped - simulated transcript');
-        // Mobile cleanup
-        return 'Sample voice transcript for mobile';
       }
+      
+      return null;
     } catch (error) {
       console.error('[MixMind] Voice processing error:', error);
       setIsRecording(false);
+      setRecording(null);
       setMediaRecorder(null);
       return null;
     }
-  }, [mediaRecorder, audioChunks]);
+  }, [mediaRecorder, audioChunks, recording]);
 
   // Simplified analysis feature
   const analyzeCurrentSet = useCallback(async (set: GeneratedSet) => {
