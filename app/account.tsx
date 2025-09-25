@@ -140,13 +140,13 @@ export default function AccountScreen() {
       if (!email || email !== profile.email) {
         setEmail(profile.email);
       }
-      // Only update avatar URL if local state is empty or if it's a completely different URL
+      // Only update avatar URL if local state is empty AND profile has an avatar
       // Don't update if user has made local changes (like picking a new image)
       if (!avatarUrl && profile.avatarUrl) {
         setAvatarUrl(profile.avatarUrl);
       }
     }
-  }, [profile, saving]); // Removed avatarUrl from dependencies to prevent loops
+  }, [profile?.displayName, profile?.email, profile?.avatarUrl, saving]); // Use specific profile properties to prevent loops
 
   // Redirect to auth if user is not signed in
   useEffect(() => {

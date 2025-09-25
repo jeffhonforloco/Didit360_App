@@ -82,11 +82,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    void load();
-  }, []);
-
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       setIsLoading(true);
       const [p, s] = await Promise.all([
@@ -105,7 +101,11 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const persist = async (key: string, value: unknown) => {
     try {
@@ -166,7 +166,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] Profile and password removed from AsyncStorage, setting profile to null');
       setProfile(null);
       console.log('[UserContext] signOut completed - profile set to null');
-      // Note: Library data will be cleared automatically when profile changes
     } catch (err) {
       console.error("[UserContext] signOut error", err);
       throw err; // Re-throw the error so the caller can handle it
