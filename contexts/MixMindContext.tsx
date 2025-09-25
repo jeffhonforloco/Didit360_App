@@ -397,7 +397,7 @@ const defaultHistory: MixMindHistory = {
 };
 
 export const [MixMindProvider, useMixMind] = createContextHook(() => {
-  // Always call hooks in the same order
+  // Always call hooks in the same order - no conditional hooks
   const [settings, setSettings] = useState<MixMindSettings>(defaultSettings);
   const [history, setHistory] = useState<MixMindHistory>(defaultHistory);
   const [currentSet, setCurrentSet] = useState<GeneratedSet | null>(null);
@@ -408,25 +408,23 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
-  // Mock storage functions for now - will be replaced with proper storage provider
+  // Mock storage functions - stable reference to prevent dependency issues
   const mockStorage = useMemo(() => ({
     getItem: async (key: string) => {
-      // Mock implementation - replace with actual storage
-      if (!key.trim() || key.length > 100) return null;
+      if (!key?.trim() || key.length > 100) return null;
       return null;
     },
     setItem: async (key: string, value: string) => {
-      // Mock implementation - replace with actual storage
-      if (!key.trim() || key.length > 100) return;
-      if (!value.trim() || value.length > 10000) return;
+      if (!key?.trim() || key.length > 100) return;
+      if (!value?.trim() || value.length > 10000) return;
       console.log(`[MixMind] Would store ${key}:`, value.slice(0, 100));
     },
   }), []);
 
-  // Voice Input Feature - Simplified to avoid hook order issues
+  // Voice Input Feature - Fixed to prevent hook order issues
   const startVoiceInput = useCallback(async (): Promise<boolean> => {
     try {
-      if (!settings.voicePrompts) {
+      if (!settings?.voicePrompts) {
         console.log('[MixMind] Voice prompts disabled in settings');
         return false;
       }
@@ -441,7 +439,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
           const chunks: Blob[] = [];
           
           recorder.ondataavailable = (event) => {
-            if (event.data.size > 0) {
+            if (event.data && event.data.size > 0) {
               chunks.push(event.data);
             }
           };
@@ -465,7 +463,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       setIsRecording(false);
       return false;
     }
-  }, [settings.voicePrompts]);
+  }, [settings?.voicePrompts]);
 
   const stopVoiceInput = useCallback(async (): Promise<string | null> => {
     try {
@@ -492,14 +490,14 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
               if (response.ok) {
                 const data = await response.json();
                 console.log('[MixMind] Transcription:', data.text);
-                resolve(data.text);
+                resolve(data.text || null);
               } else {
                 console.error('[MixMind] Transcription failed:', response.status);
                 resolve(null);
               }
               
               // Clean up
-              if (mediaRecorder && mediaRecorder.stream) {
+              if (mediaRecorder?.stream) {
                 mediaRecorder.stream.getTracks().forEach(track => track.stop());
               }
               setMediaRecorder(null);
@@ -796,6 +794,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     }
   }, [settings, addRecentPrompt, addToHistory]);
 
+  // Return stable context value - avoid recreating on every render
   const contextValue = useMemo(() => ({
     // Core features
     settings,

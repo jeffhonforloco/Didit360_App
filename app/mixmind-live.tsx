@@ -23,25 +23,34 @@ import { useMixMind } from '@/contexts/MixMindContext';
 import { usePlayer } from '@/contexts/PlayerContext';
 
 export default function MixMindLiveScreen() {
+  // Always call hooks in the same order
   const [isLive, setIsLive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [listeners, setListeners] = useState(0);
   
-  const { currentSet, startCollaboration } = useMixMind();
-  const { isPlaying, currentTrack, togglePlayPause, skipNext } = usePlayer();
+  const mixMindContext = useMixMind();
+  const playerContext = usePlayer();
+  
+  // Destructure after hook calls to ensure stable hook order
+  const { currentSet, startCollaboration } = mixMindContext;
+  const { isPlaying, currentTrack, togglePlayPause, skipNext } = playerContext;
 
   const handleStartLive = useCallback(async () => {
-    if (!isLive) {
-      const sessionId = await startCollaboration('user-123');
-      if (sessionId) {
-        setIsLive(true);
-        setListeners(1);
-        console.log('[MixMind] Started live session:', sessionId);
+    try {
+      if (!isLive) {
+        const sessionId = await startCollaboration('user-123');
+        if (sessionId) {
+          setIsLive(true);
+          setListeners(1);
+          console.log('[MixMind] Started live session:', sessionId);
+        }
+      } else {
+        setIsLive(false);
+        setListeners(0);
+        console.log('[MixMind] Stopped live session');
       }
-    } else {
-      setIsLive(false);
-      setListeners(0);
-      console.log('[MixMind] Stopped live session');
+    } catch (error) {
+      console.error('[MixMind] Live session error:', error);
     }
   }, [isLive, startCollaboration]);
 

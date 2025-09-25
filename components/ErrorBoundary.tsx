@@ -28,7 +28,24 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
     const message = error instanceof Error ? error.message : String(error);
     const stack = (error as any)?.stack ?? info?.componentStack ?? undefined;
     const route = (globalThis as any).__CURRENT_ROUTE ?? 'unknown';
-    console.error('[ErrorBoundary] Render error captured', { message, stack, route, info });
+    
+    // Enhanced error logging for mobile debugging
+    console.error('[ErrorBoundary] Render error captured', {
+      message,
+      stack,
+      route,
+      info,
+      platform: Platform.OS,
+      isHookError: message.includes('Hooks') || message.includes('hook'),
+      isQueueError: message.includes('queue'),
+    });
+    
+    // Check for specific React Hooks errors
+    if (message.includes('Hooks') || message.includes('hook') || message.includes('queue')) {
+      console.error('[ErrorBoundary] REACT HOOKS ORDER VIOLATION DETECTED!');
+      console.error('[ErrorBoundary] This is likely caused by conditional hook calls or changing hook order between renders');
+    }
+    
     logEvent('error', 'Render error captured', { message, stack, route });
     try {
       const toast = (globalThis as any).__TOAST as { show?: (t: { type: 'error' | 'info' | 'success' | 'warning'; title: string; message?: string }) => void } | undefined;

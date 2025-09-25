@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -46,10 +46,25 @@ const presetMoods = [
 
 
 export default function MixMindScreen() {
+  // Debug hook order - always call hooks in the same order
+  console.log('[MixMindScreen] Component render start');
+  
   const insets = useSafeAreaInsets();
+  console.log('[MixMindScreen] useSafeAreaInsets called');
+  
   const [prompt, setPrompt] = useState<string>("");
+  console.log('[MixMindScreen] useState prompt called');
+  
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  console.log('[MixMindScreen] useState selectedMood called');
+  
   const { playTrack } = usePlayer();
+  console.log('[MixMindScreen] usePlayer called');
+  
+  const mixMindContext = useMixMind();
+  console.log('[MixMindScreen] useMixMind called');
+  
+  // Destructure after hook call to ensure stable hook order
   const { 
     currentSet, 
     isGenerating, 
@@ -60,13 +75,20 @@ export default function MixMindScreen() {
     isRecording,
     startVoiceInput,
     stopVoiceInput,
-  } = useMixMind();
+  } = mixMindContext;
+  
+  console.log('[MixMindScreen] All hooks called successfully');
 
   const buildPrompt = useCallback(() => {
     const moodText = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? ""} mood` : "";
     const base = [prompt, moodText].filter(Boolean).join(". ");
     return base.trim();
   }, [prompt, selectedMood]);
+  
+  // Debug effect to track renders
+  useEffect(() => {
+    console.log('[MixMindScreen] Component mounted/updated');
+  });
 
   const handleGenerate = useCallback(async () => {
     try {
@@ -92,27 +114,31 @@ export default function MixMindScreen() {
   }, [currentSet, playTrack]);
 
   const handleQuickAction = useCallback(async (actionId: string) => {
-    switch (actionId) {
-      case "voice":
-        if (isRecording) {
-          const transcript = await stopVoiceInput();
-          if (transcript) {
-            setPrompt(transcript);
+    try {
+      switch (actionId) {
+        case "voice":
+          if (isRecording) {
+            const transcript = await stopVoiceInput();
+            if (transcript) {
+              setPrompt(transcript);
+            }
+          } else {
+            await startVoiceInput();
           }
-        } else {
-          await startVoiceInput();
-        }
-        break;
-      case "shuffle":
-        setPrompt("Surprise me with something amazing");
-        setSelectedMood(presetMoods[Math.floor(Math.random() * presetMoods.length)].id);
-        break;
-      case "history":
-        router.push("/mixmind-history");
-        break;
-      case "settings":
-        router.push("/ai-dj-setup");
-        break;
+          break;
+        case "shuffle":
+          setPrompt("Surprise me with something amazing");
+          setSelectedMood(presetMoods[Math.floor(Math.random() * presetMoods.length)].id);
+          break;
+        case "history":
+          router.push("/mixmind-history");
+          break;
+        case "settings":
+          router.push("/ai-dj-setup");
+          break;
+      }
+    } catch (error) {
+      console.error('[MixMind] Quick action error:', error);
     }
   }, [isRecording, stopVoiceInput, startVoiceInput]);
 
@@ -133,6 +159,7 @@ export default function MixMindScreen() {
 
 
   const formatDuration = useCallback((seconds: number) => {
+    if (!seconds || seconds < 0) return '0:00';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
