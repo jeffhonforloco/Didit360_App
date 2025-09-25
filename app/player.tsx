@@ -901,11 +901,11 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    backgroundColor: 'rgba(255,255,255,0.6)',
     marginHorizontal: 4,
   },
   progressDotActive: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#FF0080',
   },
   headerTitle: {
     fontSize: 16,
