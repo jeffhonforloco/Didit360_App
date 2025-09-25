@@ -13,7 +13,7 @@ import { isStreamableProcedure } from "./routes/catalog/rights/is-streamable/rou
 // Ingest
 import { ingestJsonProcedure } from "./routes/ingest/json/route";
 import { ingestRssProcedure } from "./routes/ingest/rss/route";
-import { ingestJobProcedure } from "./routes/ingest/job/route";
+import { ingestJobProcedure, getIngestJobProcedure } from "./routes/ingest/job/route";
 
 // MixMind
 import { mixmindCreateSessionProcedure } from "./routes/mixmind/sessions/create/route";
@@ -43,7 +43,8 @@ export const appRouter = createTRPCRouter({
   ingest: createTRPCRouter({
     json: ingestJsonProcedure,
     rss: ingestRssProcedure,
-    job: ingestJobProcedure,
+    createJob: ingestJobProcedure,
+    getJob: getIngestJobProcedure,
   }),
   mixmind: createTRPCRouter({
     createSession: mixmindCreateSessionProcedure,
