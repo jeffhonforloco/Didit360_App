@@ -115,8 +115,14 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       if (p) {
         setProfile(JSON.parse(p));
       } else {
-        // No profile exists - user is not signed in
-        setProfile(null);
+        // Create a default demo user for testing
+        const defaultProfile: UserProfile = {
+          displayName: "Demo User",
+          email: "demo@example.com",
+          avatarUrl: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop"
+        };
+        setProfile(defaultProfile);
+        await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfile));
       }
       if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
     } catch (err) {
