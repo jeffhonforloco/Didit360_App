@@ -32,7 +32,7 @@ export default function GenresScreen() {
       ]}
       activeOpacity={0.8}
       testID={`genre-${item}`}
-      onPress={() => console.log("Genre selected:", item)}
+      onPress={() => router.push(`/genre/${encodeURIComponent(item)}` as any)}
     >
       <Text style={styles.genreText}>{item}</Text>
     </TouchableOpacity>

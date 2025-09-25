@@ -251,7 +251,11 @@ export default function HomeScreen() {
   }, []);
 
   const renderGenre = useCallback(({ item }: { item: string }) => (
-    <TouchableOpacity style={styles.genrePill} onPress={() => console.log("Genre", item)} testID={`genre-${item}`}>
+    <TouchableOpacity 
+      style={styles.genrePill} 
+      onPress={() => router.push(`/genre/${encodeURIComponent(item)}` as any)} 
+      testID={`genre-${item}`}
+    >
       <Text style={styles.genreText}>{item}</Text>
     </TouchableOpacity>
   ), []);
