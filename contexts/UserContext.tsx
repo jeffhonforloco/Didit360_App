@@ -78,6 +78,7 @@ const DEFAULT_SETTINGS: AppSettings = {
 const PROFILE_KEY = "user_profile";
 const SETTINGS_KEY = "user_settings";
 const PASSWORD_KEY = "user_password";
+const SIGNED_OUT_KEY = "user_signed_out";
 
 // Custom hook for sign out with navigation
 export const useSignOut = () => {
@@ -108,22 +109,24 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const load = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [p, s] = await Promise.all([
+      const [p, s, signedOut] = await Promise.all([
         AsyncStorage.getItem(PROFILE_KEY),
         AsyncStorage.getItem(SETTINGS_KEY),
+        AsyncStorage.getItem(SIGNED_OUT_KEY),
       ]);
-      if (p) {
+      
+      console.log('[UserContext] load - profile exists:', !!p);
+      console.log('[UserContext] load - signed out flag:', signedOut);
+      
+      // Only set profile if we have one and user hasn't explicitly signed out
+      if (p && signedOut !== 'true') {
+        console.log('[UserContext] load - setting profile from storage');
         setProfile(JSON.parse(p));
       } else {
-        // Create a default demo user for testing
-        const defaultProfile: UserProfile = {
-          displayName: "Demo User",
-          email: "demo@example.com",
-          avatarUrl: "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=200&auto=format&fit=crop"
-        };
-        setProfile(defaultProfile);
-        await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(defaultProfile));
+        console.log('[UserContext] load - no profile or user signed out, keeping profile null');
+        setProfile(null);
       }
+      
       if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
     } catch (err) {
       console.error("[UserContext] load error", err);
@@ -146,6 +149,9 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
 
   const updateProfile = useCallback(async (patch: Partial<UserProfile>) => {
     console.log('[UserContext] updateProfile called with patch:', patch);
+    // Clear the signed out flag when updating profile (user is signing in)
+    await AsyncStorage.removeItem(SIGNED_OUT_KEY);
+    
     setProfile(prev => {
       const next = { ...(prev ?? { displayName: "", email: "", avatarUrl: null }), ...patch };
       console.log('[UserContext] updateProfile - prev profile:', prev);
@@ -187,8 +193,9 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const signOut = useCallback(async () => {
     console.log('[UserContext] signOut called');
     try {
-      console.log('[UserContext] Removing profile from AsyncStorage');
+      console.log('[UserContext] Setting signed out flag and removing profile from AsyncStorage');
       await Promise.all([
+        AsyncStorage.setItem(SIGNED_OUT_KEY, 'true'), // Mark as signed out
         AsyncStorage.removeItem(PROFILE_KEY),
         AsyncStorage.removeItem(PASSWORD_KEY), // Also clear password
       ]);
