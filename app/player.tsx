@@ -848,6 +848,7 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   playerBackground: {
     flex: 1,
@@ -986,8 +987,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   infoContainer: {
-    flex: 1,
     paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   titleSection: {
     alignItems: 'center',
@@ -1063,10 +1064,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    marginBottom: 40,
+    marginBottom: 60,
+    minHeight: 100,
   },
   controlButton: {
     padding: 12,
+    minWidth: 56,
+    minHeight: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   playButton: {
     width: 80,
@@ -1080,6 +1086,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
+    marginHorizontal: 20,
   },
   bottomActions: {
     flexDirection: "row",
