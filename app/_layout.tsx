@@ -13,6 +13,7 @@ import { MixMindProvider } from "@/contexts/MixMindContext";
 import { SecurityProvider } from "@/contexts/SecurityContext";
 import { UXProvider } from "@/contexts/UXContext";
 import { SecretsProvider } from "@/contexts/SecretsContext";
+import { DJInstinctProvider } from "@/contexts/DJInstinctContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { ToastProvider, ToastViewport } from "@/components/ui/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -84,6 +85,14 @@ function RootLayoutNav() {
       <Stack.Screen name="security-settings" options={{ title: "Security Settings" }} />
       <Stack.Screen name="ux-settings" options={{ title: "User Experience" }} />
       <Stack.Screen name="admin" options={{ headerShown: false }} />
+      <Stack.Screen 
+        name="dj-instinct" 
+        options={{ 
+          presentation: "modal",
+          headerShown: false,
+          animation: "slide_from_bottom"
+        }} 
+      />
     </Stack>
   );
 }
@@ -122,15 +131,17 @@ export default function RootLayout() {
                     <MixMindProvider>
                       <OfflineProvider>
                         <PlayerProvider>
-                          <LibraryProvider>
-                            <ToastProvider>
-                              <SecretsProvider>
-                                <RootLayoutNav />
-                                <MiniPlayer />
-                                <ToastViewport />
-                              </SecretsProvider>
-                            </ToastProvider>
-                          </LibraryProvider>
+                          <DJInstinctProvider>
+                            <LibraryProvider>
+                              <ToastProvider>
+                                <SecretsProvider>
+                                  <RootLayoutNav />
+                                  <MiniPlayer />
+                                  <ToastViewport />
+                                </SecretsProvider>
+                              </ToastProvider>
+                            </LibraryProvider>
+                          </DJInstinctProvider>
                         </PlayerProvider>
                       </OfflineProvider>
                     </MixMindProvider>

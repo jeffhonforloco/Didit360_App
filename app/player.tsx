@@ -40,6 +40,7 @@ import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { DJInstinctEntry } from "@/components/DJInstinctEntry";
 import type { Track } from "@/types";
 import { audioEngine, Progress } from "@/lib/AudioEngine";
 
@@ -510,16 +511,19 @@ export default function PlayerScreen() {
                 <View style={styles.progressDot} />
                 <View style={styles.progressDot} />
               </View>
-              <TouchableOpacity 
-                onPress={() => {
-                  console.log('[Player] Options menu button pressed');
-                  setShowOptionsMenu(true);
-                }}
-                style={styles.headerOptionsButton}
-                activeOpacity={0.7}
-              >
-                <MoreVertical size={24} color="#FF0080" />
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <DJInstinctEntry style={styles.djInstinctEntry} />
+                <TouchableOpacity 
+                  onPress={() => {
+                    console.log('[Player] Options menu button pressed');
+                    setShowOptionsMenu(true);
+                  }}
+                  style={styles.headerOptionsButton}
+                  activeOpacity={0.7}
+                >
+                  <MoreVertical size={24} color="#FF0080" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <View style={styles.artworkContainer}>
@@ -1133,10 +1137,7 @@ const styles = StyleSheet.create({
   playIcon: {
     marginLeft: 4,
   },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+
   headerAction: {
     marginLeft: 16,
   },
@@ -1432,5 +1433,13 @@ const styles = StyleSheet.create({
     minHeight: 40,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  djInstinctEntry: {
+    marginRight: 4,
   },
 });
