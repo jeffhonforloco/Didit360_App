@@ -154,9 +154,9 @@ export default function MixMindScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title} testID="mixmind-title">MixMind</Text>
+            <Text style={styles.title} testID="mixmind-title">DJ Instinct</Text>
             <Text style={styles.subtitle} testID="mixmind-subtitle">
-              Your AI-powered music curator
+              The AI that feels the music
             </Text>
           </View>
           <View style={styles.headerStats}>
@@ -179,9 +179,9 @@ export default function MixMindScreen() {
           style={styles.heroCard}
         >
           <Sparkles size={48} color="#FFF" />
-          <Text style={styles.heroTitle}>AI Music Curator</Text>
+          <Text style={styles.heroTitle}>DJ Instinct</Text>
           <Text style={styles.heroDescription}>
-            Tell me what you want to hear, and I&apos;ll create the perfect mix for you.
+            Your AI DJ that creates seamless mixes with human-like intuition. Perfect for parties, workouts, or solo listening.
           </Text>
         </LinearGradient>
 

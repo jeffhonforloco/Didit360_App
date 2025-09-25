@@ -33,7 +33,10 @@ export default function ProfileScreen() {
     console.log('[ProfileScreen] useEffect - isLoading:', isLoading, 'profile:', !!profile);
     if (!isLoading && !profile) {
       console.log('[ProfileScreen] No profile found, redirecting to auth');
-      router.replace('/auth' as Href);
+      // Add a small delay to ensure the context has fully updated
+      setTimeout(() => {
+        router.replace('/auth' as Href);
+      }, 100);
     }
   }, [profile, isLoading]);
 
