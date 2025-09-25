@@ -42,7 +42,6 @@ interface UserState {
   profile: UserProfile | null;
   settings: AppSettings;
   isLoading: boolean;
-  isInitialized: boolean;
   updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
   resetSettings: () => Promise<void>;
@@ -109,7 +108,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   const load = useCallback(async () => {
     try {
@@ -137,7 +135,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.error("[UserContext] load error", err);
     } finally {
       setIsLoading(false);
-      setIsInitialized(true);
     }
   }, []);
 
@@ -208,6 +205,9 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] Profile and password removed from AsyncStorage, setting profile to null');
       setProfile(null);
       console.log('[UserContext] signOut completed - profile set to null');
+      
+      // Force a small delay to ensure state updates are processed
+      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (err) {
       console.error("[UserContext] signOut error", err);
       throw err; // Re-throw the error so the caller can handle it
@@ -230,7 +230,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     profile,
     settings,
     isLoading,
-    isInitialized,
     updateProfile,
     updateSetting,
     resetSettings,
