@@ -8,9 +8,8 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
-  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { 
   Sparkles, 
   Play, 
@@ -22,29 +21,19 @@ import {
   Zap,
   Music,
   Clock,
-  TrendingUp,
   Shuffle,
   BarChart3,
-  Headphones,
   Share2,
   Download,
-  Users,
-  MessageCircle,
-  Award,
-  Activity,
-  Radio,
-  Waves,
-  MicIcon,
   StopCircle,
-  Volume2
+  Volume2,
+  Headphones
 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useMixMind } from "@/contexts/MixMindContext";
 import { aiDjPrompts, type AIDJPromptCategoryKey } from "@/data/aiDjPrompts";
-
-
 
 const presetMoods = [
   { id: "energetic", label: "Energetic", emoji: "⚡", gradient: ["#FF6B6B", "#FF8E53"] },
@@ -58,23 +47,14 @@ const presetMoods = [
 const quickActions = [
   { id: "voice", icon: Mic, label: "Voice Prompt", color: "#FF6B6B" },
   { id: "shuffle", icon: Shuffle, label: "Surprise Me", color: "#4ECDC4" },
-  { id: "collaborate", icon: Users, label: "Collaborate", color: "#667eea" },
-  { id: "analyze", icon: Activity, label: "Analyze", color: "#f093fb" },
-];
-
-const advancedActions = [
-  { id: "live", icon: Radio, label: "Go Live", color: "#FF0080" },
-  { id: "export", icon: Download, label: "Export", color: "#00D4AA" },
-  { id: "share", icon: Share2, label: "Share", color: "#8B5CF6" },
-  { id: "achievements", icon: Award, label: "Achievements", color: "#F59E0B" },
+  { id: "history", icon: History, label: "History", color: "#667eea" },
+  { id: "settings", icon: Settings, label: "Settings", color: "#f093fb" },
 ];
 
 export default function MixMindScreen() {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const [prompt, setPrompt] = useState<string>("");
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const [djStyle, setDjStyle] = useState<string>("");
   const { playTrack } = usePlayer();
   const { 
     currentSet, 
@@ -84,55 +64,22 @@ export default function MixMindScreen() {
     generateSet, 
     addFavoritePrompt,
     settings,
-    // Voice features
     isRecording,
-    voiceSession,
     startVoiceInput,
     stopVoiceInput,
-    // Analysis features
-    isAnalyzing,
-    currentAnalysis,
-    energyFlow,
-    recommendations,
-    analyzeCurrentSet,
-    // Collaboration features
-    collaborationSession,
-    isLive,
-    liveListeners,
-    startCollaboration,
-    // Social features
-    shareSet,
-    likeSet,
-    // Export features
-    exportSet,
-    // Achievement system
-    checkAchievements,
   } = useMixMind();
 
   const suggestionCategories = useMemo(() => Object.keys(aiDjPrompts) as AIDJPromptCategoryKey[], []);
 
-  const djStyleExamples = useMemo(
-    () => [
-      "like Black Coffee (deep, smooth transitions)",
-      "like Peggy Gou (groovy, retro house)",
-      "like David Guetta (festival big-room)",
-      "like Amelie Lens (driving techno)",
-      "like Kaytranada (bounce, soulful edits)",
-      "like DJ Snake (global bass energy)",
-    ],
-    [],
-  );
-
   const buildPrompt = useCallback(() => {
     const moodText = selectedMood ? `${presetMoods.find((m) => m.id === selectedMood)?.label ?? ""} mood` : "";
     const base = [prompt, moodText].filter(Boolean).join(". ");
-    const withDj = djStyle.trim() ? `${base}. DJ style: ${djStyle.trim()}` : base;
-    return withDj.trim();
-  }, [prompt, selectedMood, djStyle]);
+    return base.trim();
+  }, [prompt, selectedMood]);
 
   const handleGenerate = useCallback(async () => {
     try {
-      if (!prompt && !selectedMood && !djStyle) return;
+      if (!prompt && !selectedMood) return;
       
       const finalPrompt = buildPrompt();
       console.log("[MixMind] Generating with", { prompt: finalPrompt, settings });
@@ -144,7 +91,7 @@ export default function MixMindScreen() {
     } catch (error) {
       console.error("[MixMind] Generation error", error);
     }
-  }, [prompt, selectedMood, djStyle, buildPrompt, generateSet, settings]);
+  }, [prompt, selectedMood, buildPrompt, generateSet, settings]);
 
   const handlePlaySet = useCallback(() => {
     if (currentSet && currentSet.tracks.length > 0) {
@@ -169,47 +116,28 @@ export default function MixMindScreen() {
         setPrompt("Surprise me with something amazing");
         setSelectedMood(presetMoods[Math.floor(Math.random() * presetMoods.length)].id);
         break;
-      case "collaborate":
-        const sessionId = await startCollaboration('user-123');
-        if (sessionId) {
-          console.log(`[MixMind] Started collaboration session: ${sessionId}`);
-        }
+      case "history":
+        router.push("/mixmind-history");
         break;
-      case "analyze":
-        if (currentSet) {
-          await analyzeCurrentSet(currentSet);
-        }
+      case "settings":
+        router.push("/ai-dj-setup");
         break;
     }
-  }, [isRecording, stopVoiceInput, startVoiceInput, startCollaboration, currentSet, analyzeCurrentSet]);
+  }, [isRecording, stopVoiceInput, startVoiceInput]);
 
-  const handleAdvancedAction = useCallback(async (actionId: string) => {
-    switch (actionId) {
-      case "live":
-        console.log('[MixMind] Live mode coming soon!');
-        break;
-      case "export":
-        if (currentSet) {
-          const downloadUrl = await exportSet(currentSet.id, 'mp3', 'high');
-          if (downloadUrl) {
-            console.log(`[MixMind] Export ready: ${downloadUrl}`);
-          }
-        }
-        break;
-      case "share":
-        if (currentSet) {
-          const shared = await shareSet(currentSet.id, 'twitter');
-          if (shared) {
-            console.log('[MixMind] Set shared successfully!');
-          }
-        }
-        break;
-      case "achievements":
-        await checkAchievements();
-        console.log(`[MixMind] You have ${history.achievements.length} achievements!`);
-        break;
+  const handleShare = useCallback(() => {
+    if (currentSet) {
+      console.log('[MixMind] Sharing set:', currentSet.title);
+      // In a real app, this would open a share dialog
     }
-  }, [currentSet, exportSet, shareSet, checkAchievements, history.achievements.length]);
+  }, [currentSet]);
+
+  const handleDownload = useCallback(() => {
+    if (currentSet) {
+      console.log('[MixMind] Downloading set:', currentSet.title);
+      // In a real app, this would start a download
+    }
+  }, [currentSet]);
 
   const appendPrompt = useCallback((text: string) => {
     setPrompt((p) => (p ? `${p}\n${text}` : text));
@@ -279,14 +207,13 @@ export default function MixMindScreen() {
           <View style={styles.quickActionsGrid}>
             {quickActions.map((action) => {
               const isVoiceActive = action.id === 'voice' && isRecording;
-              const isAnalyzeActive = action.id === 'analyze' && isAnalyzing;
               return (
                 <TouchableOpacity
                   key={action.id}
                   style={[
                     styles.quickActionCard, 
                     { borderColor: action.color },
-                    (isVoiceActive || isAnalyzeActive) && styles.quickActionCardActive
+                    isVoiceActive && styles.quickActionCardActive
                   ]}
                   onPress={() => handleQuickAction(action.id)}
                   testID={`mixmind-quick-${action.id}`}
@@ -299,32 +226,9 @@ export default function MixMindScreen() {
                   <Text style={styles.quickActionLabel}>
                     {action.id === 'voice' && isRecording ? 'Stop Recording' : action.label}
                   </Text>
-                  {action.id === 'collaborate' && isLive && (
-                    <View style={styles.liveIndicator}>
-                      <Text style={styles.liveText}>{liveListeners}</Text>
-                    </View>
-                  )}
                 </TouchableOpacity>
               );
             })}
-          </View>
-        </View>
-
-        {/* Advanced Actions */}
-        <View style={styles.advancedActionsSection}>
-          <Text style={styles.sectionTitle}>Advanced Features</Text>
-          <View style={styles.advancedActionsGrid}>
-            {advancedActions.map((action) => (
-              <TouchableOpacity
-                key={action.id}
-                style={[styles.advancedActionCard, { borderColor: action.color }]}
-                onPress={() => handleAdvancedAction(action.id)}
-                testID={`mixmind-advanced-${action.id}`}
-              >
-                <action.icon size={20} color={action.color} />
-                <Text style={styles.advancedActionLabel}>{action.label}</Text>
-              </TouchableOpacity>
-            ))}
           </View>
         </View>
 
@@ -333,9 +237,9 @@ export default function MixMindScreen() {
           <View style={styles.recentSection}>
             <Text style={styles.sectionTitle}>Recent Prompts</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {recentPrompts.slice(0, 5).map((recentPrompt) => (
+              {recentPrompts.slice(0, 5).map((recentPrompt, index) => (
                 <TouchableOpacity
-                  key={recentPrompt}
+                  key={`recent-${index}`}
                   style={styles.recentPromptChip}
                   onPress={() => {
                     const sanitized = recentPrompt.trim();
@@ -377,36 +281,6 @@ export default function MixMindScreen() {
                 <Heart size={20} color="#FF0080" />
               </TouchableOpacity>
             )}
-          </View>
-          
-          {/* DJ Style Input */}
-          <View style={styles.djStyleSection}>
-            <Text style={styles.sectionTitleSmall}>DJ Style (Optional)</Text>
-            <TextInput
-              style={styles.djStyleInput}
-              placeholder="e.g., like Black Coffee (deep, smooth transitions)"
-              placeholderTextColor="#666"
-              value={djStyle}
-              onChangeText={setDjStyle}
-              testID="mixmind-style-input"
-            />
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionRow}>
-              {djStyleExamples.map((style, idx) => (
-                <TouchableOpacity
-                  key={`dj-${idx}`}
-                  style={styles.suggestionChip}
-                  onPress={() => {
-                    const sanitized = style.trim();
-                    if (sanitized && sanitized.length <= 200) {
-                      setDjStyle(sanitized);
-                    }
-                  }}
-                  testID={`mixmind-style-chip-${idx}`}
-                >
-                  <Text style={styles.suggestionText}>{style}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
           </View>
         </View>
 
@@ -472,7 +346,7 @@ export default function MixMindScreen() {
         <TouchableOpacity
           style={[styles.generateButton, isGenerating && styles.generateButtonDisabled]}
           onPress={handleGenerate}
-          disabled={isGenerating || (!prompt && !selectedMood && !djStyle)}
+          disabled={isGenerating || (!prompt && !selectedMood)}
           testID="mixmind-generate"
         >
           {isGenerating ? (
@@ -487,74 +361,6 @@ export default function MixMindScreen() {
             </>
           )}
         </TouchableOpacity>
-
-        {/* Voice Session Status */}
-        {voiceSession && (
-          <View style={styles.voiceSessionCard}>
-            <View style={styles.voiceSessionHeader}>
-              <MicIcon size={20} color="#FF6B6B" />
-              <Text style={styles.voiceSessionTitle}>Voice Session</Text>
-              {isRecording && <Volume2 size={16} color="#FF6B6B" />}
-            </View>
-            {voiceSession.transcript && (
-              <Text style={styles.voiceTranscript}>&quot;{voiceSession.transcript}&quot;</Text>
-            )}
-            <Text style={styles.voiceConfidence}>
-              Confidence: {Math.round(voiceSession.confidence * 100)}%
-            </Text>
-          </View>
-        )}
-
-        {/* Real-time Analysis */}
-        {currentAnalysis && (
-          <View style={styles.analysisCard}>
-            <View style={styles.analysisHeader}>
-              <Activity size={20} color="#8B5CF6" />
-              <Text style={styles.analysisTitle}>Real-time Analysis</Text>
-            </View>
-            <View style={styles.analysisMetrics}>
-              <View style={styles.analysisMetric}>
-                <Text style={styles.analysisMetricLabel}>Key Compatibility</Text>
-                <Text style={styles.analysisMetricValue}>
-                  {Math.round(currentAnalysis.keyCompatibility * 100)}%
-                </Text>
-              </View>
-              <View style={styles.analysisMetric}>
-                <Text style={styles.analysisMetricLabel}>Danceability</Text>
-                <Text style={styles.analysisMetricValue}>
-                  {Math.round(currentAnalysis.danceabilityScore * 100)}%
-                </Text>
-              </View>
-            </View>
-            {recommendations.length > 0 && (
-              <View style={styles.recommendationsSection}>
-                <Text style={styles.recommendationsTitle}>Recommended Tracks</Text>
-                {recommendations.slice(0, 2).map((track) => (
-                  <View key={track.id} style={styles.recommendationItem}>
-                    <Text style={styles.recommendationTitle}>{track.title}</Text>
-                    <Text style={styles.recommendationArtist}>{track.artist}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Collaboration Status */}
-        {collaborationSession && (
-          <View style={styles.collaborationCard}>
-            <View style={styles.collaborationHeader}>
-              <Users size={20} color="#667eea" />
-              <Text style={styles.collaborationTitle}>Live Collaboration</Text>
-              <View style={styles.liveIndicator}>
-                <Text style={styles.liveText}>{liveListeners}</Text>
-              </View>
-            </View>
-            <Text style={styles.collaborationInfo}>
-              {collaborationSession.participants.length} participants active
-            </Text>
-          </View>
-        )}
 
         {/* Generated Set Results */}
         {currentSet && (
@@ -582,7 +388,7 @@ export default function MixMindScreen() {
                     </Text>
                   </View>
                   <View style={styles.metaItem}>
-                    <Waves size={14} color="#999" />
+                    <Volume2 size={14} color="#999" />
                     <Text style={styles.metaText}>
                       {Math.round(currentSet.averageBPM)} BPM
                     </Text>
@@ -591,7 +397,7 @@ export default function MixMindScreen() {
               </View>
               <TouchableOpacity 
                 style={styles.likeButton}
-                onPress={() => likeSet(currentSet.id)}
+                onPress={() => console.log('Like set')}
                 testID="mixmind-like"
               >
                 <Heart 
@@ -650,7 +456,7 @@ export default function MixMindScreen() {
 
               <TouchableOpacity 
                 style={styles.actionButton} 
-                onPress={() => handleAdvancedAction('share')}
+                onPress={handleShare}
                 testID="mixmind-share"
               >
                 <Share2 size={18} color="#8B5CF6" />
@@ -658,7 +464,7 @@ export default function MixMindScreen() {
 
               <TouchableOpacity 
                 style={styles.actionButton} 
-                onPress={() => handleAdvancedAction('export')}
+                onPress={handleDownload}
                 testID="mixmind-export"
               >
                 <Download size={18} color="#00D4AA" />
@@ -671,46 +477,6 @@ export default function MixMindScreen() {
               >
                 <RefreshCw size={20} color="#FFF" />
               </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Achievements Preview */}
-        {history.achievements.length > 0 && (
-          <View style={styles.achievementsPreview}>
-            <View style={styles.achievementsHeader}>
-              <Award size={20} color="#F59E0B" />
-              <Text style={styles.achievementsTitle}>Recent Achievements</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {history.achievements.slice(0, 3).map((achievement) => (
-                <View key={achievement.id} style={styles.achievementCard}>
-                  <Text style={styles.achievementIcon}>{achievement.icon}</Text>
-                  <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                  <Text style={styles.achievementRarity}>{achievement.rarity}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* Energy Flow Visualization */}
-        {energyFlow.length > 0 && (
-          <View style={styles.energyFlowSection}>
-            <View style={styles.energyFlowHeader}>
-              <Activity size={20} color="#FF0080" />
-              <Text style={styles.energyFlowTitle}>Energy Flow</Text>
-            </View>
-            <View style={styles.energyFlowChart}>
-              {energyFlow.map((energy, energyIndex) => (
-                <View 
-                  key={energyIndex} 
-                  style={[
-                    styles.energyBar,
-                    { height: energy * 60 + 10 }
-                  ]} 
-                />
-              ))}
             </View>
           </View>
         )}
@@ -862,12 +628,6 @@ const styles = StyleSheet.create({
     color: "#FFF",
     marginBottom: 16,
   },
-  sectionTitleSmall: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#AAA",
-    marginBottom: 8,
-  },
   inputContainer: {
     position: "relative",
   },
@@ -887,35 +647,6 @@ const styles = StyleSheet.create({
     top: 16,
     right: 16,
     padding: 8,
-  },
-  djStyleSection: {
-    marginTop: 20,
-  },
-  djStyleInput: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 14,
-    color: "#FFF",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    marginBottom: 12,
-  },
-  suggestionRow: {
-    flexGrow: 0,
-  },
-  suggestionChip: {
-    backgroundColor: "#151515",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 10,
-    marginRight: 8,
-  },
-  suggestionText: {
-    color: "#DDD",
-    fontSize: 13,
   },
   moodSection: {
     paddingHorizontal: 20,
@@ -965,6 +696,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 12,
     fontWeight: "600",
+  },
+  suggestionRow: {
+    flexGrow: 0,
+  },
+  suggestionChip: {
+    backgroundColor: "#151515",
+    borderWidth: 1,
+    borderColor: "#2A2A2A",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  suggestionText: {
+    color: "#DDD",
+    fontSize: 13,
   },
   generateButton: {
     flexDirection: "row",
@@ -1122,164 +869,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
   },
-  // New styles for advanced features
-  advancedActionsSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  advancedActionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  advancedActionCard: {
-    width: "23%",
-    backgroundColor: "#1A1A1A",
-    borderRadius: 12,
-    padding: 12,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#2A2A2A",
-  },
-  advancedActionLabel: {
-    fontSize: 11,
-    fontWeight: "500",
-    color: "#FFF",
-    marginTop: 6,
-    textAlign: "center",
-  },
-  liveIndicator: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    backgroundColor: "#FF0080",
-    borderRadius: 10,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  liveText: {
-    fontSize: 10,
-    color: "#FFF",
-    fontWeight: "bold",
-  },
-  voiceSessionCard: {
-    backgroundColor: "#1A1A1A",
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#FF6B6B",
-  },
-  voiceSessionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 8,
-  },
-  voiceSessionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFF",
-    flex: 1,
-  },
-  voiceTranscript: {
-    fontSize: 14,
-    color: "#DDD",
-    fontStyle: "italic",
-    marginBottom: 8,
-  },
-  voiceConfidence: {
-    fontSize: 12,
-    color: "#999",
-  },
-  analysisCard: {
-    backgroundColor: "#1A1A1A",
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#8B5CF6",
-  },
-  analysisHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    gap: 8,
-  },
-  analysisTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  analysisMetrics: {
-    flexDirection: "row",
-    gap: 20,
-    marginBottom: 16,
-  },
-  analysisMetric: {
-    flex: 1,
-  },
-  analysisMetricLabel: {
-    fontSize: 12,
-    color: "#999",
-    marginBottom: 4,
-  },
-  analysisMetricValue: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#8B5CF6",
-  },
-  recommendationsSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#2A2A2A",
-  },
-  recommendationsTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFF",
-    marginBottom: 12,
-  },
-  recommendationItem: {
-    marginBottom: 8,
-  },
-  recommendationTitle: {
-    fontSize: 13,
-    color: "#DDD",
-    fontWeight: "500",
-  },
-  recommendationArtist: {
-    fontSize: 11,
-    color: "#999",
-  },
-  collaborationCard: {
-    backgroundColor: "#1A1A1A",
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#667eea",
-  },
-  collaborationHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-    gap: 8,
-  },
-  collaborationTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#FFF",
-    flex: 1,
-  },
-  collaborationInfo: {
-    fontSize: 14,
-    color: "#999",
-  },
   likeButton: {
     padding: 8,
   },
@@ -1290,73 +879,5 @@ const styles = StyleSheet.create({
     backgroundColor: "#2A2A2A",
     justifyContent: "center",
     alignItems: "center",
-  },
-  achievementsPreview: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  achievementsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    gap: 8,
-  },
-  achievementsTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  achievementCard: {
-    backgroundColor: "#1A1A1A",
-    borderRadius: 12,
-    padding: 16,
-    marginRight: 12,
-    alignItems: "center",
-    minWidth: 100,
-    borderWidth: 1,
-    borderColor: "#F59E0B",
-  },
-  achievementIcon: {
-    fontSize: 24,
-    marginBottom: 8,
-  },
-  achievementTitle: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#FFF",
-    textAlign: "center",
-    marginBottom: 4,
-  },
-  achievementRarity: {
-    fontSize: 10,
-    color: "#F59E0B",
-    textTransform: "uppercase",
-  },
-  energyFlowSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
-  },
-  energyFlowHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-    gap: 8,
-  },
-  energyFlowTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  energyFlowChart: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    height: 80,
-    gap: 4,
-  },
-  energyBar: {
-    flex: 1,
-    backgroundColor: "#FF0080",
-    borderRadius: 2,
-    minHeight: 10,
   },
 });

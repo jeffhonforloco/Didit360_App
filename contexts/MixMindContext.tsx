@@ -414,19 +414,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [voiceSession, setVoiceSession] = useState<VoiceSession | null>(null);
-  const [collaborationSession, setCollaborationSession] = useState<CollaborationSession | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [liveListeners, setLiveListeners] = useState<number>(0);
-  const [currentMood, setCurrentMood] = useState<string>('');
-  const [energyFlow, setEnergyFlow] = useState<number[]>([]);
-  const [recommendations, setRecommendations] = useState<GeneratedTrack[]>([]);
-  const [isLive, setIsLive] = useState<boolean>(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [trackQueue, setTrackQueue] = useState<GeneratedTrack[]>([]);
-  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
-  const [socialFeed, setSocialFeed] = useState<any[]>([]);
-  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Voice Input Feature
   const startVoiceInput = useCallback(async (): Promise<boolean> => {
@@ -437,22 +424,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       }
       
       setIsRecording(true);
-      const sessionId = `voice-${Date.now()}`;
-      
-      // Mock voice recording - in real implementation, use expo-av
       console.log('[MixMind] Starting voice recording...');
-      
-      // Simulate recording session
-      const mockSession: VoiceSession = {
-        id: sessionId,
-        transcript: '',
-        confidence: 0,
-        language: 'en',
-        timestamp: new Date(),
-        processed: false,
-      };
-      
-      setVoiceSession(mockSession);
       return true;
     } catch (error) {
       console.error('[MixMind] Voice input error:', error);
@@ -463,30 +435,11 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
 
   const stopVoiceInput = useCallback(async (): Promise<string | null> => {
     try {
-      if (!voiceSession) return null;
-      
       setIsRecording(false);
       
       // Mock transcription - in real implementation, use speech-to-text API
       const mockTranscript = 'Create an energetic Afrobeats mix for my workout';
-      const confidence = 0.95;
-      
-      const updatedSession: VoiceSession = {
-        ...voiceSession,
-        transcript: mockTranscript,
-        confidence,
-        processed: true,
-        resultingPrompt: mockTranscript,
-      };
-      
-      setVoiceSession(updatedSession);
-      
-      // Add to voice sessions history
-      const updatedHistory = {
-        ...history,
-        voiceSessions: [updatedSession, ...history.voiceSessions].slice(0, 20),
-      };
-      setHistory(updatedHistory);
+      console.log('[MixMind] Mock voice transcript:', mockTranscript);
       
       return mockTranscript;
     } catch (error) {
@@ -494,170 +447,45 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       setIsRecording(false);
       return null;
     }
-  }, [voiceSession, history]);
+  }, []);
 
-  // Real-time Analysis Feature
+  // Simplified analysis feature
   const analyzeCurrentSet = useCallback(async (set: GeneratedSet) => {
-    if (!settings.realTimeAnalysis) return;
-    
-    setIsAnalyzing(true);
-    try {
-      // Mock analysis - in real implementation, analyze audio features
-      const analysis = {
-        energyFlow: set.energyProgression,
-        keyCompatibility: calculateKeyCompatibility(set.keyProgression),
-        transitionPoints: findOptimalTransitions(set.tracks),
-        moodProgression: analyzeMoodProgression(set.tracks),
-        danceabilityScore: set.danceabilityScore,
-        recommendations: await generateRecommendations(set),
-      };
-      
-      setCurrentAnalysis(analysis);
-      setEnergyFlow(analysis.energyFlow);
-      setRecommendations(analysis.recommendations);
-      
-    } catch (error) {
-      console.error('[MixMind] Analysis error:', error);
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }, [settings.realTimeAnalysis]);
+    console.log('[MixMind] Analyzing set:', set.title);
+    // In a real implementation, this would analyze the set
+  }, []);
 
-  // Collaboration Features
+  // Simplified collaboration features
   const startCollaboration = useCallback(async (hostId: string): Promise<string | null> => {
-    try {
-      const sessionId = `collab-${Date.now()}`;
-      const session: CollaborationSession = {
-        id: sessionId,
-        hostId,
-        participants: [hostId],
-        isLive: true,
-        startTime: new Date(),
-        chatMessages: [],
-        trackQueue: [],
-        votingEnabled: true,
-        currentVotes: {},
-      };
-      
-      setCollaborationSession(session);
-      setIsLive(true);
-      
-      return sessionId;
-    } catch (error) {
-      console.error('[MixMind] Collaboration start error:', error);
-      return null;
-    }
+    console.log('[MixMind] Starting collaboration for host:', hostId);
+    // In a real implementation, this would start a collaboration session
+    return `collab-${Date.now()}`;
   }, []);
 
   const joinCollaboration = useCallback(async (sessionId: string, userId: string): Promise<boolean> => {
-    try {
-      if (!collaborationSession || collaborationSession.id !== sessionId) {
-        console.error('[MixMind] Collaboration session not found');
-        return false;
-      }
-      
-      const updatedSession = {
-        ...collaborationSession,
-        participants: [...collaborationSession.participants, userId],
-      };
-      
-      setCollaborationSession(updatedSession);
-      setLiveListeners(updatedSession.participants.length);
-      
-      return true;
-    } catch (error) {
-      console.error('[MixMind] Join collaboration error:', error);
-      return false;
-    }
-  }, [collaborationSession]);
+    console.log('[MixMind] Joining collaboration:', sessionId, userId);
+    // In a real implementation, this would join a collaboration session
+    return true;
+  }, []);
 
   const sendChatMessage = useCallback(async (message: string, userId: string, username: string) => {
-    if (!collaborationSession) return;
-    
-    const chatMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      userId,
-      username,
-      message: message.trim(),
-      timestamp: new Date(),
-      type: 'text',
-    };
-    
-    const updatedMessages = [...chatMessages, chatMessage];
-    setChatMessages(updatedMessages);
-    
-    const updatedSession = {
-      ...collaborationSession,
-      chatMessages: updatedMessages,
-    };
-    setCollaborationSession(updatedSession);
-  }, [collaborationSession, chatMessages]);
+    console.log('[MixMind] Sending chat message:', message, userId, username);
+    // In a real implementation, this would send a chat message
+  }, []);
 
-  // Export Features
+  // Simplified export feature
   const exportSet = useCallback(async (setId: string, format: 'mp3' | 'wav' | 'flac' | 'playlist' | 'json', quality: 'low' | 'medium' | 'high' | 'lossless' = 'medium'): Promise<string | null> => {
-    try {
-      const set = history.sets.find(s => s.id === setId);
-      if (!set) return null;
-      
-      // Mock export - in real implementation, generate actual files
-      const exportRecord: ExportRecord = {
-        id: `export-${Date.now()}`,
-        setId,
-        format,
-        quality,
-        timestamp: new Date(),
-        fileSize: Math.floor(Math.random() * 100000000), // Mock file size
-        downloadUrl: `https://example.com/exports/${setId}.${format}`,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-      };
-      
-      const updatedHistory = {
-        ...history,
-        exportHistory: [exportRecord, ...history.exportHistory],
-      };
-      setHistory(updatedHistory);
-      
-      return exportRecord.downloadUrl || null;
-    } catch (error) {
-      console.error('[MixMind] Export error:', error);
-      return null;
-    }
-  }, [history]);
+    console.log('[MixMind] Exporting set:', setId, format, quality);
+    // In a real implementation, this would export the set
+    return `https://example.com/exports/${setId}.${format}`;
+  }, []);
 
-  // Social Features
+  // Simplified social features
   const shareSet = useCallback(async (setId: string, platform: string): Promise<boolean> => {
-    try {
-      if (!settings.socialSharing) return false;
-      
-      const set = history.sets.find(s => s.id === setId);
-      if (!set) return false;
-      
-      // Mock sharing - in real implementation, integrate with social platforms
-      const activity: SocialActivity = {
-        id: `share-${Date.now()}`,
-        type: 'share',
-        targetId: setId,
-        targetType: 'set',
-        timestamp: new Date(),
-        metadata: { platform },
-      };
-      
-      const updatedHistory = {
-        ...history,
-        socialActivity: [activity, ...history.socialActivity],
-        statistics: {
-          ...history.statistics,
-          totalShares: history.statistics.totalShares + 1,
-        },
-      };
-      setHistory(updatedHistory);
-      
-      return true;
-    } catch (error) {
-      console.error('[MixMind] Share error:', error);
-      return false;
-    }
-  }, [settings.socialSharing, history]);
+    console.log('[MixMind] Sharing set:', setId, 'on', platform);
+    // In a real implementation, this would share the set
+    return true;
+  }, []);
 
   const likeSet = useCallback(async (setId: string): Promise<boolean> => {
     try {
@@ -667,22 +495,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
         ? history.likedSets.filter(id => id !== setId)
         : [...history.likedSets, setId];
       
-      const activity: SocialActivity = {
-        id: `like-${Date.now()}`,
-        type: 'like',
-        targetId: setId,
-        targetType: 'set',
-        timestamp: new Date(),
-      };
-      
       const updatedHistory = {
         ...history,
         likedSets: updatedLikedSets,
-        socialActivity: isAlreadyLiked ? history.socialActivity : [activity, ...history.socialActivity],
-        statistics: {
-          ...history.statistics,
-          totalLikes: isAlreadyLiked ? history.statistics.totalLikes - 1 : history.statistics.totalLikes + 1,
-        },
       };
       setHistory(updatedHistory);
       
@@ -693,77 +508,13 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     }
   }, [history]);
 
-  // Achievement System
+  // Simplified achievement system
   const checkAchievements = useCallback(async () => {
-    const newAchievements: Achievement[] = [];
-    
-    // Check for various achievements
-    if (history.totalSetsGenerated >= 10 && !history.achievements.find(a => a.id === 'first_ten')) {
-      newAchievements.push({
-        id: 'first_ten',
-        title: 'Mix Master',
-        description: 'Created your first 10 sets',
-        icon: '🎵',
-        unlockedAt: new Date(),
-        category: 'creation',
-        rarity: 'common',
-      });
-    }
-    
-    if (history.statistics.totalListeningHours >= 100 && !history.achievements.find(a => a.id === 'century_listener')) {
-      newAchievements.push({
-        id: 'century_listener',
-        title: 'Century Listener',
-        description: 'Listened to 100+ hours of music',
-        icon: '🎧',
-        unlockedAt: new Date(),
-        category: 'listening',
-        rarity: 'rare',
-      });
-    }
-    
-    if (newAchievements.length > 0) {
-      const updatedHistory = {
-        ...history,
-        achievements: [...history.achievements, ...newAchievements],
-      };
-      setHistory(updatedHistory);
-    }
-  }, [history]);
+    console.log('[MixMind] Checking achievements...');
+    // In a real implementation, this would check and unlock achievements
+  }, []);
 
-  // Helper functions
-  const calculateKeyCompatibility = (keys: string[]): number => {
-    // Mock implementation - calculate harmonic compatibility
-    return Math.random() * 0.3 + 0.7; // 0.7-1.0 range
-  };
 
-  const findOptimalTransitions = (tracks: GeneratedTrack[]): number[] => {
-    // Mock implementation - find best transition points
-    return tracks.map(() => Math.random() * 30 + 15); // 15-45 second range
-  };
-
-  const analyzeMoodProgression = (tracks: GeneratedTrack[]): string[] => {
-    // Mock implementation - analyze mood changes
-    const moods = ['energetic', 'chill', 'uplifting', 'intense', 'mellow'];
-    return tracks.map(() => moods[Math.floor(Math.random() * moods.length)]);
-  };
-
-  const generateRecommendations = async (set: GeneratedSet): Promise<GeneratedTrack[]> => {
-    // Mock implementation - generate track recommendations
-    return [
-      {
-        id: `rec-${Date.now()}-1`,
-        title: 'Recommended Track 1',
-        artist: 'AI Recommendation',
-        artwork: `https://picsum.photos/400/400?random=${Date.now()}`,
-        duration: 180,
-        genre: set.tracks[0]?.genre || 'Electronic',
-        energy: set.averageEnergy,
-        bpm: set.averageBPM,
-        key: set.keyProgression[0] || 'C',
-      },
-    ];
-  };
 
   // Load settings and history from storage
   useEffect(() => {
@@ -964,29 +715,18 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     
     // Voice features
     isRecording,
-    voiceSession,
     startVoiceInput,
     stopVoiceInput,
     
     // Analysis features
-    isAnalyzing,
-    currentAnalysis,
-    energyFlow,
-    recommendations,
     analyzeCurrentSet,
     
     // Collaboration features
-    collaborationSession,
-    isLive,
-    liveListeners,
-    chatMessages,
-    trackQueue,
     startCollaboration,
     joinCollaboration,
     sendChatMessage,
     
     // Social features
-    socialFeed,
     shareSet,
     likeSet,
     
@@ -995,10 +735,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     
     // Achievement system
     checkAchievements,
-    
-    // Utility states
-    currentMood,
-    notifications,
   }), [
     // Core dependencies
     settings,
@@ -1016,29 +752,18 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     
     // Voice dependencies
     isRecording,
-    voiceSession,
     startVoiceInput,
     stopVoiceInput,
     
     // Analysis dependencies
-    isAnalyzing,
-    currentAnalysis,
-    energyFlow,
-    recommendations,
     analyzeCurrentSet,
     
     // Collaboration dependencies
-    collaborationSession,
-    isLive,
-    liveListeners,
-    chatMessages,
-    trackQueue,
     startCollaboration,
     joinCollaboration,
     sendChatMessage,
     
     // Social dependencies
-    socialFeed,
     shareSet,
     likeSet,
     
@@ -1047,10 +772,6 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     
     // Achievement dependencies
     checkAchievements,
-    
-    // Utility dependencies
-    currentMood,
-    notifications,
   ]);
 });
 
