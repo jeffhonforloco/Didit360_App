@@ -274,7 +274,14 @@ export default function PlayerScreen() {
             <Text style={styles.videoTitle} numberOfLines={1}>
               {currentTrack.title}
             </Text>
-            <TouchableOpacity onPress={() => setShowShareModal(true)}>
+            <TouchableOpacity 
+              onPress={() => {
+                console.log('[Player] Video options menu button pressed');
+                setShowShareModal(true);
+              }}
+              style={styles.optionsButton}
+              activeOpacity={0.7}
+            >
               <MoreVertical size={24} color="#FFF" />
             </TouchableOpacity>
           </View>
@@ -488,7 +495,14 @@ export default function PlayerScreen() {
                 <View style={styles.progressDot} />
                 <View style={styles.progressDot} />
               </View>
-              <TouchableOpacity onPress={() => setShowOptionsMenu(true)}>
+              <TouchableOpacity 
+                onPress={() => {
+                  console.log('[Player] Options menu button pressed');
+                  setShowOptionsMenu(true);
+                }}
+                style={styles.optionsButton}
+                activeOpacity={0.7}
+              >
                 <MoreVertical size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
@@ -1359,5 +1373,12 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '500',
     marginLeft: 16,
+  },
+  optionsButton: {
+    padding: 8,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
