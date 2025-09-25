@@ -509,9 +509,7 @@ export default function SettingsScreen() {
                     console.log('[Settings] Sign out with navigation completed');
                   } catch (error) {
                     console.error('[Settings] Sign out error:', error);
-                    if (Platform.OS !== 'web') {
-                      Alert.alert('Error', 'Failed to sign out. Please try again.');
-                    }
+                    // Don't show error alert, just log it - user will be navigated away anyway
                   }
                 }}
               ]

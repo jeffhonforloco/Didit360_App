@@ -91,12 +91,16 @@ export const useSignOut = () => {
       await signOut();
       console.log('[useSignOut] Sign out completed, profile should be null now');
       
-      // Navigate to auth screen
-      console.log('[useSignOut] Navigating to auth screen');
-      router.push('/auth');
+      // Navigate to home screen (tabs) instead of auth modal
+      console.log('[useSignOut] Navigating to home screen');
+      router.dismissAll(); // Dismiss any modals first
+      router.replace('/(tabs)'); // Replace current screen with home
       
     } catch (error) {
       console.error('[useSignOut] Sign out error:', error);
+      // Even if there's an error, try to navigate away
+      router.dismissAll();
+      router.replace('/(tabs)');
       throw error;
     }
   }, [signOut]);
@@ -197,19 +201,24 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     console.log('[UserContext] signOut called');
     try {
       console.log('[UserContext] Setting signed out flag and removing profile from AsyncStorage');
+      
+      // First set profile to null immediately for UI responsiveness
+      setProfile(null);
+      console.log('[UserContext] Profile set to null immediately');
+      
+      // Then clear storage
       await Promise.all([
         AsyncStorage.setItem(SIGNED_OUT_KEY, 'true'), // Mark as signed out
         AsyncStorage.removeItem(PROFILE_KEY),
         AsyncStorage.removeItem(PASSWORD_KEY), // Also clear password
       ]);
-      console.log('[UserContext] Profile and password removed from AsyncStorage, setting profile to null');
-      setProfile(null);
-      console.log('[UserContext] signOut completed - profile set to null');
+      console.log('[UserContext] Profile and password removed from AsyncStorage');
+      console.log('[UserContext] signOut completed successfully');
       
-      // Force a small delay to ensure state updates are processed
-      await new Promise(resolve => setTimeout(resolve, 200));
     } catch (err) {
       console.error("[UserContext] signOut error", err);
+      // If storage operations fail, still keep profile as null since user intended to sign out
+      setProfile(null);
       throw err; // Re-throw the error so the caller can handle it
     }
   }, []);

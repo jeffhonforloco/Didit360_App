@@ -32,7 +32,7 @@ export default function ProfileScreen() {
   useEffect(() => {
     if (!isLoading && !profile) {
       console.log('[ProfileScreen] No profile found, redirecting to auth');
-      router.push('/auth' as Href);
+      router.replace('/auth' as Href);
     }
   }, [profile, isLoading]);
 
@@ -63,11 +63,7 @@ export default function ProfileScreen() {
             console.log('[ProfileScreen] signOut with navigation completed successfully');
           } catch (e) { 
             console.error('[ProfileScreen] signOut error:', e); 
-            if (Platform.OS === 'web') {
-              console.log('Failed to sign out. Please try again.');
-            } else {
-              Alert.alert('Error', 'Failed to sign out. Please try again.');
-            }
+            // Don't show error alert, just log it - user will be navigated away anyway
           } 
         } },
       ]);
