@@ -378,8 +378,16 @@ export default function PlayerScreen() {
           animationType="slide"
           onRequestClose={() => setShowShareModal(false)}
         >
-          <View style={styles.modalOverlay}>
-            <View style={styles.shareModal}>
+          <TouchableOpacity 
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowShareModal(false)}
+          >
+            <TouchableOpacity 
+              style={styles.shareModal}
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
               <Text style={styles.shareTitle}>SHARE TO</Text>
               
               <TouchableOpacity 
@@ -421,8 +429,15 @@ export default function PlayerScreen() {
                 </View>
                 <Text style={styles.shareOptionText}>Copy Link</Text>
               </TouchableOpacity>
-            </View>
-          </View>
+              
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setShowShareModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          </TouchableOpacity>
         </Modal>
 
         {/* Add to Playlist Modal */}
@@ -662,8 +677,16 @@ export default function PlayerScreen() {
         animationType="slide"
         onRequestClose={() => setShowShareModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.shareModal}>
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.shareModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <Text style={styles.shareTitle}>SHARE TO</Text>
             
             <TouchableOpacity 
@@ -705,8 +728,15 @@ export default function PlayerScreen() {
               </View>
               <Text style={styles.shareOptionText}>Copy Link</Text>
             </TouchableOpacity>
-          </View>
-        </View>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
 
       {/* Add to Playlist Modal */}
