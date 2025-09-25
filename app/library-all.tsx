@@ -255,6 +255,7 @@ export default function LibraryAllScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>All Items ({items.length})</Text>
           <FlatList
+            key={viewMode}
             data={items}
             renderItem={renderCard}
             keyExtractor={(it) => `${viewMode}-${it.kind}-${it.id}`}
