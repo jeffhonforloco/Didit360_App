@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
-import { Audio } from 'expo-av';
+// import { AudioRecorder } from 'expo-audio'; // Disabled for now
 import createContextHook from '@nkzw/create-context-hook';
 
 export interface MixMindSettings {
@@ -403,7 +403,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [recentPrompts, setRecentPrompts] = useState<string[]>([]);
   const [isRecording, setIsRecording] = useState<boolean>(false);
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recording, setRecording] = useState<any | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [audioChunks, setAudioChunks] = useState<Blob[]>([]);
 
@@ -457,26 +457,11 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
           return false;
         }
       } else {
-        // Mobile implementation using expo-av
+        // Mobile implementation - disabled for now
         try {
-          const { status } = await Audio.requestPermissionsAsync();
-          if (status !== 'granted') {
-            console.log('[MixMind] Audio permission denied');
-            setIsRecording(false);
-            return false;
-          }
-          
-          await Audio.setAudioModeAsync({
-            allowsRecordingIOS: true,
-            playsInSilentModeIOS: true,
-          });
-          
-          const { recording: newRecording } = await Audio.Recording.createAsync(
-            Audio.RecordingOptionsPresets.HIGH_QUALITY
-          );
-          
-          setRecording(newRecording);
-          return true;
+          console.log('[MixMind] Mobile voice recording not yet implemented');
+          setIsRecording(false);
+          return false;
         } catch (mobileError) {
           console.error('[MixMind] Mobile audio error:', mobileError);
           setIsRecording(false);
@@ -545,43 +530,9 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
       const handleMobileStop = async (): Promise<string | null> => {
         if (recording) {
           try {
-            await recording.stopAndUnloadAsync();
-            await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
-            
-            const uri = recording.getURI();
-            if (!uri) {
-              console.error('[MixMind] No recording URI');
-              setRecording(null);
-              return null;
-            }
-            
-            const uriParts = uri.split('.');
-            const fileType = uriParts[uriParts.length - 1];
-            
-            const audioFile = {
-              uri,
-              name: "recording." + fileType,
-              type: "audio/" + fileType
-            };
-            
-            const formData = new FormData();
-            formData.append('audio', audioFile as any);
-            
-            const response = await fetch('https://toolkit.rork.com/stt/transcribe/', {
-              method: 'POST',
-              body: formData,
-            });
-            
-            if (response.ok) {
-              const data = await response.json();
-              console.log('[MixMind] Transcription:', data.text);
-              setRecording(null);
-              return data.text;
-            } else {
-              console.error('[MixMind] Transcription failed:', response.status);
-              setRecording(null);
-              return null;
-            }
+            console.log('[MixMind] Mobile voice recording stop not yet implemented');
+            setRecording(null);
+            return null;
           } catch (error) {
             console.error('[MixMind] Mobile transcription error:', error);
             setRecording(null);
@@ -874,7 +825,7 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     }
   }, [settings, addRecentPrompt, addToHistory]);
 
-  return useMemo(() => ({
+  const contextValue = useMemo(() => ({
     // Core features
     settings,
     history,
@@ -937,6 +888,8 @@ export const [MixMindProvider, useMixMind] = createContextHook(() => {
     exportSet,
     checkAchievements,
   ]);
+  
+  return contextValue;
 });
 
 function buildAIPrompt(userPrompt: string, settings: MixMindSettings): string {
