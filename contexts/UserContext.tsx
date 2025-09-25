@@ -96,15 +96,8 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       if (p) {
         setProfile(JSON.parse(p));
       } else {
-        // Set default profile if none exists - but without hardcoded avatar
-        const defaultProfile = {
-          displayName: 'jeffhonforloco',
-          email: 'jeffhonforloco@gmail.com',
-          avatarUrl: null
-        };
-        setProfile(defaultProfile);
-        // Persist the default profile so it doesn't get reset on reload
-        await persist(PROFILE_KEY, defaultProfile);
+        // No profile exists - user is not signed in
+        setProfile(null);
       }
       if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
     } catch (err) {

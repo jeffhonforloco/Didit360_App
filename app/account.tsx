@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert, Platform } from "react-native";
 import { useUser } from "@/contexts/UserContext";
-import { useNavigation } from "expo-router";
+import { useNavigation, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ImageIcon } from 'lucide-react-native';
@@ -14,15 +14,6 @@ export default function AccountScreen() {
   const [name, setName] = useState<string>(profile?.displayName ?? "");
   const [email, setEmail] = useState<string>(profile?.email ?? "");
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatarUrl ?? "");
-
-  // Update local state when profile changes
-  React.useEffect(() => {
-    if (profile) {
-      setName(profile.displayName);
-      setEmail(profile.email);
-      setAvatarUrl(profile.avatarUrl ?? "");
-    }
-  }, [profile]);
   const [saving, setSaving] = useState<boolean>(false);
   const [currentPw, setCurrentPw] = useState<string>("");
   const [newPw, setNewPw] = useState<string>("");
@@ -136,6 +127,36 @@ export default function AccountScreen() {
       setSaving(false);
     }
   }, [name, email, avatarUrl, updateProfile, nav, currentPw, newPw, confirmPw, changePassword]);
+
+  // Update local state when profile changes
+  useEffect(() => {
+    if (profile) {
+      setName(profile.displayName);
+      setEmail(profile.email);
+      setAvatarUrl(profile.avatarUrl ?? "");
+    }
+  }, [profile]);
+
+  // Redirect to auth if user is not signed in
+  useEffect(() => {
+    if (!isLoading && !profile) {
+      console.log('[AccountScreen] No profile found, redirecting to auth');
+      router.push('/auth' as Href);
+    }
+  }, [profile, isLoading]);
+
+  // Show loading or return early if no profile
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(12, insets.bottom) }]} testID="account-loading">
+        <Text style={styles.headerTitle}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!profile) {
+    return null; // Will redirect to auth
+  }
 
   const avatarSrc = avatarUrl || "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?q=80&w=400&auto=format&fit=crop";
 

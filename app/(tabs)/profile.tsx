@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car } from "lucide-react-native";
@@ -6,10 +6,11 @@ import { router, type Href } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
 
 export default function ProfileScreen() {
-  const { profile, signOut } = useUser();
+  const { profile, signOut, isLoading } = useUser();
   
   console.log('[ProfileScreen] profile:', profile);
   console.log('[ProfileScreen] signOut function:', typeof signOut);
+  console.log('[ProfileScreen] isLoading:', isLoading);
 
   const items = useMemo(
     () => [
@@ -25,6 +26,27 @@ export default function ProfileScreen() {
     ],
     []
   );
+
+  // Redirect to auth if user is not signed in
+  useEffect(() => {
+    if (!isLoading && !profile) {
+      console.log('[ProfileScreen] No profile found, redirecting to auth');
+      router.push('/auth' as Href);
+    }
+  }, [profile, isLoading]);
+
+  // Show loading or return early if no profile
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]} testID="profile-loading">
+        <Text style={styles.header}>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!profile) {
+    return null; // Will redirect to auth
+  }
 
   const onPress = (key: string) => {
     console.log('[ProfileScreen] onPress called with key:', key);
@@ -65,7 +87,7 @@ export default function ProfileScreen() {
             <Image source={{ uri: avatarSrc }} style={styles.avatar} />
           </TouchableOpacity>
           <View style={styles.userMeta}>
-            <Text style={styles.userName} numberOfLines={1}>{profile?.displayName ?? 'jeffhonforloco'}</Text>
+            <Text style={styles.userName} numberOfLines={1}>{profile.displayName}</Text>
             <TouchableOpacity onPress={() => router.push('/account' as Href)} activeOpacity={0.9} testID="btn-view-profile">
               <Text style={styles.userView}>View Profile</Text>
             </TouchableOpacity>
