@@ -23,6 +23,13 @@ import { mixmindNextProcedure } from "./routes/mixmind/sessions/next/route";
 // Admin
 import { getDDLProcedure } from "./routes/admin/db/ddl/route";
 
+// Enrichment
+import { 
+  extractAudioFeaturesProcedure, 
+  generateEmbeddingProcedure, 
+  findSimilarProcedure 
+} from "./routes/enrichment/audio-features/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute,
@@ -45,6 +52,11 @@ export const appRouter = createTRPCRouter({
     rss: ingestRssProcedure,
     createJob: ingestJobProcedure,
     getJob: getIngestJobProcedure,
+  }),
+  enrichment: createTRPCRouter({
+    extractAudioFeatures: extractAudioFeaturesProcedure,
+    generateEmbedding: generateEmbeddingProcedure,
+    findSimilar: findSimilarProcedure,
   }),
   mixmind: createTRPCRouter({
     createSession: mixmindCreateSessionProcedure,

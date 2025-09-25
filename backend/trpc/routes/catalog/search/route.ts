@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { publicProcedure } from "../../../create-context";
+import { publicProcedure } from "@/backend/trpc/create-context";
+import { catalogService } from "@/backend/services/catalog";
 
 // Enhanced search result schema
 const SearchResultSchema = z.object({

@@ -1,6 +1,7 @@
 export const ddl = {
   core: `
 -- Master catalog tables with versioning and deduplication
+-- Artists table
 CREATE TABLE IF NOT EXISTS artist (
   id BIGSERIAL PRIMARY KEY,
   canonical_id TEXT UNIQUE NOT NULL,
@@ -18,9 +19,12 @@ CREATE TABLE IF NOT EXISTS artist (
   version INT DEFAULT 1,
   etag TEXT,
   is_active BOOLEAN DEFAULT TRUE,
-  quality_score NUMERIC DEFAULT 0.5
+  quality_score NUMERIC DEFAULT 0.5,
+  source_priority INT DEFAULT 50,
+  last_enriched_at TIMESTAMPTZ
 );
 
+-- Releases table
 CREATE TABLE IF NOT EXISTS "release" (
   id BIGSERIAL PRIMARY KEY,
   canonical_id TEXT UNIQUE NOT NULL,
@@ -39,7 +43,9 @@ CREATE TABLE IF NOT EXISTS "release" (
   version INT DEFAULT 1,
   etag TEXT,
   is_active BOOLEAN DEFAULT TRUE,
-  quality_score NUMERIC DEFAULT 0.5
+  quality_score NUMERIC DEFAULT 0.5,
+  source_priority INT DEFAULT 50,
+  last_enriched_at TIMESTAMPTZ
 );
 
 CREATE TABLE IF NOT EXISTS track (
