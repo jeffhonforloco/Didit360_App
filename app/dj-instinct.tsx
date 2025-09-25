@@ -144,7 +144,7 @@ export default function DJInstinctScreen() {
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           {/* Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
+            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')}>
               <ArrowLeft size={28} color="#FFF" />
             </TouchableOpacity>
             <View style={styles.headerTitle}>
