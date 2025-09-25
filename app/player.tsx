@@ -279,7 +279,7 @@ export default function PlayerScreen() {
                 console.log('[Player] Video options menu button pressed');
                 setShowShareModal(true);
               }}
-              style={styles.optionsButton}
+              style={styles.headerOptionsButton}
               activeOpacity={0.7}
             >
               <MoreVertical size={24} color="#FFF" />
@@ -515,7 +515,7 @@ export default function PlayerScreen() {
                   console.log('[Player] Options menu button pressed');
                   setShowOptionsMenu(true);
                 }}
-                style={styles.optionsButton}
+                style={styles.headerOptionsButton}
                 activeOpacity={0.7}
               >
                 <MoreVertical size={24} color="#FFF" />
@@ -1425,5 +1425,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
+  },
+  headerOptionsButton: {
+    padding: 8,
+    minWidth: 40,
+    minHeight: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
