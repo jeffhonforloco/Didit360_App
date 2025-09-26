@@ -228,57 +228,106 @@ export default function PlayerScreen() {
     
     return (
       <View style={styles.container}>
-        <ImageBackground 
-          source={{ uri: currentTrack.artwork }} 
-          style={styles.detailsBackground}
-          blurRadius={30}
-          resizeMode="cover"
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
-            style={styles.detailsOverlay}
+        {currentTrack.artwork?.trim() ? (
+          <ImageBackground 
+            source={{ uri: currentTrack.artwork }} 
+            style={styles.detailsBackground}
+            blurRadius={30}
+            resizeMode="cover"
           >
-            <SafeAreaView style={styles.safeArea} edges={["top"]}>
-              <View style={styles.detailsHeader}>
-                <TouchableOpacity onPress={() => setCurrentView('player')}>
-                  <ArrowLeft size={28} color="#FFF" />
-                </TouchableOpacity>
-                <View style={styles.progressIndicator}>
-                  <View style={styles.progressDot} />
-                  <View style={[styles.progressDot, styles.progressDotActive]} />
-                  <View style={styles.progressDot} />
-                </View>
-                <View style={styles.spacer} />
-              </View>
-              
-              <ScrollView 
-                style={styles.detailsContent}
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.detailsScrollContent}
-              >
-                <View style={styles.detailsInfo}>
-                  <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
-                  <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
-                  <Text style={styles.detailsDescription}>
-                    It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
-                  </Text>
-                  <TouchableOpacity>
-                    <Text style={styles.showMore}>Show more ⌄</Text>
+            <LinearGradient
+              colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+              style={styles.detailsOverlay}
+            >
+              <SafeAreaView style={styles.safeArea} edges={["top"]}>
+                <View style={styles.detailsHeader}>
+                  <TouchableOpacity onPress={() => setCurrentView('player')}>
+                    <ArrowLeft size={28} color="#FFF" />
                   </TouchableOpacity>
+                  <View style={styles.progressIndicator}>
+                    <View style={styles.progressDot} />
+                    <View style={[styles.progressDot, styles.progressDotActive]} />
+                    <View style={styles.progressDot} />
+                  </View>
+                  <View style={styles.spacer} />
                 </View>
                 
-                <View style={styles.suggestionsSection}>
-                  <Text style={styles.suggestionsTitle}>Suggestion</Text>
-                  {suggestions.map((item, index) => (
-                    <View key={item.id}>
-                      {renderSuggestionItem({ item, index })}
-                    </View>
-                  ))}
+                <ScrollView 
+                  style={styles.detailsContent}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.detailsScrollContent}
+                >
+                  <View style={styles.detailsInfo}>
+                    <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
+                    <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
+                    <Text style={styles.detailsDescription}>
+                      It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
+                    </Text>
+                    <TouchableOpacity>
+                      <Text style={styles.showMore}>Show more ⌄</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.suggestionsSection}>
+                    <Text style={styles.suggestionsTitle}>Suggestion</Text>
+                    {suggestions.map((item, index) => (
+                      <View key={item.id}>
+                        {renderSuggestionItem({ item, index })}
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              </SafeAreaView>
+            </LinearGradient>
+          </ImageBackground>
+        ) : (
+          <View style={[styles.detailsBackground, { backgroundColor: '#1A1A1A' }]}>
+            <LinearGradient
+              colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+              style={styles.detailsOverlay}
+            >
+              <SafeAreaView style={styles.safeArea} edges={["top"]}>
+                <View style={styles.detailsHeader}>
+                  <TouchableOpacity onPress={() => setCurrentView('player')}>
+                    <ArrowLeft size={28} color="#FFF" />
+                  </TouchableOpacity>
+                  <View style={styles.progressIndicator}>
+                    <View style={styles.progressDot} />
+                    <View style={[styles.progressDot, styles.progressDotActive]} />
+                    <View style={styles.progressDot} />
+                  </View>
+                  <View style={styles.spacer} />
                 </View>
-              </ScrollView>
-            </SafeAreaView>
-          </LinearGradient>
-        </ImageBackground>
+                
+                <ScrollView 
+                  style={styles.detailsContent}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.detailsScrollContent}
+                >
+                  <View style={styles.detailsInfo}>
+                    <Text style={styles.detailsTitle}>{currentTrack.title}</Text>
+                    <Text style={styles.detailsArtist}>{currentTrack.artist}</Text>
+                    <Text style={styles.detailsDescription}>
+                      It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it
+                    </Text>
+                    <TouchableOpacity>
+                      <Text style={styles.showMore}>Show more ⌄</Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.suggestionsSection}>
+                    <Text style={styles.suggestionsTitle}>Suggestion</Text>
+                    {suggestions.map((item, index) => (
+                      <View key={item.id}>
+                        {renderSuggestionItem({ item, index })}
+                      </View>
+                    ))}
+                  </View>
+                </ScrollView>
+              </SafeAreaView>
+            </LinearGradient>
+          </View>
+        )}
       </View>
     );
   }
@@ -526,16 +575,17 @@ export default function PlayerScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground 
-        source={{ uri: currentTrack.artwork }} 
-        style={styles.playerBackground}
-        blurRadius={30}
-        resizeMode="cover"
-      >
-        <LinearGradient
-          colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
-          style={styles.playerOverlay}
+      {currentTrack.artwork?.trim() ? (
+        <ImageBackground 
+          source={{ uri: currentTrack.artwork }} 
+          style={styles.playerBackground}
+          blurRadius={30}
+          resizeMode="cover"
         >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            style={styles.playerOverlay}
+          >
           <SafeAreaView style={styles.safeArea} edges={["top"]}>
             <View style={styles.header}>
               <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
@@ -718,7 +768,197 @@ export default function PlayerScreen() {
             </View>
           </SafeAreaView>
         </LinearGradient>
-      </ImageBackground>
+        </ImageBackground>
+      ) : (
+        <View style={[styles.playerBackground, { backgroundColor: '#1A1A1A' }]}>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            style={styles.playerOverlay}
+          >
+            <SafeAreaView style={styles.safeArea} edges={["top"]}>
+              <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
+                  <ArrowLeft size={28} color="#FFF" />
+                </TouchableOpacity>
+                <View style={styles.progressIndicator}>
+                  <View style={[styles.progressDot, styles.progressDotActive]} />
+                  <View style={styles.progressDot} />
+                  <View style={styles.progressDot} />
+                </View>
+                <View style={styles.headerActions}>
+                  <DJInstinctEntry style={styles.djInstinctEntry} />
+                  <TouchableOpacity 
+                    onPress={() => {
+                      console.log('[Player] Options menu button pressed');
+                      setShowOptionsMenu(true);
+                    }}
+                    style={styles.headerOptionsButton}
+                    activeOpacity={0.7}
+                  >
+                    <MoreVertical size={24} color="#FF0080" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.artworkContainer}>
+                <View style={styles.artworkWrapper}>
+                  <SafeImage
+                    uri={currentTrack.artwork}
+                    style={styles.artwork}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.infoContainer}>
+                <View style={styles.titleSection}>
+                  <Text style={styles.title} numberOfLines={2}>
+                    {currentTrack.title}
+                  </Text>
+                  <Text style={styles.artist} numberOfLines={1}>
+                    {currentTrack.artist}
+                  </Text>
+                </View>
+
+                <View style={styles.actionRow}>
+                  <TouchableOpacity style={styles.actionIcon} onPress={() => setShowShareModal(true)}>
+                    <Share2 size={24} color="#FFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionIcon} onPress={() => setCurrentView('queue')}>
+                    <List size={24} color="#FFF" />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionIcon} onPress={() => toggleFavorite(currentTrack)}>
+                    <Heart
+                      size={24}
+                      color={isLiked ? "#FF0080" : "#FFF"}
+                      fill={isLiked ? "#FF0080" : "transparent"}
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.actionIcon} onPress={handleDownload}>
+                    <Download size={24} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.progressContainer}>
+                  <TouchableOpacity 
+                    style={styles.sliderContainer}
+                    activeOpacity={1}
+                    onPress={handleSeek}
+                  >
+                    <View style={styles.sliderTrack}>
+                      <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
+                      <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.timeRow}>
+                    <Text style={styles.time}>{elapsed}</Text>
+                    <Text style={styles.time}>{total}</Text>
+                  </View>
+                </View>
+
+                {isAudiobookTrack ? (
+                  <View style={styles.audiobookControls}>
+                    <View style={styles.audiobookMainControls}>
+                      <TouchableOpacity 
+                        onPress={handleSkipPrevious} 
+                        style={styles.controlButton}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      >
+                        <SkipBack size={32} color="#FFF" fill="#FFF" />
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        onPress={handlePlayPause}
+                        style={styles.playButton}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      >
+                        {isPlaying ? (
+                          <Pause size={36} color="#FFF" fill="#FFF" />
+                        ) : (
+                          <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                        )}
+                      </TouchableOpacity>
+
+                      <TouchableOpacity 
+                        onPress={handleSkipNext} 
+                        style={styles.controlButton}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      >
+                        <SkipForward size={32} color="#FFF" fill="#FFF" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.audiobookSecondaryControls}>
+                      <TouchableOpacity style={styles.audiobookControlButton}>
+                        <BookOpen size={20} color="#FFF" />
+                        <Text style={styles.audiobookControlText}>Bookmark</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.audiobookControlButton}>
+                        <BookOpen size={20} color="#FFF" />
+                        <Text style={styles.audiobookControlText}>Chapter 2</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.audiobookControlButton}>
+                        <Clock size={20} color="#FFF" />
+                        <Text style={styles.audiobookControlText}>Speed 1x</Text>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity style={styles.audiobookControlButton}>
+                        <Volume2 size={20} color="#FFF" />
+                        <Text style={styles.audiobookControlText}>Download</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.controls}>
+                    <TouchableOpacity
+                      onPress={() => setShuffle(!shuffle)}
+                      style={styles.controlButton}
+                    >
+                      <Shuffle size={24} color={shuffle ? "#FF0080" : "#FFF"} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      onPress={handleSkipPrevious} 
+                      style={styles.controlButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      <SkipBack size={32} color="#FFF" fill="#FFF" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={handlePlayPause}
+                      style={styles.playButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      {isPlaying ? (
+                        <Pause size={36} color="#FFF" fill="#FFF" />
+                      ) : (
+                        <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                      )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      onPress={handleSkipNext} 
+                      style={styles.controlButton}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      <SkipForward size={32} color="#FFF" fill="#FFF" />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setRepeat(!repeat)}
+                      style={styles.controlButton}
+                    >
+                      <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            </SafeAreaView>
+          </LinearGradient>
+        </View>
+      )}
 
       {/* Share Modal */}
       <Modal

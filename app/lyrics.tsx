@@ -16,12 +16,13 @@ export default function LyricsScreen() {
 
   return (
     <View style={styles.container}>
-      <ImageBackground
-        source={{ uri: currentTrack.artwork }}
-        style={styles.bg}
-        blurRadius={30}
-        resizeMode="cover"
-      >
+      {currentTrack.artwork?.trim() ? (
+        <ImageBackground
+          source={{ uri: currentTrack.artwork }}
+          style={styles.bg}
+          blurRadius={30}
+          resizeMode="cover"
+        >
         <LinearGradient
           colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
           style={styles.overlay}
@@ -101,7 +102,90 @@ export default function LyricsScreen() {
             </View>
           </SafeAreaView>
         </LinearGradient>
-      </ImageBackground>
+        </ImageBackground>
+      ) : (
+        <View style={[styles.bg, { backgroundColor: '#1A1A1A' }]}>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.4)', 'rgba(0,0,0,0.7)', 'rgba(0,0,0,0.9)']}
+            style={styles.overlay}
+          >
+            <SafeAreaView style={styles.safeArea} edges={["top"]}>
+              <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} testID="lyrics-back">
+                  <ArrowLeft size={28} color="#FFF" />
+                </TouchableOpacity>
+                <View style={styles.progressIndicator}>
+                  <View style={styles.progressDot} />
+                  <View style={styles.progressDot} />
+                  <View style={[styles.progressDot, styles.progressDotActive]} />
+                </View>
+                <View style={styles.spacer} />
+              </View>
+
+              <ScrollView
+                contentContainerStyle={styles.content}
+                showsVerticalScrollIndicator={false}
+              >
+                <Text style={styles.headerTitle}>Lyrics</Text>
+                
+                {LYRICS.map((line, idx) => (
+                  <Text
+                    key={`${idx}-${line}`}
+                    style={[styles.line, idx === 4 ? styles.lineActive : undefined]}
+                    accessibilityLabel={`lyrics-line-${idx}`}
+                  >
+                    {line}
+                  </Text>
+                ))}
+
+                <View style={styles.spacingBottom} />
+              </ScrollView>
+              
+              <View style={styles.bottomControls}>
+                <View style={styles.progressContainer}>
+                  <View style={styles.sliderTrack}>
+                    <View style={[styles.sliderProgress, { width: '80%' }]} />
+                    <View style={[styles.sliderThumb, { left: '80%' }]} />
+                  </View>
+                  <View style={styles.timeRow}>
+                    <Text style={styles.time}>2:46</Text>
+                    <Text style={styles.time}>3:05</Text>
+                  </View>
+                </View>
+                
+                <View style={styles.controls}>
+                  <TouchableOpacity style={styles.controlButton}>
+                    <RotateCcw size={24} color="#FFF" />
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity onPress={skipPrevious} style={styles.controlButton}>
+                    <SkipBack size={32} color="#FFF" fill="#FFF" />
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    onPress={togglePlayPause}
+                    style={styles.playButton}
+                  >
+                    {isPlaying ? (
+                      <Pause size={36} color="#FFF" fill="#FFF" />
+                    ) : (
+                      <Play size={36} color="#FFF" fill="#FFF" style={styles.playIcon} />
+                    )}
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity onPress={skipNext} style={styles.controlButton}>
+                    <SkipForward size={32} color="#FFF" fill="#FFF" />
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.controlButton}>
+                    <RotateCcw size={24} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </SafeAreaView>
+          </LinearGradient>
+        </View>
+      )}
     </View>
   );
 }
