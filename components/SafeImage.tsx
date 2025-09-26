@@ -10,7 +10,7 @@ type SafeImageProps = ImageProps & {
 };
 
 // Default fallback image URL - using a more reliable source
-const DEFAULT_FALLBACK = 'https://via.placeholder.com/400x400/1a1a1a/ffffff?text=🎵';
+const DEFAULT_FALLBACK = 'https://via.placeholder.com/400x400/2a2a2a/ffffff?text=🎵';
 
 const SafeImage: React.FC<SafeImageProps> = ({
   uri,
@@ -30,17 +30,22 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const isValid = isValidUri(uri) && !hasError;
   const canUseFallback = isValidUri(fallback) && !fallbackError;
 
-  const handleError = () => {
-    console.log('SafeImage: Failed to load image:', uri);
+  const handleError = (error: any) => {
+    console.log('SafeImage: Failed to load image:', uri, 'Error:', error?.nativeEvent?.error || 'Unknown error');
     setHasError(true);
   };
 
   const handleLoad = () => {
     console.log('SafeImage: Successfully loaded image:', uri);
+    setHasError(false);
   };
 
-  const handleFallbackError = () => {
-    console.log('SafeImage: Failed to load fallback image:', fallback);
+  const handleLoadStart = () => {
+    console.log('SafeImage: Started loading image:', uri);
+  };
+
+  const handleFallbackError = (error: any) => {
+    console.log('SafeImage: Failed to load fallback image:', fallback, 'Error:', error?.nativeEvent?.error || 'Unknown error');
     setFallbackError(true);
   };
 
@@ -73,6 +78,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
           source={{ uri: fallback! }}
           style={style}
           onError={handleFallbackError}
+          onLoad={() => console.log('SafeImage: Fallback loaded successfully')}
           {...props}
         />
       </View>
@@ -87,6 +93,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
         style={style}
         onError={handleError}
         onLoad={handleLoad}
+        onLoadStart={handleLoadStart}
         {...props}
       />
     </View>
