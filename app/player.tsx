@@ -476,64 +476,9 @@ export default function PlayerScreen() {
               </View>
             </View>
 
-            <View style={styles.volumeContainer}>
-              <TouchableOpacity 
-                style={styles.volumeButton}
-                onPress={toggleVolumeSlider}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Volume2 size={24} color="#FFF" />
-              </TouchableOpacity>
-              {showVolumeSlider && (
-                <View style={styles.volumeSliderContainer}>
-                  <TouchableOpacity 
-                    style={styles.volumeSlider}
-                    activeOpacity={1}
-                    onPress={(e: any) => {
-                      if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
-                      const { locationX } = e.nativeEvent;
-                      const newVolume = Math.max(0, Math.min(1, locationX / 120));
-                      handleVolumeChange(newVolume);
-                    }}
-                  >
-                    <View style={styles.volumeTrack}>
-                      <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
-                      <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
 
-            <View style={styles.videoMainControls}>
-              <TouchableOpacity 
-                onPress={handleSkipPrevious} 
-                style={styles.controlButton}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <SkipBack size={28} color="#FFF" fill="#FFF" />
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
-                style={styles.videoPlayButton}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                {isPlaying ? (
-                  <Pause size={32} color="#FFF" fill="#FFF" />
-                ) : (
-                  <Play size={32} color="#FFF" fill="#FFF" style={styles.playIcon} />
-                )}
-              </TouchableOpacity>
 
-              <TouchableOpacity 
-                onPress={handleSkipNext} 
-                style={styles.controlButton}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <SkipForward size={28} color="#FFF" fill="#FFF" />
-              </TouchableOpacity>
-            </View>
 
             <View style={styles.videoInfoSection}>
               <Text style={styles.videoTrackTitle} numberOfLines={2}>

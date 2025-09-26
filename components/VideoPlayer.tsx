@@ -10,8 +10,6 @@ import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import {
   Play,
   Pause,
-  Volume2,
-  VolumeX,
   Maximize,
   Minimize,
   SkipBack,
@@ -37,8 +35,6 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
-
   useEffect(() => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -73,30 +69,24 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
     }
   };
 
-  const toggleVolumeSlider = () => {
-    setShowVolumeSlider(!showVolumeSlider);
-  };
-
-  const handleMuteToggle = () => {
-    const newMutedState = !isMuted;
-    setIsMuted(newMutedState);
-    if (videoRef.current) {
-      videoRef.current.setIsMutedAsync(newMutedState);
-    }
-    // Also update volume to 0 when muted, restore when unmuted
-    if (onVolumeChange) {
-      onVolumeChange(newMutedState ? 0 : volume);
-    }
-  };
-
   const handleVolumeChange = (newVolume: number) => {
-    if (typeof newVolume === 'number' && newVolume >= 0 && newVolume <= 1) {
-      if (onVolumeChange) {
-        onVolumeChange(newVolume);
-      }
-      if (videoRef.current) {
-        videoRef.current.setVolumeAsync(newVolume);
-      }
+    // Validate input
+    if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) {
+      console.log('[VideoPlayer] Invalid volume value:', newVolume);
+      return;
+    }
+    
+    if (onVolumeChange) {
+      onVolumeChange(newVolume);
+    }
+    if (videoRef.current) {
+      videoRef.current.setVolumeAsync(newVolume);
+    }
+    // Update muted state based on volume
+    if (newVolume === 0) {
+      setIsMuted(true);
+    } else if (isMuted && newVolume > 0) {
+      setIsMuted(false);
     }
   };
 
@@ -208,52 +198,44 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
           <View style={styles.bottomControls}>
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={onSkipPrevious}
+              onPress={() => {
+                console.log('[VideoPlayer] Skip previous pressed');
+                if (onSkipPrevious) {
+                  onSkipPrevious();
+                }
+              }}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <SkipBack size={24} color="#FFF" fill="#FFF" />
             </TouchableOpacity>
             
             <View style={styles.volumeControlsContainer}>
-              <TouchableOpacity
-                style={styles.controlButton}
-                onPress={handleMuteToggle}
-                onLongPress={toggleVolumeSlider}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              <TouchableOpacity 
+                style={styles.volumeSlider}
+                activeOpacity={1}
+                onPress={(e: any) => {
+                  if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
+                  const { locationX } = e.nativeEvent;
+                  const newVolume = Math.max(0, Math.min(1, locationX / 120));
+                  console.log('[VideoPlayer] Volume slider pressed, new volume:', newVolume);
+                  handleVolumeChange(newVolume);
+                }}
               >
-                {isMuted || volume === 0 ? (
-                  <VolumeX size={24} color="#FFF" />
-                ) : (
-                  <Volume2 size={24} color="#FFF" />
-                )}
-              </TouchableOpacity>
-              {showVolumeSlider && (
-                <View style={styles.volumeSliderContainer}>
-                  <TouchableOpacity 
-                    style={styles.volumeSlider}
-                    activeOpacity={1}
-                    onPress={(e: any) => {
-                      if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
-                      const { locationX } = e.nativeEvent;
-                      const newVolume = Math.max(0, Math.min(1, locationX / 120));
-                      handleVolumeChange(newVolume);
-                      if (newVolume > 0) {
-                        setIsMuted(false);
-                      }
-                    }}
-                  >
-                    <View style={styles.volumeTrack}>
-                      <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
-                      <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
-                    </View>
-                  </TouchableOpacity>
+                <View style={styles.volumeTrack}>
+                  <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
+                  <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
                 </View>
-              )}
+              </TouchableOpacity>
             </View>
             
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={onSkipNext}
+              onPress={() => {
+                console.log('[VideoPlayer] Skip next pressed');
+                if (onSkipNext) {
+                  onSkipNext();
+                }
+              }}
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
               <SkipForward size={24} color="#FFF" fill="#FFF" />
@@ -340,22 +322,15 @@ const styles = StyleSheet.create({
     position: 'relative',
     flex: 1,
     marginHorizontal: 20,
-  },
-  volumeSliderContainer: {
-    position: 'absolute',
-    bottom: 60,
-    left: '50%',
-    marginLeft: -60,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 8,
-    padding: 8,
-    minWidth: 120,
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   volumeSlider: {
     width: 120,
     height: 40,
     justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
   },
   volumeTrack: {
     height: 4,
