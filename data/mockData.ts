@@ -1964,6 +1964,9 @@ export const trendingNow: Track[] = [
   },
 ];
 
+// Trending Videos - Only video content, no audio
+export const trendingNowVideos: Track[] = trendingVideos;
+
 export const popularArtists = [
   {
     id: "a1",

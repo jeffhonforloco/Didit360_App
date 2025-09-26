@@ -14,7 +14,7 @@ import { ArrowLeft, Search, Play, Headphones, Book, Mic } from "lucide-react-nat
 import { router } from "expo-router";
 import { Stack } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { trendingNow } from "@/data/mockData";
+import { trendingNowVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function TrendingNowScreen() {
@@ -123,7 +123,7 @@ export default function TrendingNowScreen() {
           headerShown: true,
           headerStyle: { backgroundColor: "#0B0A14" },
           headerTintColor: "#FFF",
-          headerTitle: "Trending Now",
+          headerTitle: "Trending Videos",
           headerTitleStyle: {
             fontSize: 18,
             fontWeight: "600",
@@ -143,7 +143,7 @@ export default function TrendingNowScreen() {
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <FlatList
-          data={trendingNow}
+          data={trendingNowVideos}
           renderItem={renderTrendingItem}
           keyExtractor={(item) => item.id}
           numColumns={2}
