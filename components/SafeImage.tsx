@@ -9,15 +9,15 @@ type SafeImageProps = ImageProps & {
   placeholder?: string;
 };
 
-// Default fallback image URL
-const DEFAULT_FALLBACK = 'https://r2-pub.rork.com/generated-images/738567b8-2390-49c1-97c2-36cd3a3b7f18.png';
+// Default fallback image URL - using a more reliable source
+const DEFAULT_FALLBACK = 'https://via.placeholder.com/400x400/1a1a1a/ffffff?text=🎵';
 
 const SafeImage: React.FC<SafeImageProps> = ({
   uri,
   fallback = DEFAULT_FALLBACK,
   showBorder = false,
   size = 50,
-  placeholder = '👤',
+  placeholder = '🎵',
   style,
   ...props
 }) => {
@@ -94,14 +94,14 @@ const styles = StyleSheet.create({
     borderColor: 'red'
   },
   placeholder: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#2a2a2a',
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 4
   },
   placeholderText: {
     fontSize: 20,
-    color: '#999',
+    color: '#666',
     fontWeight: 'bold'
   }
 });
