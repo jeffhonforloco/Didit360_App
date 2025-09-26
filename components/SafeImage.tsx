@@ -3,15 +3,18 @@ import { Image, ImageProps, View, StyleSheet, Text } from 'react-native';
 
 type SafeImageProps = ImageProps & {
   uri?: string | null;
-  fallback?: any;
+  fallback?: string;
   showBorder?: boolean;
   size?: number;
   placeholder?: string;
 };
 
+// Default fallback image URL
+const DEFAULT_FALLBACK = 'https://r2-pub.rork.com/generated-images/738567b8-2390-49c1-97c2-36cd3a3b7f18.png';
+
 const SafeImage: React.FC<SafeImageProps> = ({
   uri,
-  fallback,
+  fallback = DEFAULT_FALLBACK,
   showBorder = false,
   size = 50,
   placeholder = '👤',
@@ -19,15 +22,22 @@ const SafeImage: React.FC<SafeImageProps> = ({
   ...props
 }) => {
   const [hasError, setHasError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
   const isValid = uri && typeof uri === 'string' && uri.trim().length > 0 && !hasError;
+  const canUseFallback = fallback && typeof fallback === 'string' && fallback.trim().length > 0 && !fallbackError;
 
   const handleError = () => {
     console.log('SafeImage: Failed to load image:', uri);
     setHasError(true);
   };
 
-  // Always show placeholder if no valid URI or error occurred
-  if (!isValid) {
+  const handleFallbackError = () => {
+    console.log('SafeImage: Failed to load fallback image:', fallback);
+    setFallbackError(true);
+  };
+
+  // Show placeholder if no valid URI and no fallback available
+  if (!isValid && !canUseFallback) {
     const dimensions = StyleSheet.flatten(style);
     const width = dimensions?.width || size;
     const height = dimensions?.height || size;
@@ -47,10 +57,25 @@ const SafeImage: React.FC<SafeImageProps> = ({
     );
   }
 
+  // Use fallback if main image failed but fallback is available
+  if (!isValid && canUseFallback) {
+    return (
+      <View style={[showBorder && styles.debug]}>
+        <Image
+          source={{ uri: fallback }}
+          style={style}
+          onError={handleFallbackError}
+          {...props}
+        />
+      </View>
+    );
+  }
+
+  // Use main image
   return (
     <View style={[showBorder && styles.debug]}>
       <Image
-        source={{ uri }}
+        source={{ uri: uri! }}
         style={style}
         onError={handleError}
         {...props}
