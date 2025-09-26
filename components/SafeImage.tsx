@@ -35,6 +35,10 @@ const SafeImage: React.FC<SafeImageProps> = ({
     setHasError(true);
   };
 
+  const handleLoad = () => {
+    console.log('SafeImage: Successfully loaded image:', uri);
+  };
+
   const handleFallbackError = () => {
     console.log('SafeImage: Failed to load fallback image:', fallback);
     setFallbackError(true);
@@ -82,6 +86,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
         source={{ uri: uri! }}
         style={style}
         onError={handleError}
+        onLoad={handleLoad}
         {...props}
       />
     </View>
@@ -97,7 +102,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2a2a2a',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 4
+    borderRadius: 12
   },
   placeholderText: {
     fontSize: 20,
