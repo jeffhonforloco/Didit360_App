@@ -44,7 +44,7 @@ export default function HomeScreen() {
       <View style={styles.headerLeft}>
         {profile && (
           <SafeImage
-            uri={profile.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop"}
+            uri={profile.avatarUrl}
             style={styles.avatar}
           />
         )}
