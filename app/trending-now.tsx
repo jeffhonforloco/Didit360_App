@@ -66,13 +66,15 @@ export default function TrendingNowScreen() {
       onPress={() => {
         console.log(`Playing trending ${item.type}: ${item.title}`);
         if (item.type === 'video' && item.isVideo) {
-          router.push(`/player?id=${item.id}&isVideo=true`);
+          playTrack(item);
+          router.push('/player');
         } else if (item.type === 'podcast') {
           router.push(`/podcast-player?id=${item.id}`);
         } else if (item.type === 'audiobook') {
           router.push(`/audiobook/${item.id}`);
         } else {
           playTrack(item);
+          router.push('/player');
         }
       }}
       activeOpacity={0.8}
