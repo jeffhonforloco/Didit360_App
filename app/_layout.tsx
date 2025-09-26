@@ -99,22 +99,39 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const pathname = usePathname();
+  
   useEffect(() => {
-    (globalThis as any).__CURRENT_ROUTE = pathname;
+    try {
+      (globalThis as any).__CURRENT_ROUTE = pathname;
+    } catch (e) {
+      console.log('[RootLayout] pathname error', e);
+    }
   }, [pathname]);
 
   useEffect(() => {
-    const sessionId = genId('sess');
-    const traceId = genId('trace');
-    (globalThis as any).__OBS = { sessionId, traceId };
+    try {
+      const sessionId = genId('sess');
+      const traceId = genId('trace');
+      (globalThis as any).__OBS = { sessionId, traceId };
+    } catch (e) {
+      console.log('[RootLayout] session init error', e);
+    }
   }, []);
 
   useEffect(() => {
-    const t0 = Date.now();
-    SplashScreen.hideAsync().finally(() => {
-      const ms = Date.now() - t0;
-      logPerf('splash_hide', ms);
-    });
+    try {
+      const t0 = Date.now();
+      SplashScreen.hideAsync().finally(() => {
+        try {
+          const ms = Date.now() - t0;
+          logPerf('splash_hide', ms);
+        } catch (e) {
+          console.log('[RootLayout] splash perf error', e);
+        }
+      });
+    } catch (e) {
+      console.log('[RootLayout] splash hide error', e);
+    }
   }, []);
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;

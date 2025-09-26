@@ -224,22 +224,30 @@ export class AudioEngine {
     try {
       await this.loadPersistedPrefs();
       if (Platform.OS !== 'web') {
-        // Ensure mode is configured on native
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const av = require('expo-av') as typeof import('expo-av');
-        await av.Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          staysActiveInBackground: true,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          interruptionModeAndroid: 1,
-          interruptionModeIOS: 1,
-        });
+        try {
+          // Ensure mode is configured on native
+          // eslint-disable-next-line @typescript-eslint/no-var-requires
+          const av = require('expo-av') as typeof import('expo-av');
+          if (av?.Audio?.setAudioModeAsync) {
+            await av.Audio.setAudioModeAsync({
+              allowsRecordingIOS: false,
+              staysActiveInBackground: true,
+              playsInSilentModeIOS: true,
+              shouldDuckAndroid: true,
+              interruptionModeAndroid: 1,
+              interruptionModeIOS: 1,
+            });
+          }
+        } catch (audioError) {
+          console.log('[AudioEngine] Audio mode setup error:', audioError);
+        }
       }
       this.isConfigured = true;
       this.startProgressTracking();
     } catch (e) {
       console.log('[AudioEngine] configure error', e);
+      // Mark as configured even if there's an error to prevent infinite retries
+      this.isConfigured = true;
     }
   }
 

@@ -1,52 +1,41 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SEARCH_HISTORY_KEY = 'search_history';
 const MAX_SEARCH_HISTORY = 8;
 
-// Simple storage implementation for search history
-const storage = {
-  async getItem(key: string): Promise<string | null> {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        return window.localStorage.getItem(key);
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  },
-  async setItem(key: string, value: string): Promise<void> {
-    try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.setItem(key, value);
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }
-};
+interface SearchState {
+  recentSearches: string[];
+  isLoading: boolean;
+  addToSearchHistory: (query: string) => void;
+  removeFromSearchHistory: (query: string) => void;
+  clearSearchHistory: () => void;
+}
 
-export const [SearchContext, useSearch] = createContextHook(() => {
+export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  useEffect(() => {
-    loadSearchHistory();
-  }, []);
-
-  const loadSearchHistory = async () => {
+  const loadSearchHistory = useCallback(async () => {
     try {
-      const stored = await storage.getItem(SEARCH_HISTORY_KEY);
+      const stored = await AsyncStorage.getItem(SEARCH_HISTORY_KEY);
       if (stored) {
-        setRecentSearches(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          setRecentSearches(parsed);
+        }
       }
     } catch (error) {
       console.log('Error loading search history:', error);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadSearchHistory();
+  }, [loadSearchHistory]);
 
   const saveSearchHistory = useCallback(async (searches: string[]) => {
     if (!Array.isArray(searches)) return;
@@ -57,7 +46,7 @@ export const [SearchContext, useSearch] = createContextHook(() => {
       .map(s => s.trim().slice(0, 100));
     
     try {
-      await storage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(sanitizedSearches));
+      await AsyncStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(sanitizedSearches));
     } catch (error) {
       console.log('Error saving search history:', error);
     }
@@ -88,11 +77,11 @@ export const [SearchContext, useSearch] = createContextHook(() => {
     saveSearchHistory([]);
   }, [saveSearchHistory]);
 
-  return useMemo(() => ({
+  return {
     recentSearches,
     isLoading,
     addToSearchHistory,
     removeFromSearchHistory,
     clearSearchHistory,
-  }), [recentSearches, isLoading, addToSearchHistory, removeFromSearchHistory, clearSearchHistory]);
+  };
 });

@@ -113,7 +113,7 @@ export const useSignOut = () => {
 
 export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
+  const [settings, setSettings] = useState<AppSettings>(() => ({ ...DEFAULT_SETTINGS }));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const load = useCallback(async () => {

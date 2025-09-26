@@ -21,7 +21,12 @@ interface PlayerState {
 }
 
 export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => {
-  const { profile, settings } = useUser();
+  const userContext = useUser();
+  const profile = userContext?.profile || null;
+  const settings = userContext?.settings || {
+    crossfadeSeconds: 6,
+    gaplessPlayback: true,
+  };
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [queue, setQueue] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
