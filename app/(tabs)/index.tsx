@@ -164,7 +164,8 @@ export default function HomeScreen() {
       console.log(`Playing ${item.type}: ${item.title}`);
       if (item.type === 'video' || item.isVideo) {
         console.log(`Opening video player for: ${item.title}`);
-        router.push(`/player?id=${item.id}&type=video`);
+        playTrack(item);
+        // Video will automatically navigate to player via PlayerContext
       } else if (item.type === 'podcast') {
         router.push(`/podcast-player?id=${item.id}`);
       } else if (item.type === 'audiobook') {
@@ -205,7 +206,8 @@ export default function HomeScreen() {
       style={[styles.card, { width: CARD_WIDTH }]}
       onPress={() => {
         console.log(`Opening video: ${item.title}`);
-        router.push(`/player?id=${item.id}&type=video`);
+        playTrack(item);
+        // Video will automatically navigate to player via PlayerContext
       }}
       activeOpacity={0.8}
       testID={`video-card-${item.id}`}
@@ -224,7 +226,7 @@ export default function HomeScreen() {
         {item.artist}
       </Text>
     </TouchableOpacity>
-  ), [CARD_WIDTH]);
+  ), [CARD_WIDTH, playTrack]);
 
   const renderSmallCard = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
