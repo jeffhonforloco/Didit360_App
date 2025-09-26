@@ -27,11 +27,11 @@ const SafeImage: React.FC<SafeImageProps> = ({
     return (
       <View style={[
         styles.placeholder,
-        { width: size, height: size },
+        { width: size, height: size, borderRadius: 50 },
         style,
         showBorder && styles.debug
       ]}>
-        <Text style={styles.placeholderText}>♪</Text>
+        <Text style={styles.placeholderText}>👤</Text>
       </View>
     );
   }
@@ -40,7 +40,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
     <View style={[showBorder && styles.debug]}>
       <Image
         source={isValid ? { uri } : fallback}
-        style={style}
+        style={[{ borderRadius: 50 }, style]}
         onError={handleError}
         {...props}
       />
