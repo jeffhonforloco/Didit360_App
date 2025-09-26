@@ -27,8 +27,9 @@ export default function HomeScreen() {
   const CARD_WIDTH = width * 0.4;
   const SMALL_CARD = width * 0.32;
   const { playTrack } = usePlayer();
-  const { profile } = useUser();
+  const { profile, isLoading } = useUser();
 
+  // All hooks must be called before any early returns
   const favoriteArtists = useMemo(() => {
     const byArtist: Record<string, Track> = {};
     [...featuredContent, ...topCharts, ...newReleases].forEach((t) => {
@@ -36,8 +37,6 @@ export default function HomeScreen() {
     });
     return Object.values(byArtist).slice(0, 8);
   }, []);
-
-
 
   const renderHeader = useCallback(() => (
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
@@ -259,6 +258,17 @@ export default function HomeScreen() {
       <Text style={styles.genreText}>{item}</Text>
     </TouchableOpacity>
   ), []);
+
+  console.log('[HomeScreen] Rendering - profile:', !!profile, 'isLoading:', isLoading, 'width:', width);
+
+  // Show loading state while user context is loading
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#FFF', fontSize: 16 }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
