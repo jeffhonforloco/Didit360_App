@@ -24,15 +24,18 @@ interface VideoPlayerProps {
   onProgressUpdate?: (progress: { position: number; duration: number }) => void;
   onSkipNext?: () => void;
   onSkipPrevious?: () => void;
+  volume?: number;
+  onVolumeChange?: (volume: number) => void;
   style?: any;
 }
 
-export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, onSkipNext, onSkipPrevious, style }: VideoPlayerProps) {
+export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, onSkipNext, onSkipPrevious, volume = 1.0, onVolumeChange, style }: VideoPlayerProps) {
   const videoRef = useRef<Video>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
   const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [showVolumeSlider, setShowVolumeSlider] = useState<boolean>(false);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -43,6 +46,12 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
       }
     }
   }, [isPlaying]);
+
+  useEffect(() => {
+    if (videoRef.current && typeof volume === 'number') {
+      videoRef.current.setVolumeAsync(volume);
+    }
+  }, [volume]);
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (status.isLoaded) {
@@ -63,9 +72,25 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
+    const newMutedState = !isMuted;
+    setIsMuted(newMutedState);
     if (videoRef.current) {
-      videoRef.current.setIsMutedAsync(!isMuted);
+      videoRef.current.setIsMutedAsync(newMutedState);
+    }
+  };
+
+  const toggleVolumeSlider = () => {
+    setShowVolumeSlider(!showVolumeSlider);
+  };
+
+  const handleVolumeChange = (newVolume: number) => {
+    if (typeof newVolume === 'number' && newVolume >= 0 && newVolume <= 1) {
+      if (onVolumeChange) {
+        onVolumeChange(newVolume);
+      }
+      if (videoRef.current) {
+        videoRef.current.setVolumeAsync(newVolume);
+      }
     }
   };
 
@@ -140,6 +165,7 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
         isLooping={false}
         shouldPlay={isPlaying}
         isMuted={isMuted}
+        volume={volume}
         onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
       />
       
@@ -174,6 +200,37 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
           </View>
           
           <View style={styles.bottomControls}>
+            <View style={styles.volumeControlsContainer}>
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPress={toggleVolumeSlider}
+              >
+                {isMuted ? (
+                  <VolumeX size={24} color="#FFF" />
+                ) : (
+                  <Volume2 size={24} color="#FFF" />
+                )}
+              </TouchableOpacity>
+              {showVolumeSlider && (
+                <View style={styles.volumeSliderContainer}>
+                  <TouchableOpacity 
+                    style={styles.volumeSlider}
+                    activeOpacity={1}
+                    onPress={(e: any) => {
+                      if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
+                      const { locationX } = e.nativeEvent;
+                      const newVolume = Math.max(0, Math.min(1, locationX / 120));
+                      handleVolumeChange(newVolume);
+                    }}
+                  >
+                    <View style={styles.volumeTrack}>
+                      <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
+                      <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
             <TouchableOpacity
               style={styles.controlButton}
               onPress={toggleMute}
@@ -259,6 +316,49 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 12,
     fontWeight: '500',
+  },
+  volumeControlsContainer: {
+    alignItems: 'flex-start',
+    position: 'relative',
+  },
+  volumeSliderContainer: {
+    position: 'absolute',
+    bottom: 60,
+    left: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 8,
+    padding: 8,
+    minWidth: 120,
+  },
+  volumeSlider: {
+    width: 120,
+    height: 40,
+    justifyContent: 'center',
+  },
+  volumeTrack: {
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 2,
+    position: 'relative',
+  },
+  volumeProgress: {
+    height: '100%',
+    backgroundColor: '#FF0080',
+    borderRadius: 2,
+  },
+  volumeThumb: {
+    position: 'absolute',
+    top: -6,
+    width: 16,
+    height: 16,
+    backgroundColor: '#FF0080',
+    borderRadius: 8,
+    marginLeft: -8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
 
