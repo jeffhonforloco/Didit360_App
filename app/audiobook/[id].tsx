@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Play, BookOpen, Star, MoreHorizontal } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
-import { audiobookDetails, audiobooks } from "@/data/mockData";
+import { audiobookDetails, audiobooks, recommendedAudiobooks, bestSellerAudiobooks, newReleaseAudiobooks } from "@/data/mockData";
 import type { AudiobookDetails } from "@/data/mockData";
 
 const { width } = Dimensions.get("window");
@@ -26,7 +26,15 @@ export default function AudiobookDetailScreen() {
   console.log('Available audiobook IDs:', audiobooks.map(book => book.id));
   console.log('Available detail IDs:', Object.keys(audiobookDetails));
 
-  const audiobook = audiobooks.find((book) => book.id === id);
+  // Search in all audiobook arrays
+  const allAudiobooks = [
+    ...audiobooks,
+    ...recommendedAudiobooks,
+    ...bestSellerAudiobooks,
+    ...newReleaseAudiobooks,
+  ];
+  
+  const audiobook = allAudiobooks.find((book) => book.id === id);
   const details: AudiobookDetails | undefined = id ? audiobookDetails[id] : undefined;
 
   console.log('Found audiobook:', audiobook);
@@ -49,11 +57,11 @@ export default function AudiobookDetailScreen() {
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Audiobook not found</Text>
           <Text style={styles.errorSubtext}>ID: {id}</Text>
-          <Text style={styles.errorSubtext}>Available IDs: {audiobooks.map(book => book.id).join(', ')}</Text>
+          <Text style={styles.errorSubtext}>Available IDs: {allAudiobooks.map(book => book.id).join(', ')}</Text>
           
           <View style={styles.availableBooks}>
             <Text style={styles.availableBooksTitle}>Available Audiobooks:</Text>
-            {audiobooks.slice(0, 3).map((book) => (
+            {allAudiobooks.slice(0, 3).map((book) => (
               <TouchableOpacity
                 key={book.id}
                 style={styles.bookOption}
