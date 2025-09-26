@@ -671,7 +671,9 @@ export default function PlayerScreen() {
                 <View style={styles.progressDot} />
               </View>
               <View style={styles.headerActions}>
-                <DJInstinctEntry style={styles.djInstinctEntry} />
+                {currentTrack.type !== "podcast" && currentTrack.type !== "audiobook" && (
+                  <DJInstinctEntry style={styles.djInstinctEntry} />
+                )}
                 <TouchableOpacity 
                   onPress={() => {
                     console.log('[Player] Options menu button pressed');
@@ -891,7 +893,9 @@ export default function PlayerScreen() {
                   <View style={styles.progressDot} />
                 </View>
                 <View style={styles.headerActions}>
-                  <DJInstinctEntry style={styles.djInstinctEntry} />
+                  {currentTrack.type !== "podcast" && currentTrack.type !== "audiobook" && (
+                    <DJInstinctEntry style={styles.djInstinctEntry} />
+                  )}
                   <TouchableOpacity 
                     onPress={() => {
                       console.log('[Player] Options menu button pressed');
