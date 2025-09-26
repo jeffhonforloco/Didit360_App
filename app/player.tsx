@@ -35,12 +35,14 @@ import {
   BookOpen,
   Clock,
   Volume2,
+  VolumeX,
 } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { VideoPlayer, VideoPlayerRef } from "@/components/VideoPlayer";
 import { DJInstinctEntry } from "@/components/DJInstinctEntry";
+import SliderCompat from "@/components/SliderCompat";
 import type { Track } from "@/types";
 import { audioEngine, Progress } from "@/lib/AudioEngine";
 
@@ -61,6 +63,7 @@ export default function PlayerScreen() {
   const [showDownloadProgress, setShowDownloadProgress] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [volume, setVolume] = useState<number>(1.0);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
@@ -184,6 +187,9 @@ export default function PlayerScreen() {
     console.log('[Player] Setting volume to:', newVolume);
     setVolume(newVolume);
     
+    // If volume is set to 0, consider it muted
+    setIsMuted(newVolume === 0);
+    
     // Handle volume for both audio and video
     if (currentTrack) {
       if (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl) {
@@ -202,6 +208,17 @@ export default function PlayerScreen() {
   const toggleVolumeSlider = useCallback(() => {
     setShowVolumeSlider(!showVolumeSlider);
   }, [showVolumeSlider]);
+
+  const toggleMute = useCallback(() => {
+    if (isMuted) {
+      // Unmute: restore previous volume or set to 0.5 if it was 0
+      const newVolume = volume === 0 ? 0.5 : volume;
+      handleVolumeChange(newVolume);
+    } else {
+      // Mute: set volume to 0
+      handleVolumeChange(0);
+    }
+  }, [isMuted, volume, handleVolumeChange]);
 
   const renderQueueItem = useCallback(({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
@@ -504,30 +521,40 @@ export default function PlayerScreen() {
             </View>
 
             <View style={styles.volumeContainer}>
-              <TouchableOpacity 
-                style={styles.volumeButton}
-                onPress={toggleVolumeSlider}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-              >
-                <Volume2 size={24} color="#FFF" />
-              </TouchableOpacity>
+              <View style={styles.volumeControls}>
+                <TouchableOpacity 
+                  style={styles.volumeButton}
+                  onPress={toggleMute}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  {isMuted ? (
+                    <VolumeX size={24} color="#FF0080" />
+                  ) : (
+                    <Volume2 size={24} color="#FFF" />
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.volumeSliderToggle}
+                  onPress={toggleVolumeSlider}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text style={styles.volumeSliderToggleText}>{showVolumeSlider ? '−' : '+'}</Text>
+                </TouchableOpacity>
+              </View>
               {showVolumeSlider && (
                 <View style={styles.volumeSliderContainer}>
-                  <TouchableOpacity 
+                  <SliderCompat
+                    minimumValue={0}
+                    maximumValue={1}
+                    step={0.01}
+                    value={volume}
+                    onValueChange={handleVolumeChange}
+                    minimumTrackTintColor="#FF0080"
+                    maximumTrackTintColor="rgba(255,255,255,0.2)"
+                    thumbTintColor="#FF0080"
                     style={styles.volumeSlider}
-                    activeOpacity={1}
-                    onPress={(e: any) => {
-                      if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
-                      const { locationX } = e.nativeEvent;
-                      const newVolume = Math.max(0, Math.min(1, locationX / 120));
-                      handleVolumeChange(newVolume);
-                    }}
-                  >
-                    <View style={styles.volumeTrack}>
-                      <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
-                      <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
-                    </View>
-                  </TouchableOpacity>
+                    testID="video-volume-slider"
+                  />
                 </View>
               )}
             </View>
@@ -807,30 +834,40 @@ export default function PlayerScreen() {
               </View>
 
               <View style={styles.volumeContainer}>
-                <TouchableOpacity 
-                  style={styles.volumeButton}
-                  onPress={toggleVolumeSlider}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                  <Volume2 size={24} color="#FFF" />
-                </TouchableOpacity>
+                <View style={styles.volumeControls}>
+                  <TouchableOpacity 
+                    style={styles.volumeButton}
+                    onPress={toggleMute}
+                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  >
+                    {isMuted ? (
+                      <VolumeX size={24} color="#FF0080" />
+                    ) : (
+                      <Volume2 size={24} color="#FFF" />
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.volumeSliderToggle}
+                    onPress={toggleVolumeSlider}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Text style={styles.volumeSliderToggleText}>{showVolumeSlider ? '−' : '+'}</Text>
+                  </TouchableOpacity>
+                </View>
                 {showVolumeSlider && (
                   <View style={styles.volumeSliderContainer}>
-                    <TouchableOpacity 
+                    <SliderCompat
+                      minimumValue={0}
+                      maximumValue={1}
+                      step={0.01}
+                      value={volume}
+                      onValueChange={handleVolumeChange}
+                      minimumTrackTintColor="#FF0080"
+                      maximumTrackTintColor="rgba(255,255,255,0.2)"
+                      thumbTintColor="#FF0080"
                       style={styles.volumeSlider}
-                      activeOpacity={1}
-                      onPress={(e: any) => {
-                        if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
-                        const { locationX } = e.nativeEvent;
-                        const newVolume = Math.max(0, Math.min(1, locationX / 120));
-                        handleVolumeChange(newVolume);
-                      }}
-                    >
-                      <View style={styles.volumeTrack}>
-                        <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
-                        <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
-                      </View>
-                    </TouchableOpacity>
+                      testID="audio-volume-slider"
+                    />
                   </View>
                 )}
               </View>
@@ -1038,21 +1075,18 @@ export default function PlayerScreen() {
                   </TouchableOpacity>
                   {showVolumeSlider && (
                     <View style={styles.volumeSliderContainer}>
-                      <TouchableOpacity 
+                      <SliderCompat
+                        minimumValue={0}
+                        maximumValue={1}
+                        step={0.01}
+                        value={volume}
+                        onValueChange={handleVolumeChange}
+                        minimumTrackTintColor="#FF0080"
+                        maximumTrackTintColor="rgba(255,255,255,0.2)"
+                        thumbTintColor="#FF0080"
                         style={styles.volumeSlider}
-                        activeOpacity={1}
-                        onPress={(e: any) => {
-                          if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
-                          const { locationX } = e.nativeEvent;
-                          const newVolume = Math.max(0, Math.min(1, locationX / 120));
-                          handleVolumeChange(newVolume);
-                        }}
-                      >
-                        <View style={styles.volumeTrack}>
-                          <View style={[styles.volumeProgress, { width: `${volume * 100}%` }]} />
-                          <View style={[styles.volumeThumb, { left: `${volume * 100}%` }]} />
-                        </View>
-                      </TouchableOpacity>
+                        testID="audio-volume-slider-2"
+                      />
                     </View>
                   )}
                 </View>
@@ -1934,10 +1968,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  volumeControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   volumeButton: {
     padding: 12,
     borderRadius: 24,
     backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  volumeSliderToggle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  volumeSliderToggleText: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: '600',
   },
   volumeSliderContainer: {
     marginTop: 12,
@@ -1946,31 +1998,5 @@ const styles = StyleSheet.create({
   volumeSlider: {
     width: 120,
     height: 40,
-    justifyContent: 'center',
-  },
-  volumeTrack: {
-    height: 4,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 2,
-    position: 'relative',
-  },
-  volumeProgress: {
-    height: '100%',
-    backgroundColor: '#FF0080',
-    borderRadius: 2,
-  },
-  volumeThumb: {
-    position: 'absolute',
-    top: -6,
-    width: 16,
-    height: 16,
-    backgroundColor: '#FF0080',
-    borderRadius: 8,
-    marginLeft: -8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
   },
 });
