@@ -22,12 +22,13 @@ interface VideoPlayerProps {
 export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, volume = 1.0, style }: VideoPlayerProps) {
   const videoRef = useRef<Video>(null);
 
-
   useEffect(() => {
     if (videoRef.current) {
       if (isPlaying) {
+        console.log('[VideoPlayer] Playing video');
         videoRef.current.playAsync();
       } else {
+        console.log('[VideoPlayer] Pausing video');
         videoRef.current.pauseAsync();
       }
     }
@@ -35,7 +36,10 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, v
 
   useEffect(() => {
     if (videoRef.current && typeof volume === 'number') {
-      videoRef.current.setVolumeAsync(volume);
+      console.log('[VideoPlayer] Setting video volume to:', volume);
+      videoRef.current.setVolumeAsync(volume).catch((err) => {
+        console.log('[VideoPlayer] Error setting volume:', err);
+      });
     }
   }, [volume]);
 

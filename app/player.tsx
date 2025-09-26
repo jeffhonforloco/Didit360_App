@@ -163,12 +163,23 @@ export default function PlayerScreen() {
 
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
+    console.log('[Player] Setting volume to:', newVolume);
     setVolume(newVolume);
-    const active = audioEngine.getCurrentTrack();
-    if (active && active.type !== 'video' && !active.isVideo) {
-      audioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[Player] volume error', err));
+    
+    // Handle volume for both audio and video
+    if (currentTrack) {
+      if (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl) {
+        // For video tracks, the volume will be passed to VideoPlayer component
+        console.log('[Player] Video volume updated to:', newVolume);
+      } else {
+        // For audio tracks, use audio engine
+        const active = audioEngine.getCurrentTrack();
+        if (active) {
+          audioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[Player] audio volume error', err));
+        }
+      }
     }
-  }, []);
+  }, [currentTrack]);
 
   const toggleVolumeSlider = useCallback(() => {
     setShowVolumeSlider(!showVolumeSlider);
