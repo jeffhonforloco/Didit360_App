@@ -3,6 +3,7 @@ import { trpcServer } from "@hono/trpc-server";
 import { cors } from "hono/cors";
 import { appRouter } from "./trpc/app-router";
 import { createContext } from "./trpc/create-context";
+import type { LivePromptConfig, LiveParams, SafetyUpdate, LiveStartResponse, PairingResponse, Health, TrackLite } from "@/types/live";
 
 // app will be mounted at /api
 const app = new Hono();
@@ -138,6 +139,59 @@ app.get("/v1/obs/recent", (c) => {
   });
 });
 
+// --- Live DJ In-memory session store ---
+
+type CastStatus = 'idle' | 'pairing' | 'casting';
+interface LiveSessionState {
+  sessionId: string;
+  userId: string;
+  startedAt: string;
+  castStatus: CastStatus;
+  params: Required<Required<Pick<LiveParams, 'energy' | 'transitionStyle'>>>;
+  prompt: LivePromptConfig;
+  safe: Required<Required<Pick<SafetyUpdate, 'doNotPlay' | 'explicitFilter' | 'safeMode'>>>;
+  nowPlaying?: TrackLite;
+  nextUp: TrackLite[];
+}
+
+const liveSessions = new Map<string, LiveSessionState>();
+
+function getUserIdFrom(c: any): string {
+  const hdr = c.req.header('x-user-id');
+  return hdr && hdr.trim().length > 0 ? hdr : 'anon';
+}
+
+function ensureSessionFor(userId: string, cfg?: LivePromptConfig): LiveSessionState {
+  const existing = liveSessions.get(userId);
+  if (existing) return existing;
+  const sessionId = `live_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  const startedAt = new Date().toISOString();
+  const prompt: LivePromptConfig = cfg ?? { vibe: '', genres: [], durationMinutes: 120 };
+  const state: LiveSessionState = {
+    sessionId,
+    userId,
+    startedAt,
+    castStatus: 'idle',
+    params: { energy: 65, transitionStyle: 'fade' },
+    prompt,
+    safe: { doNotPlay: [], explicitFilter: 'moderate', safeMode: true },
+    nowPlaying: undefined,
+    nextUp: [],
+  };
+  liveSessions.set(userId, state);
+  return state;
+}
+
+function toStartResponse(s: LiveSessionState): LiveStartResponse {
+  return {
+    sessionId: s.sessionId,
+    startedAt: s.startedAt,
+    castStatus: s.castStatus,
+    nowPlaying: s.nowPlaying,
+    nextUp: s.nextUp,
+  };
+}
+
 // --- REST scaffolding per v1 contract ---
 
 // Updates feed
@@ -189,6 +243,119 @@ app.get("/v1/episodes/:id", (c) => entityResponse(c, c.req.param("id"), "episode
 app.get("/v1/audiobooks/:id", (c) => entityResponse(c, c.req.param("id"), "audiobook"));
 app.get("/v1/books/:id", (c) => entityResponse(c, c.req.param("id"), "book"));
 app.get("/v1/images/:id", (c) => entityResponse(c, c.req.param("id"), "image"));
+
+// DJ Instinct Live REST per OpenAPI under /dj-instinct
+// POST /live/start
+app.post("/dj-instinct/live/start", async (c) => {
+  try {
+    const userId = getUserIdFrom(c);
+    const body = (await c.req.json()) as LivePromptConfig;
+    if (!body || typeof body.vibe !== 'string' || !Array.isArray(body.genres) || typeof body.durationMinutes !== 'number') {
+      return c.json({ error: 'Invalid prompt' }, 400);
+    }
+    const s = ensureSessionFor(userId, body);
+    s.prompt = { ...s.prompt, ...body };
+    s.startedAt = new Date().toISOString();
+    s.castStatus = 'casting';
+    const artwork = "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800";
+    s.nowPlaying = {
+      id: `trk_${Date.now()}`,
+      title: "Live Intro",
+      artist: "DJ Instinct",
+      bpm: 124,
+      key: "Am",
+      durationSec: 212,
+      artwork,
+    };
+    s.nextUp = [1, 2, 3, 4].map((i) => ({
+      id: `trk_${Date.now()}_${i}`,
+      title: i % 2 ? "Sunset Groove" : "Amapiano Rush",
+      artist: i % 2 ? "AI Selector" : "Instinct Engine",
+      bpm: 118 + i,
+      key: ["Am", "Cm", "Em", "Gm"][i % 4],
+      durationSec: 180 + i * 12,
+      artwork,
+    }));
+    const res = toStartResponse(s);
+    return c.json(res, 200);
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? 'Bad Request' }, 400);
+  }
+});
+
+// POST /live/params
+app.post("/dj-instinct/live/params", async (c) => {
+  try {
+    const userId = getUserIdFrom(c);
+    const s = ensureSessionFor(userId);
+    const body = (await c.req.json()) as LiveParams;
+    if (typeof body.energy === 'number') s.params.energy = Math.max(0, Math.min(100, body.energy));
+    if (body.transitionStyle) s.params.transitionStyle = body.transitionStyle;
+    return c.json({ ok: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? 'Bad Request' }, 400);
+  }
+});
+
+// POST /live/pair/start
+app.post("/dj-instinct/live/pair/start", async (c) => {
+  try {
+    const userId = getUserIdFrom(c);
+    const s = ensureSessionFor(userId);
+    s.castStatus = 'pairing';
+    const sessionId = s.sessionId;
+    const base = (process.env.EXPO_PUBLIC_BASE_URL || (typeof location !== 'undefined' ? (location.origin as string) : 'https://didit360.com')) as string;
+    const pairingUrl = `${base}/pair?session=${encodeURIComponent(sessionId)}`;
+    const resp: PairingResponse = {
+      sessionId,
+      pairingUrl,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    };
+    return c.json(resp, 200);
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? 'Bad Request' }, 400);
+  }
+});
+
+// POST /live/safety
+app.post("/dj-instinct/live/safety", async (c) => {
+  try {
+    const userId = getUserIdFrom(c);
+    const s = ensureSessionFor(userId);
+    const body = (await c.req.json()) as SafetyUpdate;
+    s.safe = {
+      doNotPlay: body.doNotPlay ?? s.safe.doNotPlay,
+      explicitFilter: body.explicitFilter ?? s.safe.explicitFilter,
+      safeMode: body.safeMode ?? s.safe.safeMode,
+    };
+    return c.json({ ok: true }, 200);
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? 'Bad Request' }, 400);
+  }
+});
+
+// POST /live/emergency/fade
+app.post("/dj-instinct/live/emergency/fade", async (c) => {
+  try {
+    const userId = getUserIdFrom(c);
+    ensureSessionFor(userId);
+    await new Promise((r) => setTimeout(r, 200));
+    return c.json({ ok: true, at: new Date().toISOString() }, 200);
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? 'Bad Request' }, 400);
+  }
+});
+
+// GET /live/health
+app.get("/dj-instinct/live/health", (c) => {
+  const health: Health = {
+    latencyMs: 42 + Math.round(Math.random() * 10),
+    bufferMs: 180 + Math.round(Math.random() * 40),
+    droppedPkts: Math.round(Math.random() * 2),
+    network: (['good', 'fair', 'poor'] as const)[Math.min(2, Math.floor(Math.random() * 3))],
+  };
+  return c.json(health, 200);
+});
 
 // Search proxy scaffold
 app.get("/v1/search", (c) => {

@@ -29,6 +29,7 @@ import {
   Volume2,
 } from "lucide-react-native";
 import { router } from "expo-router";
+import { features } from "@/constants/features";
 import { useDJInstinct, type DJInstinctMode, type TransitionStyle } from "@/contexts/DJInstinctContext";
 import { usePlayer } from "@/contexts/PlayerContext";
 import type { Track } from "@/types";
@@ -369,21 +370,23 @@ export default function DJInstinctScreen() {
             )}
 
             {/* Live DJ Entry */}
-            <TouchableOpacity 
-              style={styles.liveDJEntry}
-              onPress={() => router.push('/dj-instinct/live')}
-            >
-              <View style={styles.liveDJIcon}>
-                <Headphones size={24} color="#FF6B35" />
-              </View>
-              <View style={styles.liveDJContent}>
-                <Text style={styles.liveDJTitle}>Live DJ</Text>
-                <Text style={styles.liveDJSubtitle}>Professional event mixing</Text>
-              </View>
-              <View style={styles.liveDJBadge}>
-                <Text style={styles.liveDJBadgeText}>PRO</Text>
-              </View>
-            </TouchableOpacity>
+            {features.liveDJ.enabled && (
+              <TouchableOpacity 
+                style={styles.liveDJEntry}
+                onPress={() => router.push('/dj-instinct/live')}
+              >
+                <View style={styles.liveDJIcon}>
+                  <Headphones size={24} color="#FF6B35" />
+                </View>
+                <View style={styles.liveDJContent}>
+                  <Text style={styles.liveDJTitle}>Live DJ</Text>
+                  <Text style={styles.liveDJSubtitle}>Professional event mixing</Text>
+                </View>
+                <View style={styles.liveDJBadge}>
+                  <Text style={styles.liveDJBadgeText}>PRO</Text>
+                </View>
+              </TouchableOpacity>
+            )}
 
             {/* Action Bar */}
             <View style={styles.actionBar}>
