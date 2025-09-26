@@ -9,7 +9,7 @@ import { useUser } from "@/contexts/UserContext";
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
   const { currentTrack } = usePlayer();
-  const { settings, isSignedIn } = useUser();
+  const { settings } = useUser();
 
   const tabBarPadding = currentTrack ? 60 : 0;
   const activeTint = settings?.accentColor ?? "#FF0080";
@@ -22,8 +22,8 @@ export default function TabLayout() {
     paddingTop: 10,
     height: Platform.OS === "ios" ? 80 + insets.bottom + tabBarPadding : 60 + tabBarPadding,
     position: "absolute" as const,
-    display: isSignedIn ? "flex" : "none", // Hide tab bar for guest users
-  }), [insets.bottom, tabBarPadding, isSignedIn]);
+    display: "flex", // Always show tab bar
+  }), [insets.bottom, tabBarPadding]);
 
   return (
     <Tabs
