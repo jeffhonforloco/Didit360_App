@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -21,19 +21,41 @@ interface VideoPlayerProps {
   track: Track;
   isPlaying: boolean;
   onPlayPause: () => void;
+  onProgressUpdate?: (progress: { position: number; duration: number }) => void;
+  onSkipNext?: () => void;
+  onSkipPrevious?: () => void;
   style?: any;
 }
 
-export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlayerProps) {
+export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, onSkipNext, onSkipPrevious, style }: VideoPlayerProps) {
   const videoRef = useRef<Video>(null);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [showControls, setShowControls] = useState<boolean>(true);
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.playAsync();
+      } else {
+        videoRef.current.pauseAsync();
+      }
+    }
+  }, [isPlaying]);
+
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (status.isLoaded) {
       console.log('[VideoPlayer] Playback status: loaded');
       if ('isFullscreen' in status && typeof status.isFullscreen === 'boolean') {
         setIsFullscreen(status.isFullscreen);
+      }
+      
+      if ('positionMillis' in status && 'durationMillis' in status && onProgressUpdate) {
+        onProgressUpdate({
+          position: status.positionMillis || 0,
+          duration: status.durationMillis || 0
+        });
       }
     } else {
       console.log('[VideoPlayer] Playback status: loading');
@@ -68,13 +90,26 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, style }: VideoPlaye
   };
 
   const toggleControls = () => {
-    setShowControls(!showControls);
-    if (showControls) {
-      setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
+    setShowControls(true);
+    
+    if (controlsTimeout) {
+      clearTimeout(controlsTimeout);
     }
+    
+    const timeout = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+    
+    setControlsTimeout(timeout);
   };
+
+  useEffect(() => {
+    return () => {
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
+    };
+  }, [controlsTimeout]);
 
   // Use a fallback video URL if none is provided
   const videoUrl = track.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";

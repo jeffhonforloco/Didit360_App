@@ -102,6 +102,16 @@ export default function PlayerScreen() {
     audioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] seek error', err));
   }, [width, durationMs]);
 
+  const handleVideoSeek = useCallback((e: any) => {
+    if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
+    const { locationX } = e.nativeEvent;
+    const containerWidth = width - 40;
+    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+    setProgress(newProgress);
+    const target = Math.floor(newProgress * (durationMs || 0));
+    console.log('[Player] Video seek to:', target, 'ms');
+  }, [width, durationMs]);
+
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
     setVolume(newVolume);
@@ -389,7 +399,10 @@ export default function PlayerScreen() {
             <VideoPlayer
               track={currentTrack}
               isPlaying={isPlaying}
-              onPlayPause={togglePlayPause}
+              onPlayPause={handlePlayPause}
+              onProgressUpdate={updateProgress}
+              onSkipNext={handleSkipNext}
+              onSkipPrevious={handleSkipPrevious}
               style={styles.videoPlayer}
             />
           </View>
@@ -399,7 +412,7 @@ export default function PlayerScreen() {
               <TouchableOpacity 
                 style={styles.sliderContainer}
                 activeOpacity={1}
-                onPress={handleSeek}
+                onPress={handleVideoSeek}
               >
                 <View style={styles.sliderTrack}>
                   <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
