@@ -613,7 +613,7 @@ export default function PodcastsScreen() {
           >
             <ArrowLeft size={24} color="#FFF" />
           </TouchableOpacity>
-          <Text style={styles.title}>VoxSaga</Text>
+          <Text style={styles.title}>VoxSaga (Podcasts)</Text>
           <View style={styles.placeholder} />
         </View>
 
@@ -806,7 +806,7 @@ export default function PodcastsScreen() {
 
           <View style={styles.sectionHeaderCompact}>
             <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>VoxSaga ({filteredData.length})</Text>
+              <Text style={styles.sectionTitle}>VoxSaga (Podcasts) ({filteredData.length})</Text>
               <View style={styles.sectionStats}>
                 <Text style={styles.statsText}>{mediaKind} • {sortBy}</Text>
               </View>

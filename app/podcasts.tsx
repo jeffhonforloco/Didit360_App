@@ -177,7 +177,7 @@ export default function PodcastsScreen() {
         >
           <ArrowLeft size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>VoxSaga</Text>
+        <Text style={styles.title}>VoxSaga (Podcasts)</Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerButton}>
             <Search size={24} color="#FFF" />
