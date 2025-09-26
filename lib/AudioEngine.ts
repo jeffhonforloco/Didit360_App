@@ -540,6 +540,30 @@ export class AudioEngine {
     }
   }
 
+  async setVolume(volume: number) {
+    const normalizedVolume = Math.max(0, Math.min(1, volume));
+    const active = this.getActive();
+    if (active.sound) {
+      try {
+        active.sound.volume = normalizedVolume;
+      } catch (e) {
+        console.log('[AudioEngine] setVolume error', e);
+      }
+    }
+  }
+
+  getVolume(): number {
+    const active = this.getActive();
+    if (active.sound) {
+      try {
+        return active.sound.volume;
+      } catch (e) {
+        console.log('[AudioEngine] getVolume error', e);
+      }
+    }
+    return 1.0;
+  }
+
   subscribeProgress(cb: (p: Progress) => void) {
     this.progressListeners.add(cb);
     return () => {
