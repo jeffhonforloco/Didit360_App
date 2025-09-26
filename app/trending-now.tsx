@@ -65,7 +65,8 @@ export default function TrendingNowScreen() {
       style={[styles.trendingCard, { width: CARD_WIDTH }]}
       onPress={() => {
         console.log(`Playing trending ${item.type}: ${item.title}`);
-        if (item.type === 'video' && item.isVideo) {
+        if (item.type === 'video' || item.isVideo) {
+          console.log(`Opening video player for: ${item.title}`);
           playTrack(item);
           router.push('/player');
         } else if (item.type === 'podcast') {
