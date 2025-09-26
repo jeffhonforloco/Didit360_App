@@ -19,7 +19,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   ...props
 }) => {
   const [hasError, setHasError] = useState(false);
-  const isValid = uri && uri.trim().length > 0 && !hasError;
+  const isValid = uri && typeof uri === 'string' && uri.trim().length > 0 && !hasError;
 
   const handleError = () => {
     console.log('SafeImage: Failed to load image:', uri);
