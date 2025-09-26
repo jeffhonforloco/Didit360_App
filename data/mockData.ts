@@ -2261,7 +2261,7 @@ export const browseCategories: CategoryItem[] = [
   },
   {
     id: "audiobook",
-    title: "Audiobooks",
+    title: "Auralora",
     colors: ["#6A85F1", "#B892FF"] as const,
     image: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=400&fit=crop",
     description: "Immerse yourself in captivating stories",
@@ -2269,7 +2269,7 @@ export const browseCategories: CategoryItem[] = [
   },
   {
     id: "podcast",
-    title: "Podcasts",
+    title: "VoxSaga",
     colors: ["#00C6FF", "#0072FF"] as const,
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop",
     description: "Stay informed and entertained",
