@@ -199,7 +199,7 @@ export default function AudiobooksScreen() {
         >
           <ArrowLeft size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>Auralora</Text>
+        <Text style={styles.title}>Auralora (Audiobooks)</Text>
         <TouchableOpacity
           style={styles.filterButton}
           onPress={() => setShowFilters(!showFilters)}

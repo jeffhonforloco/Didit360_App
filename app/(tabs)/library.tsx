@@ -62,7 +62,7 @@ export default function LibraryScreen() {
     { id: "playlists", label: "Playlists" },
     { id: "songs", label: "Songs" },
     { id: "podcasts", label: "Podcasts" },
-    { id: "audiobooks", label: "Audiobooks" },
+    { id: "audiobooks", label: "Auralora (Audiobooks)" },
     { id: "mixmind", label: "MixMind" },
   ];
 
@@ -455,7 +455,7 @@ export default function LibraryScreen() {
         
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Audiobooks</Text>
+            <Text style={styles.sectionTitle}>Auralora (Audiobooks)</Text>
             <TouchableOpacity onPress={() => router.push("/categories/audiobooks")}>
               <Text style={styles.seeAllText}>See All</Text>
             </TouchableOpacity>

@@ -738,7 +738,7 @@ export default function SearchScreen() {
               </View>
             )}
             <View style={styles.browse}>
-              <Text style={styles.browseTitle}>Browse All Audiobooks</Text>
+              <Text style={styles.browseTitle}>Browse Auralora (Audiobooks)</Text>
               <FlatList
                 data={audiobookCategories}
                 renderItem={renderAudiobookCategory}

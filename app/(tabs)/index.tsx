@@ -416,7 +416,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={[styles.section, { marginBottom: 120 }]}> 
-          {renderSectionHeader("Latest Books", "latest-books", "/categories/audiobooks")}
+          {renderSectionHeader("Auralora (Audiobooks)", "latest-books", "/categories/audiobooks")}
           <FlatList
             data={audiobooks}
             renderItem={renderCard}
