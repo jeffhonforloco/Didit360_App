@@ -261,14 +261,14 @@ export default function HomeScreen() {
 
   console.log('[HomeScreen] Rendering - profile:', !!profile, 'isLoading:', isLoading, 'width:', width);
 
-  // Remove loading check to prevent black screen
-  // if (isLoading) {
-  //   return (
-  //     <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-  //       <Text style={{ color: '#FFF', fontSize: 16 }}>Loading...</Text>
-  //     </View>
-  //   );
-  // }
+  // Add error boundary for the home screen
+  if (width === 0) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#FFF', fontSize: 16 }}>Loading...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

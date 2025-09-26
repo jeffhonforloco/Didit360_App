@@ -132,12 +132,31 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const pathname = usePathname();
+  const [isReady, setIsReady] = React.useState(false);
   
   // Install image guard on app start
   useEffect(() => {
     if (__DEV__) {
       installImageGuard();
     }
+  }, []);
+  
+  // Initialize app
+  useEffect(() => {
+    const initApp = async () => {
+      try {
+        console.log('[RootLayout] Initializing app...');
+        // Add a small delay to ensure everything is ready
+        await new Promise(resolve => setTimeout(resolve, 100));
+        setIsReady(true);
+        console.log('[RootLayout] App ready');
+      } catch (error) {
+        console.error('[RootLayout] Init error:', error);
+        setIsReady(true); // Still show the app even if there's an error
+      }
+    };
+    
+    initApp();
   }, []);
   
   useEffect(() => {
@@ -175,6 +194,26 @@ export default function RootLayout() {
   }, []);
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
+
+  // Show loading screen while initializing
+  if (!isReady) {
+    return (
+      <View style={[styles.container, styles.loading]}>
+        <View style={styles.loadingContent}>
+          <Image 
+            source={require('@/assets/images/icon.png')} 
+            style={styles.loadingIcon}
+            resizeMode="contain"
+          />
+          <View style={styles.loadingDots}>
+            <View style={[styles.dot, styles.dot1]} />
+            <View style={[styles.dot, styles.dot2]} />
+            <View style={[styles.dot, styles.dot3]} />
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
@@ -216,5 +255,37 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  loading: {
+    backgroundColor: '#0B0A14',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    alignItems: 'center',
+  },
+  loadingIcon: {
+    width: 80,
+    height: 80,
+    marginBottom: 20,
+  },
+  loadingDots: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF0080',
+  },
+  dot1: {
+    opacity: 0.4,
+  },
+  dot2: {
+    opacity: 0.7,
+  },
+  dot3: {
+    opacity: 1,
   },
 });
