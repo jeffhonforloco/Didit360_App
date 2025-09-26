@@ -450,10 +450,7 @@ export default function PlayerScreen() {
               isPlaying={isPlaying}
               onPlayPause={handlePlayPause}
               onProgressUpdate={({ position, duration }) => updateProgress({ position, duration, buffered: duration })}
-              onSkipNext={handleSkipNext}
-              onSkipPrevious={handleSkipPrevious}
               volume={volume}
-              onVolumeChange={handleVolumeChange}
               style={styles.videoPlayer}
             />
           </View>
