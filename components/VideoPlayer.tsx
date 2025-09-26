@@ -14,6 +14,8 @@ import {
   VolumeX,
   Maximize,
   Minimize,
+  SkipBack,
+  SkipForward,
 } from "lucide-react-native";
 import type { Track } from "@/types";
 
@@ -71,16 +73,20 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
     }
   };
 
-  const toggleMute = () => {
+  const toggleVolumeSlider = () => {
+    setShowVolumeSlider(!showVolumeSlider);
+  };
+
+  const handleMuteToggle = () => {
     const newMutedState = !isMuted;
     setIsMuted(newMutedState);
     if (videoRef.current) {
       videoRef.current.setIsMutedAsync(newMutedState);
     }
-  };
-
-  const toggleVolumeSlider = () => {
-    setShowVolumeSlider(!showVolumeSlider);
+    // Also update volume to 0 when muted, restore when unmuted
+    if (onVolumeChange) {
+      onVolumeChange(newMutedState ? 0 : volume);
+    }
   };
 
   const handleVolumeChange = (newVolume: number) => {
@@ -200,12 +206,22 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
           </View>
           
           <View style={styles.bottomControls}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={onSkipPrevious}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
+              <SkipBack size={24} color="#FFF" fill="#FFF" />
+            </TouchableOpacity>
+            
             <View style={styles.volumeControlsContainer}>
               <TouchableOpacity
                 style={styles.controlButton}
-                onPress={toggleVolumeSlider}
+                onPress={handleMuteToggle}
+                onLongPress={toggleVolumeSlider}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
-                {isMuted ? (
+                {isMuted || volume === 0 ? (
                   <VolumeX size={24} color="#FFF" />
                 ) : (
                   <Volume2 size={24} color="#FFF" />
@@ -221,6 +237,9 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
                       const { locationX } = e.nativeEvent;
                       const newVolume = Math.max(0, Math.min(1, locationX / 120));
                       handleVolumeChange(newVolume);
+                      if (newVolume > 0) {
+                        setIsMuted(false);
+                      }
                     }}
                   >
                     <View style={styles.volumeTrack}>
@@ -231,15 +250,13 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, o
                 </View>
               )}
             </View>
+            
             <TouchableOpacity
               style={styles.controlButton}
-              onPress={toggleMute}
+              onPress={onSkipNext}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              {isMuted ? (
-                <VolumeX size={24} color="#FFF" />
-              ) : (
-                <Volume2 size={24} color="#FFF" />
-              )}
+              <SkipForward size={24} color="#FFF" fill="#FFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -283,7 +300,8 @@ const styles = StyleSheet.create({
   },
   bottomControls: {
     flexDirection: "row",
-    justifyContent: "flex-start",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
   },
   controlButton: {
@@ -318,17 +336,21 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   volumeControlsContainer: {
-    alignItems: 'flex-start',
+    alignItems: 'center',
     position: 'relative',
+    flex: 1,
+    marginHorizontal: 20,
   },
   volumeSliderContainer: {
     position: 'absolute',
     bottom: 60,
-    left: 12,
+    left: '50%',
+    marginLeft: -60,
     backgroundColor: 'rgba(0, 0, 0, 0.8)',
     borderRadius: 8,
     padding: 8,
     minWidth: 120,
+    alignItems: 'center',
   },
   volumeSlider: {
     width: 120,
