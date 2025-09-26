@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
+import SafeImage from "@/components/SafeImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car } from "lucide-react-native";
 import { router, type Href } from "expo-router";
@@ -91,7 +92,7 @@ export default function ProfileScreen() {
             activeOpacity={0.8}
             testID="profile-avatar-button"
           >
-            <Image source={{ uri: avatarSrc }} style={styles.avatar} />
+            <SafeImage uri={avatarSrc} style={styles.avatar} />
           </TouchableOpacity>
           <View style={styles.userMeta}>
             <Text style={styles.userName} numberOfLines={1}>{profile.displayName}</Text>

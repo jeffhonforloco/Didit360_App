@@ -5,10 +5,10 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
   FlatList,
   useWindowDimensions,
 } from "react-native";
+import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
@@ -43,8 +43,8 @@ export default function HomeScreen() {
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
       <View style={styles.headerLeft}>
         {profile && (
-          <Image
-            source={{ uri: profile.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop" }}
+          <SafeImage
+            uri={profile.avatarUrl ?? "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=200&auto=format&fit=crop"}
             style={styles.avatar}
           />
         )}
@@ -124,7 +124,7 @@ export default function HomeScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.featuredGradient}
       >
-        <Image source={{ uri: item.artwork }} style={styles.featuredImage} />
+        <SafeImage uri={item.artwork} style={styles.featuredImage} />
         <View style={styles.featuredOverlay}>
           <Text style={styles.featuredTitle} numberOfLines={1}>
             {item.title}
@@ -147,8 +147,8 @@ export default function HomeScreen() {
       activeOpacity={0.8}
       testID={`card-${item.id}`}
     >
-      <Image 
-        source={{ uri: item.artwork }} 
+      <SafeImage 
+        uri={item.artwork} 
         style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
       />
       <Text style={styles.cardTitle} numberOfLines={1}>
@@ -167,8 +167,8 @@ export default function HomeScreen() {
       activeOpacity={0.8}
       testID={`small-card-${item.id}`}
     >
-      <Image 
-        source={{ uri: item.artwork }} 
+      <SafeImage 
+        uri={item.artwork} 
         style={[styles.cardImage, { width: SMALL_CARD, height: SMALL_CARD }]} 
       />
       <Text style={styles.cardTitle} numberOfLines={1}>
@@ -187,7 +187,7 @@ export default function HomeScreen() {
       activeOpacity={0.8}
       testID={`recent-${item.id}`}
     >
-      <Image source={{ uri: item.artwork }} style={styles.recentImage} />
+      <SafeImage uri={item.artwork} style={styles.recentImage} />
       <View style={styles.recentInfo}>
         <Text style={styles.recentTitle} numberOfLines={1}>
           {item.title}
@@ -204,7 +204,7 @@ export default function HomeScreen() {
 
   const renderFavoriteArtist = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity style={styles.artistCard} onPress={() => playTrack(item)} activeOpacity={0.9} testID={`artist-${item.artist}`}>
-      <Image source={{ uri: item.artwork }} style={styles.artistImage} />
+      <SafeImage uri={item.artwork} style={styles.artistImage} />
       <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
     </TouchableOpacity>
   ), [playTrack]);
@@ -232,8 +232,8 @@ export default function HomeScreen() {
           style={styles.categoryGradient}
         >
           {item.image && (
-            <Image 
-              source={{ uri: item.image }} 
+            <SafeImage 
+              uri={item.image} 
               style={styles.categoryImage} 
             />
           )}

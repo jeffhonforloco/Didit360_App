@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Image,
   useWindowDimensions,
   FlatList,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   Platform,
   ImageBackground,
 } from "react-native";
+import SafeImage from "@/components/SafeImage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -105,7 +105,7 @@ export default function PlayerScreen() {
       onPress={() => playTrack(item)}
       activeOpacity={0.8}
     >
-      <Image source={{ uri: item.artwork }} style={styles.queueItemImage} />
+      <SafeImage uri={item.artwork} style={styles.queueItemImage} />
       <View style={styles.queueItemInfo}>
         <Text style={styles.queueItemTitle} numberOfLines={1}>
           {item.title}
@@ -129,7 +129,7 @@ export default function PlayerScreen() {
       <View style={styles.suggestionNumber}>
         <Text style={styles.suggestionNumberText}>{String(index + 1).padStart(2, '0')}</Text>
       </View>
-      <Image source={{ uri: item.artwork }} style={styles.suggestionImage} />
+      <SafeImage uri={item.artwork} style={styles.suggestionImage} />
       <View style={styles.suggestionInfo}>
         <Text style={styles.suggestionTitle} numberOfLines={1}>
           {item.title}
@@ -563,8 +563,8 @@ export default function PlayerScreen() {
 
             <View style={styles.artworkContainer}>
               <View style={styles.artworkWrapper}>
-                <Image
-                  source={{ uri: currentTrack.artwork }}
+                <SafeImage
+                  uri={currentTrack.artwork}
                   style={styles.artwork}
                 />
               </View>

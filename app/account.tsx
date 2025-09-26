@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState, useEffect } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, Alert, Platform } from "react-native";
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
+import SafeImage from "@/components/SafeImage";
 import { useUser } from "@/contexts/UserContext";
 import { useNavigation, router, type Href } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -180,7 +181,7 @@ export default function AccountScreen() {
           activeOpacity={0.8}
           testID="change-avatar-button"
         >
-          <Image source={{ uri: avatarSrc }} style={styles.avatar} />
+          <SafeImage uri={avatarSrc} style={styles.avatar} />
           <View style={styles.avatarOverlay}>
             <Camera size={20} color="#FFFFFF" />
           </View>

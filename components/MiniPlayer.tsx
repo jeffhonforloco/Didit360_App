@@ -4,9 +4,9 @@ import {
   Text,
   View,
   TouchableOpacity,
-  Image,
   Platform,
 } from "react-native";
+import SafeImage from "@/components/SafeImage";
 import { Play, Pause, SkipForward, Video, X } from "lucide-react-native";
 import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -74,11 +74,9 @@ export function MiniPlayer() {
       testID="mini-player"
     >
       <View style={styles.artworkContainer}>
-        <Image 
-          source={{ uri: currentTrack.artwork }} 
+        <SafeImage 
+          uri={currentTrack.artwork} 
           style={styles.artwork}
-          // Add loading optimization
-          loadingIndicatorSource={{ uri: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDQiIGhlaWdodD0iNDQiIHZpZXdCb3g9IjAgMCA0NCA0NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQ0IiBoZWlnaHQ9IjQ0IiBmaWxsPSIjMkEyQTJBIi8+Cjwvc3ZnPgo=' }}
         />
         {isVideoTrack && (
           <View style={styles.videoIndicator}>
