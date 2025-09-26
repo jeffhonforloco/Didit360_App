@@ -11,20 +11,18 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Play } from "lucide-react-native";
 import { router } from "expo-router";
-import { usePlayer } from "@/contexts/PlayerContext";
+
 import { trendingVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 
 export default function TrendingVideosScreen() {
-  const { playTrack } = usePlayer();
 
   const renderTrack = ({ item }: { item: Track }) => (
     <TouchableOpacity
       style={styles.trackCard}
       onPress={() => {
-        console.log(`Playing trending video: ${item.title}`);
-        playTrack(item);
-        // Video will automatically navigate to player via PlayerContext
+        console.log(`Opening trending video: ${item.title}`);
+        router.push(`/player?id=${item.id}&type=video`);
       }}
       activeOpacity={0.8}
       testID={`track-${item.id}`}
@@ -40,9 +38,8 @@ export default function TrendingVideosScreen() {
         <Text style={styles.trendingLabel}>Trending Video</Text>
       </View>
       <TouchableOpacity style={styles.playButton} onPress={() => {
-        console.log(`Playing trending video: ${item.title}`);
-        playTrack(item);
-        // Video will automatically navigate to player via PlayerContext
+        console.log(`Opening trending video: ${item.title}`);
+        router.push(`/player?id=${item.id}&type=video`);
       }}>
         <Play size={16} color="#000" fill="#FFF" />
       </TouchableOpacity>

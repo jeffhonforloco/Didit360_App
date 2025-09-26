@@ -36,7 +36,7 @@ import {
   Clock,
   Volume2,
 } from "lucide-react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
 import { VideoPlayer } from "@/components/VideoPlayer";
@@ -47,6 +47,7 @@ import { audioEngine, Progress } from "@/lib/AudioEngine";
 
 export default function PlayerScreen() {
   const { width } = useWindowDimensions();
+  const { id, type } = useLocalSearchParams<{ id?: string; type?: string }>();
   const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious, queue, playTrack } = usePlayer();
   const { toggleFavorite, isFavorite, playlists, addToPlaylist } = useLibrary();
   const [progress, setProgress] = useState<number>(0);
@@ -74,6 +75,38 @@ export default function PlayerScreen() {
     const unsub = audioEngine.subscribeProgress(updateProgress);
     return unsub;
   }, [updateProgress]);
+
+  // Handle direct navigation with URL parameters
+  useEffect(() => {
+    if (id && !currentTrack) {
+      console.log('[Player] Loading track from URL params:', { id, type });
+      // Import all mock data to find the track
+      import('@/data/mockData').then((mockData) => {
+        const allTracks = [
+          ...mockData.featuredContent,
+          ...mockData.trendingVideos,
+          ...mockData.livePerformanceVideos,
+          ...mockData.mostViewedVideos,
+          ...mockData.trendingNow,
+          ...mockData.newReleases,
+          ...mockData.topCharts,
+          ...mockData.podcasts,
+          ...mockData.audiobooks,
+        ];
+        const track = allTracks.find(t => t.id === id);
+        if (track) {
+          console.log('[Player] Found track:', track.title, 'type:', track.type);
+          playTrack(track);
+        } else {
+          console.log('[Player] Track not found with id:', id);
+          router.back();
+        }
+      }).catch((e) => {
+        console.log('[Player] Error loading track data:', e);
+        router.back();
+      });
+    }
+  }, [id, type, currentTrack, playTrack]);
 
   // Ensure engine has something loaded when entering screen directly
   useEffect(() => {

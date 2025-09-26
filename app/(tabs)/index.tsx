@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, mostViewedVideos, recentlyAddedContent } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, mostViewedVideos, recentlyAddedContent, trendingVideos } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
@@ -158,6 +158,32 @@ export default function HomeScreen() {
       </Text>
     </TouchableOpacity>
   ), [CARD_WIDTH, playTrack]);
+
+  const renderVideoCard = useCallback(({ item }: { item: Track }) => (
+    <TouchableOpacity
+      style={[styles.card, { width: CARD_WIDTH }]}
+      onPress={() => {
+        console.log(`Opening video: ${item.title}`);
+        router.push(`/player?id=${item.id}&type=video`);
+      }}
+      activeOpacity={0.8}
+      testID={`video-card-${item.id}`}
+    >
+      <SafeImage 
+        uri={item.artwork} 
+        style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
+      />
+      <View style={styles.videoIndicator}>
+        <Play size={16} color="#FFF" fill="#FFF" />
+      </View>
+      <Text style={styles.cardTitle} numberOfLines={1}>
+        {item.title}
+      </Text>
+      <Text style={styles.cardArtist} numberOfLines={1}>
+        {item.artist}
+      </Text>
+    </TouchableOpacity>
+  ), [CARD_WIDTH]);
 
   const renderSmallCard = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
@@ -370,9 +396,9 @@ export default function HomeScreen() {
         <View style={styles.section}>
           {renderSectionHeader("Trending Videos", "trending-videos", "/categories/trending-videos")}
           <FlatList
-            data={featuredContent}
-            renderItem={renderCard}
-            keyExtractor={(item) => `trending-${item.id}`}
+            data={trendingVideos.slice(0, 6)}
+            renderItem={renderVideoCard}
+            keyExtractor={(item) => `trending-video-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -671,4 +697,15 @@ const styles = StyleSheet.create({
   guestText: { color: "#E5E7EB", fontSize: 12, marginBottom: 8 },
   guestBtn: { backgroundColor: "#FF0080", height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 14 },
   guestBtnText: { color: "#0B0B0C", fontWeight: "800" },
+  videoIndicator: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
