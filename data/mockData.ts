@@ -689,6 +689,105 @@ export const audiobooks: Track[] = [
     type: "audiobook",
     description: "A fantasy adventure",
   },
+  {
+    id: "a5",
+    title: "Atomic Habits",
+    artist: "James Clear",
+    artwork: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
+    duration: 19800, // 330 minutes
+    type: "audiobook",
+    description: "An Easy & Proven Way to Build Good Habits & Break Bad Ones",
+  },
+  {
+    id: "a6",
+    title: "The Psychology of Money",
+    artist: "Morgan Housel",
+    artwork: "https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=400&h=600&fit=crop",
+    duration: 16200, // 270 minutes
+    type: "audiobook",
+    description: "Timeless lessons on wealth, greed, and happiness",
+  },
+  {
+    id: "a7",
+    title: "Educated",
+    artist: "Tara Westover",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 22800, // 380 minutes
+    type: "audiobook",
+    description: "A Memoir - A powerful story of education and transformation",
+  },
+  {
+    id: "a8",
+    title: "The Seven Husbands of Evelyn Hugo",
+    artist: "Taylor Jenkins Reid",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 20400, // 340 minutes
+    type: "audiobook",
+    description: "A captivating novel about Hollywood's golden age",
+  },
+  {
+    id: "a9",
+    title: "Sapiens",
+    artist: "Yuval Noah Harari",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 27000, // 450 minutes
+    type: "audiobook",
+    description: "A Brief History of Humankind",
+  },
+  {
+    id: "a10",
+    title: "The Midnight Library",
+    artist: "Matt Haig",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 18000, // 300 minutes
+    type: "audiobook",
+    description: "A novel about all the choices that go into a life well lived",
+  },
+  {
+    id: "a11",
+    title: "Becoming",
+    artist: "Michelle Obama",
+    artwork: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=600&fit=crop",
+    duration: 25200, // 420 minutes
+    type: "audiobook",
+    description: "An intimate, powerful, and inspiring memoir",
+  },
+  {
+    id: "a12",
+    title: "The Alchemist",
+    artist: "Paulo Coelho",
+    artwork: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop",
+    duration: 14400, // 240 minutes
+    type: "audiobook",
+    description: "A magical story about following your dreams",
+  },
+  {
+    id: "a13",
+    title: "Where the Crawdads Sing",
+    artist: "Delia Owens",
+    artwork: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400&h=600&fit=crop",
+    duration: 21600, // 360 minutes
+    type: "audiobook",
+    description: "A coming-of-age mystery set in the marshlands of North Carolina",
+  },
+  {
+    id: "a14",
+    title: "The Power of Now",
+    artist: "Eckhart Tolle",
+    artwork: "https://images.unsplash.com/photo-1532012197267-da84d127e765?w=400&h=600&fit=crop",
+    duration: 16800, // 280 minutes
+    type: "audiobook",
+    description: "A Guide to Spiritual Enlightenment",
+  },
+  {
+    id: "a15",
+    title: "The Subtle Art of Not Giving a F*ck",
+    artist: "Mark Manson",
+    artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=600&fit=crop",
+    duration: 18000, // 300 minutes
+    type: "audiobook",
+    description: "A Counterintuitive Approach to Living a Good Life",
+  },
 ];
 
 export const audiobookDetails: Record<string, AudiobookDetails> = {
@@ -908,24 +1007,54 @@ As she stood on shaky legs, she noticed something that made her blood run cold. 
 
 export const audiobookCategories = [
   {
-    id: "art",
-    title: "Art",
+    id: "fiction",
+    title: "Fiction",
     color: "#C53030",
+  },
+  {
+    id: "non-fiction",
+    title: "Non-Fiction",
+    color: "#2D3748",
+  },
+  {
+    id: "self-help",
+    title: "Self-Help",
+    color: "#38A169",
   },
   {
     id: "business",
     title: "Business",
-    color: "#C53030",
+    color: "#3182CE",
   },
   {
-    id: "comedy",
-    title: "Comedy",
-    color: "#C53030",
+    id: "biography",
+    title: "Biography",
+    color: "#805AD5",
   },
   {
-    id: "drama",
-    title: "Drama",
-    color: "#C53030",
+    id: "fantasy",
+    title: "Fantasy",
+    color: "#E53E3E",
+  },
+  {
+    id: "mystery",
+    title: "Mystery",
+    color: "#D69E2E",
+  },
+  {
+    id: "romance",
+    title: "Romance",
+    color: "#ED64A6",
+  },
+  {
+    id: "science",
+    title: "Science",
+    color: "#319795",
+  },
+  {
+    id: "history",
+    title: "History",
+    color: "#DD6B20",
   },
 ];
 

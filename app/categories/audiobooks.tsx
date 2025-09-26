@@ -8,9 +8,10 @@ import {
   Image,
   FlatList,
   TextInput,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Search, Filter, Star, Clock, BookOpen, Play } from "lucide-react-native";
+import { ArrowLeft, Search, Filter, Star, Clock, BookOpen, Play, Heart, Download, TrendingUp } from "lucide-react-native";
 import { router } from "expo-router";
 import {
   audiobookCategories,
@@ -21,6 +22,8 @@ import {
 } from "@/data/mockData";
 import type { Track } from "@/types";
 import { usePlayer } from "@/contexts/PlayerContext";
+
+const { width } = Dimensions.get("window");
 
 export default function AudiobooksScreen() {
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -283,6 +286,44 @@ export default function AudiobooksScreen() {
           </View>
           <FlatList
             data={recommendedAudiobooks}
+            renderItem={renderFeaturedBook}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredList}
+          />
+        </View>
+
+        {/* Best Sellers */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Best Sellers</Text>
+            <View style={styles.statsContainer}>
+              <TrendingUp size={16} color="#C53030" />
+              <Text style={styles.statsText}>{bestSellerAudiobooks.length} trending</Text>
+            </View>
+          </View>
+          <FlatList
+            data={bestSellerAudiobooks}
+            renderItem={renderFeaturedBook}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredList}
+          />
+        </View>
+
+        {/* New Releases */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>New Releases</Text>
+            <View style={styles.statsContainer}>
+              <Clock size={16} color="#38A169" />
+              <Text style={styles.statsText}>{newReleaseAudiobooks.length} new</Text>
+            </View>
+          </View>
+          <FlatList
+            data={newReleaseAudiobooks}
             renderItem={renderFeaturedBook}
             keyExtractor={(item) => item.id}
             horizontal
