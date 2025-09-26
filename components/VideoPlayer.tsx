@@ -45,7 +45,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   useEffect(() => {
     if (videoRef.current && typeof volume === 'number') {
       console.log('[VideoPlayer] Setting video volume to:', volume);
-      videoRef.current.setVolumeAsync(volume).catch((err) => {
+      videoRef.current.setVolumeAsync(volume).then(() => {
+        console.log('[VideoPlayer] Volume successfully set to:', volume);
+      }).catch((err) => {
         console.log('[VideoPlayer] Error setting volume:', err);
       });
     }
@@ -136,7 +138,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         resizeMode={ResizeMode.CONTAIN}
         isLooping={false}
         shouldPlay={isPlaying}
-        isMuted={false}
+        isMuted={volume === 0}
         volume={volume}
         onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
       />

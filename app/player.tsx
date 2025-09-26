@@ -63,6 +63,7 @@ export default function PlayerScreen() {
   const [showDownloadProgress, setShowDownloadProgress] = useState(false);
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [volume, setVolume] = useState<number>(1.0);
+  const [previousVolume, setPreviousVolume] = useState<number>(1.0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
@@ -185,6 +186,12 @@ export default function PlayerScreen() {
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
     console.log('[Player] Setting volume to:', newVolume);
+    
+    // Store previous volume if we're not muting
+    if (newVolume > 0 && volume !== newVolume) {
+      setPreviousVolume(newVolume);
+    }
+    
     setVolume(newVolume);
     
     // If volume is set to 0, consider it muted
@@ -195,6 +202,7 @@ export default function PlayerScreen() {
       if (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl) {
         // For video tracks, the volume will be passed to VideoPlayer component
         console.log('[Player] Video volume updated to:', newVolume);
+        // The VideoPlayer component will handle the volume change via props
       } else {
         // For audio tracks, use audio engine
         const active = audioEngine.getCurrentTrack();
@@ -203,22 +211,25 @@ export default function PlayerScreen() {
         }
       }
     }
-  }, [currentTrack]);
+  }, [currentTrack, volume]);
 
   const toggleVolumeSlider = useCallback(() => {
     setShowVolumeSlider(!showVolumeSlider);
   }, [showVolumeSlider]);
 
   const toggleMute = useCallback(() => {
-    if (isMuted) {
+    console.log('[Player] Toggle mute - current state:', { isMuted, volume, previousVolume });
+    if (isMuted || volume === 0) {
       // Unmute: restore previous volume or set to 0.5 if it was 0
-      const newVolume = volume === 0 ? 0.5 : volume;
+      const newVolume = previousVolume > 0 ? previousVolume : 0.5;
+      console.log('[Player] Unmuting to volume:', newVolume);
       handleVolumeChange(newVolume);
     } else {
       // Mute: set volume to 0
+      console.log('[Player] Muting volume');
       handleVolumeChange(0);
     }
-  }, [isMuted, volume, handleVolumeChange]);
+  }, [isMuted, volume, previousVolume, handleVolumeChange]);
 
   const renderQueueItem = useCallback(({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
