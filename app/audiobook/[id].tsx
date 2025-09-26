@@ -22,13 +22,48 @@ export default function AudiobookDetailScreen() {
   const { playTrack } = usePlayer();
   const [isReading, setIsReading] = useState(false);
 
+  console.log('Audiobook ID from params:', id);
+  console.log('Available audiobook IDs:', audiobooks.map(book => book.id));
+  console.log('Available detail IDs:', Object.keys(audiobookDetails));
+
   const audiobook = audiobooks.find((book) => book.id === id);
   const details: AudiobookDetails | undefined = id ? audiobookDetails[id] : undefined;
+
+  console.log('Found audiobook:', audiobook);
+  console.log('Found details:', details);
 
   if (!audiobook || !details) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>Audiobook not found</Text>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            testID="back-button"
+          >
+            <ArrowLeft size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Audiobook</Text>
+          <View style={styles.moreButton} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Audiobook not found</Text>
+          <Text style={styles.errorSubtext}>ID: {id}</Text>
+          <Text style={styles.errorSubtext}>Available IDs: {audiobooks.map(book => book.id).join(', ')}</Text>
+          
+          <View style={styles.availableBooks}>
+            <Text style={styles.availableBooksTitle}>Available Audiobooks:</Text>
+            {audiobooks.slice(0, 3).map((book) => (
+              <TouchableOpacity
+                key={book.id}
+                style={styles.bookOption}
+                onPress={() => router.replace(`/audiobook/${book.id}`)}
+              >
+                <Text style={styles.bookOptionText}>{book.title} (ID: {book.id})</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -310,11 +345,47 @@ const styles = StyleSheet.create({
     color: "#CCC",
     lineHeight: 24,
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
   errorText: {
     color: "#FFF",
     fontSize: 18,
     textAlign: "center",
-    marginTop: 50,
+    marginBottom: 10,
+  },
+  errorSubtext: {
+    color: "#999",
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 5,
+  },
+  availableBooks: {
+    marginTop: 20,
+    width: "100%",
+  },
+  availableBooksTitle: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  bookOption: {
+    backgroundColor: "#1A1A1A",
+    borderRadius: 8,
+    padding: 12,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  bookOptionText: {
+    color: "#FFF",
+    fontSize: 14,
+    textAlign: "center",
   },
   // Reading mode styles
   readingHeader: {
