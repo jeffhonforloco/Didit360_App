@@ -23,8 +23,12 @@ const SafeImage: React.FC<SafeImageProps> = ({
 }) => {
   const [hasError, setHasError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
-  const isValid = uri && typeof uri === 'string' && uri.trim().length > 0 && !hasError;
-  const canUseFallback = fallback && typeof fallback === 'string' && fallback.trim().length > 0 && !fallbackError;
+  const isValidUri = (url: string | null | undefined): url is string => {
+    return url != null && typeof url === 'string' && url.trim().length > 0;
+  };
+  
+  const isValid = isValidUri(uri) && !hasError;
+  const canUseFallback = isValidUri(fallback) && !fallbackError;
 
   const handleError = () => {
     console.log('SafeImage: Failed to load image:', uri);
@@ -62,7 +66,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
     return (
       <View style={[showBorder && styles.debug]}>
         <Image
-          source={{ uri: fallback }}
+          source={{ uri: fallback! }}
           style={style}
           onError={handleFallbackError}
           {...props}
