@@ -26,6 +26,7 @@ import { useLibrary } from "@/contexts/LibraryContext";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useUser } from "@/contexts/UserContext";
 import { router } from "expo-router";
+import { useEffect } from "react";
 import type { Track, Playlist } from "@/types";
 
  type FilterId = "all" | "playlists" | "songs" | "podcasts" | "audiobooks" | "mixmind";
@@ -54,7 +55,7 @@ export default function LibraryScreen() {
   const [query, setQuery] = useState<string>("");
   const { playlists, favorites, downloads, recentlyPlayed, audiobooks, podcasts, mixmindSets, getFilteredContent } = useLibrary();
   const { playTrack } = usePlayer();
-  const { profile } = useUser();
+  const { profile, isLoading } = useUser();
 
   const filters: { id: FilterId; label: string }[] = [
     { id: "all", label: "All" },
@@ -183,6 +184,29 @@ export default function LibraryScreen() {
       </TouchableOpacity>
     );
   }, [filter, router]);
+
+  // Redirect to auth if user is not signed in
+  useEffect(() => {
+    if (!isLoading && !profile) {
+      console.log('[LibraryScreen] No profile found, redirecting to auth');
+      setTimeout(() => {
+        router.replace('/auth');
+      }, 100);
+    }
+  }, [profile, isLoading]);
+
+  // Show loading or return early if no profile
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: '#FFF', fontSize: 16 }}>Loading...</Text>
+      </View>
+    );
+  }
+
+  if (!profile) {
+    return null; // Will redirect to auth
+  }
 
   const renderCard = useCallback(({ item }: { item: ModernItem }) => {
     const handlePress = () => {
