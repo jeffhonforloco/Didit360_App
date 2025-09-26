@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -19,8 +19,16 @@ interface VideoPlayerProps {
   style?: any;
 }
 
-export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, volume = 1.0, style }: VideoPlayerProps) {
+export interface VideoPlayerRef {
+  seekTo: (positionMs: number) => Promise<void>;
+  skipForward: (seconds?: number) => Promise<void>;
+  skipBackward: (seconds?: number) => Promise<void>;
+}
+
+export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, volume = 1.0, style }, ref) {
   const videoRef = useRef<Video>(null);
+  const currentPositionRef = useRef<number>(0);
+  const currentDurationRef = useRef<number>(0);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -47,16 +55,62 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, v
     if (status.isLoaded) {
       console.log('[VideoPlayer] Playback status: loaded');
       
-      if ('positionMillis' in status && 'durationMillis' in status && onProgressUpdate) {
-        onProgressUpdate({
-          position: status.positionMillis || 0,
-          duration: status.durationMillis || 0
-        });
+      if ('positionMillis' in status && 'durationMillis' in status) {
+        currentPositionRef.current = status.positionMillis || 0;
+        currentDurationRef.current = status.durationMillis || 0;
+        
+        if (onProgressUpdate) {
+          onProgressUpdate({
+            position: status.positionMillis || 0,
+            duration: status.durationMillis || 0
+          });
+        }
       }
     } else {
       console.log('[VideoPlayer] Playback status: loading');
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    seekTo: async (positionMs: number) => {
+      if (videoRef.current) {
+        console.log('[VideoPlayer] Seeking to:', positionMs, 'ms');
+        try {
+          await videoRef.current.setPositionAsync(positionMs);
+        } catch (error) {
+          console.log('[VideoPlayer] Seek error:', error);
+        }
+      }
+    },
+    skipForward: async (seconds = 10) => {
+      if (videoRef.current) {
+        const newPosition = Math.min(
+          currentPositionRef.current + (seconds * 1000),
+          currentDurationRef.current
+        );
+        console.log('[VideoPlayer] Skipping forward to:', newPosition, 'ms');
+        try {
+          await videoRef.current.setPositionAsync(newPosition);
+        } catch (error) {
+          console.log('[VideoPlayer] Skip forward error:', error);
+        }
+      }
+    },
+    skipBackward: async (seconds = 10) => {
+      if (videoRef.current) {
+        const newPosition = Math.max(
+          currentPositionRef.current - (seconds * 1000),
+          0
+        );
+        console.log('[VideoPlayer] Skipping backward to:', newPosition, 'ms');
+        try {
+          await videoRef.current.setPositionAsync(newPosition);
+        } catch (error) {
+          console.log('[VideoPlayer] Skip backward error:', error);
+        }
+      }
+    },
+  }), []);
 
   // Use a fallback video URL if none is provided
   const videoUrl = track.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";
@@ -88,7 +142,7 @@ export function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, v
       />
     </View>
   );
-}
+});
 
 const styles = StyleSheet.create({
   container: {

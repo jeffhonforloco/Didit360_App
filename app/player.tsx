@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -39,7 +39,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useLibrary } from "@/contexts/LibraryContext";
-import { VideoPlayer } from "@/components/VideoPlayer";
+import { VideoPlayer, VideoPlayerRef } from "@/components/VideoPlayer";
 import { DJInstinctEntry } from "@/components/DJInstinctEntry";
 import type { Track } from "@/types";
 import { audioEngine, Progress } from "@/lib/AudioEngine";
@@ -62,6 +62,7 @@ export default function PlayerScreen() {
   const [showOptionsMenu, setShowOptionsMenu] = useState(false);
   const [volume, setVolume] = useState<number>(1.0);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   // Memoize progress update callback for better performance
   const updateProgress = useCallback((p: Progress) => {
@@ -134,12 +135,26 @@ export default function PlayerScreen() {
   }, [togglePlayPause]);
 
   const handleSkipNext = useCallback(() => {
-    skipNext();
-  }, [skipNext]);
+    if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
+      // For video, skip forward 10 seconds
+      if (videoPlayerRef.current) {
+        videoPlayerRef.current.skipForward(10).catch((err: unknown) => console.log('[Player] video skip forward error', err));
+      }
+    } else {
+      skipNext();
+    }
+  }, [skipNext, currentTrack]);
 
   const handleSkipPrevious = useCallback(() => {
-    skipPrevious();
-  }, [skipPrevious]);
+    if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
+      // For video, skip backward 10 seconds
+      if (videoPlayerRef.current) {
+        videoPlayerRef.current.skipBackward(10).catch((err: unknown) => console.log('[Player] video skip backward error', err));
+      }
+    } else {
+      skipPrevious();
+    }
+  }, [skipPrevious, currentTrack]);
 
   const handleSeek = useCallback((e: any) => {
     if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
@@ -159,6 +174,9 @@ export default function PlayerScreen() {
     setProgress(newProgress);
     const target = Math.floor(newProgress * (durationMs || 0));
     console.log('[Player] Video seek to:', target, 'ms');
+    if (videoPlayerRef.current) {
+      videoPlayerRef.current.seekTo(target).catch((err: unknown) => console.log('[Player] video seek error', err));
+    }
   }, [width, durationMs]);
 
   const handleVolumeChange = useCallback((newVolume: number) => {
@@ -457,6 +475,7 @@ export default function PlayerScreen() {
 
           <View style={styles.videoPlayerContainer}>
             <VideoPlayer
+              ref={videoPlayerRef}
               track={currentTrack}
               isPlaying={isPlaying}
               onPlayPause={handlePlayPause}
