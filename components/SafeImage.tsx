@@ -6,6 +6,7 @@ type SafeImageProps = ImageProps & {
   fallback?: any;
   showBorder?: boolean;
   size?: number;
+  placeholder?: string;
 };
 
 const SafeImage: React.FC<SafeImageProps> = ({
@@ -13,6 +14,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   fallback,
   showBorder = false,
   size = 50,
+  placeholder = '👤',
   style,
   ...props
 }) => {
@@ -20,18 +22,27 @@ const SafeImage: React.FC<SafeImageProps> = ({
   const isValid = uri && uri.trim().length > 0 && !hasError;
 
   const handleError = () => {
+    console.log('SafeImage: Failed to load image:', uri);
     setHasError(true);
   };
 
+  // If no valid URI and no fallback, show placeholder
   if (!isValid && !fallback) {
+    const dimensions = StyleSheet.flatten(style);
+    const width = dimensions?.width || size;
+    const height = dimensions?.height || size;
+    const borderRadius = dimensions?.borderRadius || 0;
+    
     return (
       <View style={[
         styles.placeholder,
-        { width: size, height: size, borderRadius: 50 },
+        { width, height, borderRadius },
         style,
         showBorder && styles.debug
       ]}>
-        <Text style={styles.placeholderText}>👤</Text>
+        <Text style={[styles.placeholderText, { fontSize: Math.min(width as number, height as number) * 0.4 }]}>
+          {placeholder}
+        </Text>
       </View>
     );
   }
@@ -40,7 +51,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
     <View style={[showBorder && styles.debug]}>
       <Image
         source={isValid ? { uri } : fallback}
-        style={[{ borderRadius: 50 }, style]}
+        style={style}
         onError={handleError}
         {...props}
       />
