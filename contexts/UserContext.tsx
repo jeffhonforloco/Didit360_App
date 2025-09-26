@@ -114,11 +114,13 @@ export const useSignOut = () => {
 export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<AppSettings>(() => ({ ...DEFAULT_SETTINGS }));
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Start with false to prevent blocking
 
   const load = useCallback(async () => {
     try {
+      console.log('[UserContext] load - starting load process');
       setIsLoading(true);
+      
       const [p, s, signedOut] = await Promise.all([
         AsyncStorage.getItem(PROFILE_KEY),
         AsyncStorage.getItem(SETTINGS_KEY),
@@ -137,16 +139,39 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
         setProfile(null);
       }
       
-      if (s) setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
+      if (s) {
+        console.log('[UserContext] load - loading settings from storage');
+        setSettings({ ...DEFAULT_SETTINGS, ...JSON.parse(s) });
+      } else {
+        console.log('[UserContext] load - using default settings');
+        setSettings({ ...DEFAULT_SETTINGS });
+      }
+      
+      console.log('[UserContext] load - completed successfully');
     } catch (err) {
       console.error("[UserContext] load error", err);
+      // Set defaults on error
+      setProfile(null);
+      setSettings({ ...DEFAULT_SETTINGS });
     } finally {
+      console.log('[UserContext] load - setting isLoading to false');
       setIsLoading(false);
     }
   }, []);
 
   useEffect(() => {
+    console.log('[UserContext] useEffect - starting load');
     void load();
+    
+    // Fallback timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      console.log('[UserContext] Load timeout - forcing isLoading to false');
+      setIsLoading(false);
+    }, 5000); // 5 second timeout
+    
+    return () => {
+      clearTimeout(timeout);
+    };
   }, [load]);
 
   const persist = async (key: string, value: unknown) => {
