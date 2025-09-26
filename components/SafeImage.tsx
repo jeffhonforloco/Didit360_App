@@ -26,8 +26,8 @@ const SafeImage: React.FC<SafeImageProps> = ({
     setHasError(true);
   };
 
-  // If no valid URI and no fallback, show placeholder
-  if (!isValid && !fallback) {
+  // Always show placeholder if no valid URI or error occurred
+  if (!isValid) {
     const dimensions = StyleSheet.flatten(style);
     const width = dimensions?.width || size;
     const height = dimensions?.height || size;
@@ -50,7 +50,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   return (
     <View style={[showBorder && styles.debug]}>
       <Image
-        source={isValid ? { uri } : fallback}
+        source={{ uri }}
         style={style}
         onError={handleError}
         {...props}
