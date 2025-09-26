@@ -75,6 +75,22 @@ export default function PlayerScreen() {
     return unsub;
   }, [updateProgress]);
 
+  // Ensure engine has something loaded when entering screen directly
+  useEffect(() => {
+    try {
+      if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
+        const active = audioEngine.getCurrentTrack();
+        if (!active || active.id !== currentTrack.id) {
+          console.log('[Player] Ensuring audio is loaded for', currentTrack.title);
+          const next = queue?.[0];
+          audioEngine.loadAndPlay(currentTrack, next).catch((e) => console.log('[Player] ensure load error', e));
+        }
+      }
+    } catch (e) {
+      console.log('[Player] ensure engine error', e);
+    }
+  }, [currentTrack, queue]);
+
   // Memoize time formatting for better performance
   const elapsed = useMemo(() => formatMs(positionMs), [positionMs]);
   const total = useMemo(() => formatMs(durationMs), [durationMs]);
@@ -400,7 +416,7 @@ export default function PlayerScreen() {
               track={currentTrack}
               isPlaying={isPlaying}
               onPlayPause={handlePlayPause}
-              onProgressUpdate={updateProgress}
+              onProgressUpdate={({ position, duration }) => updateProgress({ position, duration, buffered: duration })}
               onSkipNext={handleSkipNext}
               onSkipPrevious={handleSkipPrevious}
               style={styles.videoPlayer}
@@ -464,7 +480,7 @@ export default function PlayerScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={handlePlayPause}
+                onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
                 style={styles.videoPlayButton}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
@@ -674,6 +690,8 @@ export default function PlayerScreen() {
                 <SafeImage
                   uri={currentTrack.artwork}
                   style={styles.artwork}
+                  accessibilityLabel="Track artwork"
+                  testID="player-artwork"
                 />
               </View>
             </View>
@@ -765,7 +783,7 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={handlePlayPause}
+                      onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
                       style={styles.playButton}
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
@@ -825,7 +843,7 @@ export default function PlayerScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={handlePlayPause}
+                    onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
                     style={styles.playButton}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                   >
@@ -892,6 +910,8 @@ export default function PlayerScreen() {
                   <SafeImage
                     uri={currentTrack.artwork}
                     style={styles.artwork}
+                  accessibilityLabel="Track artwork"
+                  testID="player-artwork"
                   />
                 </View>
               </View>
@@ -983,7 +1003,7 @@ export default function PlayerScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        onPress={handlePlayPause}
+                        onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
                         style={styles.playButton}
                         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                       >
@@ -1043,7 +1063,7 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={handlePlayPause}
+                      onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
                       style={styles.playButton}
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
