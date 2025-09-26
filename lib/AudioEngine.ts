@@ -1,7 +1,10 @@
 import { Platform } from 'react-native';
 import type { Track } from '@/types';
 
-// Fallback to HTML5 Audio for now until expo-audio is properly configured
+// Cross-platform audio player abstraction
+// Web: HTMLAudioElement
+// Native: expo-av Audio.Sound
+
 type AudioPlayerLike = {
   volume: number;
   loop: boolean;
@@ -13,64 +16,159 @@ type AudioPlayerLike = {
   remove(): void;
 };
 
-class SimpleAudioPlayer implements AudioPlayerLike {
+class WebAudioPlayer implements AudioPlayerLike {
   private audio: HTMLAudioElement | null = null;
-  
+
   constructor(options: { uri: string }) {
-    if (Platform.OS === 'web') {
-      this.audio = new Audio(options.uri);
-      if (this.audio) {
-        // Optimize for faster loading and playback
-        this.audio.preload = 'auto';
-        this.audio.crossOrigin = 'anonymous';
-        
-        // Add error handling
-        this.audio.addEventListener('error', (e) => {
-          console.log('[SimpleAudioPlayer] Audio error:', e);
-        });
-        
-        // Add loading optimization
-        this.audio.addEventListener('canplaythrough', () => {
-          console.log('[SimpleAudioPlayer] Can play through');
-        });
-      }
+    this.audio = new Audio(options.uri);
+    if (this.audio) {
+      this.audio.preload = 'auto';
+      this.audio.crossOrigin = 'anonymous';
+      this.audio.addEventListener('error', (e) => {
+        console.log('[WebAudioPlayer] Audio error:', e);
+      });
+      this.audio.addEventListener('canplaythrough', () => {
+        console.log('[WebAudioPlayer] Can play through');
+      });
     }
   }
-  
+
   get volume() { return this.audio?.volume || 0; }
-  set volume(val: number) { if (this.audio) this.audio.volume = val; }
-  
+  set volume(val: number) { if (this.audio) this.audio.volume = Math.max(0, Math.min(1, val)); }
+
   get loop() { return this.audio?.loop || false; }
   set loop(val: boolean) { if (this.audio) this.audio.loop = val; }
-  
+
   get currentTime() { return this.audio?.currentTime || 0; }
   set currentTime(val: number) { if (this.audio) this.audio.currentTime = val; }
-  
+
   get duration() { return this.audio?.duration || 0; }
   get paused() { return this.audio?.paused ?? true; }
-  
+
   async play() {
     if (this.audio) {
       try {
         await this.audio.play();
       } catch (e) {
-        console.log('[SimpleAudioPlayer] Play error:', e);
+        console.log('[WebAudioPlayer] Play error:', e);
+        throw e;
       }
     }
   }
-  
+
   pause() {
     if (this.audio) {
       this.audio.pause();
     }
   }
-  
+
   remove() {
     if (this.audio) {
       this.audio.pause();
       this.audio.src = '';
       this.audio = null;
     }
+  }
+}
+
+let AvAudio: typeof import('expo-av').Audio | null = null;
+let AvSound: typeof import('expo-av').Audio.Sound | null = null;
+
+class NativeAudioPlayer implements AudioPlayerLike {
+  private sound: import('expo-av').Audio.Sound | null = null;
+  private status: import('expo-av').AVPlaybackStatus | null = null;
+
+  constructor(options: { uri: string }) {
+    // Lazy import to avoid crashing on web
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const av = require('expo-av') as typeof import('expo-av');
+    AvAudio = av.Audio;
+    AvSound = av.Audio.Sound;
+    this.create(options.uri).catch((e: unknown) => {
+      console.log('[NativeAudioPlayer] create error', e);
+    });
+  }
+
+  private async create(uri: string) {
+    if (!AvSound || !AvAudio) return;
+    try {
+      await AvAudio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        staysActiveInBackground: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        interruptionModeAndroid: 1,
+        interruptionModeIOS: 1,
+      });
+      const { sound } = await AvSound.createAsync({ uri }, { volume: 1, shouldPlay: false, isLooping: false });
+      this.sound = sound;
+      sound.setOnPlaybackStatusUpdate((st) => {
+        this.status = st;
+      });
+    } catch (e) {
+      console.log('[NativeAudioPlayer] createAsync error', e);
+      throw e;
+    }
+  }
+
+  get volume() {
+    if (!this.sound) return 0;
+    const st = this.status as import('expo-av').AVPlaybackStatusSuccess | null;
+    return st?.volume ?? 1;
+  }
+  set volume(val: number) {
+    if (this.sound) this.sound.setVolumeAsync(Math.max(0, Math.min(1, val))).catch((e) => console.log('[NativeAudioPlayer] setVolume error', e));
+  }
+
+  get loop() {
+    const st = this.status as import('expo-av').AVPlaybackStatusSuccess | null;
+    return st?.isLooping ?? false;
+  }
+  set loop(val: boolean) {
+    if (this.sound) this.sound.setIsLoopingAsync(val).catch((e) => console.log('[NativeAudioPlayer] setLoop error', e));
+  }
+
+  get currentTime() {
+    const st = this.status as import('expo-av').AVPlaybackStatusSuccess | null;
+    return ((st?.positionMillis ?? 0) / 1000) || 0;
+  }
+  set currentTime(val: number) {
+    if (this.sound) this.sound.setPositionAsync(Math.max(0, Math.floor(val * 1000))).catch((e) => console.log('[NativeAudioPlayer] seek error', e));
+  }
+
+  get duration() {
+    const st = this.status as import('expo-av').AVPlaybackStatusSuccess | null;
+    return ((st?.durationMillis ?? 0) / 1000) || 0;
+  }
+
+  get paused() {
+    const st = this.status as import('expo-av').AVPlaybackStatusSuccess | null;
+    return !(st?.isPlaying ?? false);
+  }
+
+  async play() {
+    if (!this.sound) throw new Error('Sound not initialized');
+    try {
+      await this.sound.playAsync();
+    } catch (e) {
+      console.log('[NativeAudioPlayer] play error', e);
+      throw e;
+    }
+  }
+
+  pause() {
+    if (!this.sound) return;
+    this.sound.pauseAsync().catch((e) => console.log('[NativeAudioPlayer] pause error', e));
+  }
+
+  remove() {
+    if (!this.sound) return;
+    try {
+      this.sound.stopAsync().catch(() => {});
+      this.sound.unloadAsync().catch(() => {});
+    } catch {}
+    this.sound = null;
+    this.status = null;
   }
 }
 
@@ -124,8 +222,20 @@ export class AudioEngine {
   async configure() {
     if (this.isConfigured) return;
     try {
-      // expo-audio handles audio mode configuration automatically
       await this.loadPersistedPrefs();
+      if (Platform.OS !== 'web') {
+        // Ensure mode is configured on native
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const av = require('expo-av') as typeof import('expo-av');
+        await av.Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          interruptionModeAndroid: 1,
+          interruptionModeIOS: 1,
+        });
+      }
       this.isConfigured = true;
       this.startProgressTracking();
     } catch (e) {
@@ -135,7 +245,6 @@ export class AudioEngine {
 
   private startProgressTracking() {
     if (this.progressInterval) return;
-    
     this.progressInterval = setInterval(() => {
       const active = this.getActive();
       if (active.sound && active.track) {
@@ -145,19 +254,14 @@ export class AudioEngine {
           const position = currentTime * 1000;
           const durationMs = duration * 1000;
           const buffered = durationMs;
-          
           const progress = { position, duration: durationMs, buffered };
           if (this.events.onProgress) this.events.onProgress(progress);
           this.progressListeners.forEach((cb) => cb(progress));
-          
-          // Auto-crossfade logic
           const remaining = durationMs > 0 ? Math.max(0, durationMs - position) : Number.MAX_SAFE_INTEGER;
           const shouldAutoFade = this.crossfadeDurationMs > 0 && !!this.nextTrack && !this.isFading && remaining <= (this.crossfadeDurationMs + 200);
           if (shouldAutoFade && this.nextTrack) {
             this.crossfadeToNext(this.nextTrack).catch((e) => console.log('[AudioEngine] auto-crossfade error', e));
           }
-          
-          // Check if track ended
           if (durationMs > 0 && position >= durationMs - 100) {
             if (this.events.onTrackEnd && active.track) this.events.onTrackEnd(active.track);
           }
@@ -165,7 +269,7 @@ export class AudioEngine {
           console.log('[AudioEngine] progress tracking error', e);
         }
       }
-    }, 50); // Reduced from 100ms to 50ms for more responsive updates
+    }, 50);
   }
 
   setEvents(events: AudioEngineEvents) {
@@ -173,7 +277,6 @@ export class AudioEngine {
   }
 
   private async loadPersistedPrefs() {
-    // Skip storage for now - use defaults
     console.log('[AudioEngine] Using default preferences');
   }
 
@@ -215,6 +318,13 @@ export class AudioEngine {
     return fallbackUris[track.type] ?? fallbackUris.song;
   }
 
+  private async createPlayer(uri: string): Promise<AudioPlayerLike> {
+    if (Platform.OS === 'web') {
+      return new WebAudioPlayer({ uri });
+    }
+    return new NativeAudioPlayer({ uri });
+  }
+
   private async unload(playable: Playable) {
     try {
       if (playable.sound) {
@@ -230,14 +340,11 @@ export class AudioEngine {
     }
   }
 
-  private attachEndListener(sound: AudioPlayerLike, track: Track) {
+  private attachEndListener(_sound: AudioPlayerLike, track: Track) {
     if (this.endSub) {
       clearInterval(this.endSub);
       this.endSub = null;
     }
-    
-    // The global progress tracking will handle this now
-    // Just store reference for cleanup
     this.endSub = track;
   }
 
@@ -245,13 +352,9 @@ export class AudioEngine {
     console.log('[AudioEngine] loadAndPlay', track.title);
     await this.configure();
     this.setState('loading');
-    
-    // Immediate UI feedback
     if (this.events.onTrackStart) {
-      // Fire immediately for responsive UI
       setTimeout(() => this.events.onTrackStart?.(track), 0);
     }
-    
     try {
       const uri = this.trackToUri(track);
       const prefs = this.contentPrefs[track.type];
@@ -259,41 +362,26 @@ export class AudioEngine {
       this.setGapless(prefs.gapless);
       const active = this.getActive();
       await this.unload(active);
-      
-      // Create and configure sound with optimized settings
-      const sound = new SimpleAudioPlayer({ uri });
+      const sound = await this.createPlayer(uri);
       sound.volume = 1.0;
       sound.loop = false;
-      
-      // Preload for faster start
-      if (Platform.OS === 'web' && sound instanceof SimpleAudioPlayer) {
-        const audio = (sound as any).audio as HTMLAudioElement;
-        if (audio) {
-          audio.preload = 'auto';
-          audio.crossOrigin = 'anonymous';
-        }
-      }
-      
       try {
         await sound.play();
         active.sound = sound;
       } catch (e1) {
         console.log('[AudioEngine] primary load failed, trying fallback', e1);
         const fallback = fallbackUris[track.type] ?? uri;
-        const fallbackSound = new SimpleAudioPlayer({ uri: fallback });
+        const fallbackSound = await this.createPlayer(fallback);
         fallbackSound.volume = 1.0;
         fallbackSound.loop = false;
         await fallbackSound.play();
         sound.remove();
         active.sound = fallbackSound;
       }
-      
       active.track = track;
       active.uri = uri;
       this.attachEndListener(active.sound, track);
       this.setState('playing');
-      
-      // Preload next track immediately for seamless transitions
       if (preloadNext) {
         setTimeout(() => {
           this.preload(preloadNext).catch((e) => console.log('[AudioEngine] preload error', e));
@@ -311,16 +399,15 @@ export class AudioEngine {
     const uri = this.trackToUri(track);
     const inactive = this.getInactive();
     await this.unload(inactive);
-    const sound = new SimpleAudioPlayer({ uri });
+    const sound = await this.createPlayer(uri);
     try {
       sound.volume = 0.0;
       sound.loop = false;
-      // Don't play yet, just prepare
       inactive.sound = sound;
     } catch (e1) {
       console.log('[AudioEngine] preload primary failed, trying fallback', e1);
       const fallback = fallbackUris[track.type] ?? uri;
-      const fallbackSound = new SimpleAudioPlayer({ uri: fallback });
+      const fallbackSound = await this.createPlayer(fallback);
       fallbackSound.volume = 0.0;
       fallbackSound.loop = false;
       sound.remove();
@@ -397,7 +484,6 @@ export class AudioEngine {
         this.setState('playing');
       } catch (e) {
         console.log('[AudioEngine] play error', e);
-        // Try to recover
         if (active.track) {
           this.recoverFromError(active.track);
         }
@@ -439,7 +525,7 @@ export class AudioEngine {
     const active = this.getActive();
     if (active.sound) {
       try {
-        active.sound.currentTime = Math.max(0, Math.floor(ms / 1000)); // Convert to seconds
+        active.sound.currentTime = Math.max(0, Math.floor(ms / 1000));
       } catch (e) {
         console.log('[AudioEngine] seek error', e);
       }
@@ -465,7 +551,7 @@ export class AudioEngine {
         return {
           currentTime: active.sound.currentTime || 0,
           duration: active.sound.duration || 0,
-          isPlaying: !active.sound.paused
+          isPlaying: !active.sound.paused,
         };
       }
     } catch (e) {
