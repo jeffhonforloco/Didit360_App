@@ -159,6 +159,47 @@ export default function HomeScreen() {
     </TouchableOpacity>
   ), [CARD_WIDTH, playTrack]);
 
+  const renderSmartCard = useCallback(({ item }: { item: Track }) => {
+    const handlePress = () => {
+      console.log(`Playing ${item.type}: ${item.title}`);
+      if (item.type === 'video' || item.isVideo) {
+        console.log(`Opening video player for: ${item.title}`);
+        router.push(`/player?id=${item.id}&type=video`);
+      } else if (item.type === 'podcast') {
+        router.push(`/podcast-player?id=${item.id}`);
+      } else if (item.type === 'audiobook') {
+        router.push(`/audiobook/${item.id}`);
+      } else {
+        playTrack(item);
+      }
+    };
+
+    return (
+      <TouchableOpacity
+        style={[styles.card, { width: CARD_WIDTH }]}
+        onPress={handlePress}
+        activeOpacity={0.8}
+        testID={`smart-card-${item.id}`}
+      >
+        <SafeImage 
+          uri={item.artwork} 
+          style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
+        />
+        {(item.type === 'video' || item.isVideo) && (
+          <View style={styles.videoIndicator}>
+            <Play size={16} color="#FFF" fill="#FFF" />
+          </View>
+        )}
+        <Text style={styles.cardTitle} numberOfLines={1}>
+          {item.title}
+        </Text>
+        <Text style={styles.cardArtist} numberOfLines={1}>
+          {item.artist}
+        </Text>
+      </TouchableOpacity>
+    );
+  }, [CARD_WIDTH, playTrack]);
+
   const renderVideoCard = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
       style={[styles.card, { width: CARD_WIDTH }]}
@@ -324,7 +365,7 @@ export default function HomeScreen() {
           {renderSectionHeader("Trending Now", "trending-now")}
           <FlatList
             data={trendingNow.slice(0, 6)}
-            renderItem={renderCard}
+            renderItem={renderSmartCard}
             keyExtractor={(item) => `trending-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
