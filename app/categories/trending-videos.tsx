@@ -21,7 +21,11 @@ export default function TrendingVideosScreen() {
   const renderTrack = ({ item }: { item: Track }) => (
     <TouchableOpacity
       style={styles.trackCard}
-      onPress={() => playTrack(item)}
+      onPress={() => {
+        console.log(`Playing trending video: ${item.title}`);
+        playTrack(item);
+        // Video will automatically navigate to player via PlayerContext
+      }}
       activeOpacity={0.8}
       testID={`track-${item.id}`}
     >
@@ -35,7 +39,11 @@ export default function TrendingVideosScreen() {
         </Text>
         <Text style={styles.trendingLabel}>Trending Video</Text>
       </View>
-      <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)}>
+      <TouchableOpacity style={styles.playButton} onPress={() => {
+        console.log(`Playing trending video: ${item.title}`);
+        playTrack(item);
+        // Video will automatically navigate to player via PlayerContext
+      }}>
         <Play size={16} color="#000" fill="#FFF" />
       </TouchableOpacity>
     </TouchableOpacity>

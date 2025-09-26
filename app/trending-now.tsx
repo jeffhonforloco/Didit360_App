@@ -68,7 +68,7 @@ export default function TrendingNowScreen() {
         if (item.type === 'video' || item.isVideo) {
           console.log(`Opening video player for: ${item.title}`);
           playTrack(item);
-          router.push('/player');
+          // Video will automatically navigate to player via PlayerContext
         } else if (item.type === 'podcast') {
           router.push(`/podcast-player?id=${item.id}`);
         } else if (item.type === 'audiobook') {
