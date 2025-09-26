@@ -77,16 +77,26 @@ let AvSound: typeof import('expo-av').Audio.Sound | null = null;
 class NativeAudioPlayer implements AudioPlayerLike {
   private sound: import('expo-av').Audio.Sound | null = null;
   private status: import('expo-av').AVPlaybackStatus | null = null;
+  private readyPromise: Promise<void>;
+  private readyResolved = false;
 
   constructor(options: { uri: string }) {
-    // Lazy import to avoid crashing on web
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const av = require('expo-av') as typeof import('expo-av');
     AvAudio = av.Audio;
     AvSound = av.Audio.Sound;
-    this.create(options.uri).catch((e: unknown) => {
+    this.readyPromise = this.create(options.uri).catch((e: unknown) => {
       console.log('[NativeAudioPlayer] create error', e);
+      throw e;
     });
+  }
+
+  private async ensureReady() {
+    if (this.readyResolved && this.sound) return;
+    try {
+      await this.readyPromise;
+    } catch (e) {
+      console.log('[NativeAudioPlayer] ensureReady error', e);
+    }
   }
 
   private async create(uri: string) {
@@ -105,6 +115,7 @@ class NativeAudioPlayer implements AudioPlayerLike {
       sound.setOnPlaybackStatusUpdate((st) => {
         this.status = st;
       });
+      this.readyResolved = true;
     } catch (e) {
       console.log('[NativeAudioPlayer] createAsync error', e);
       throw e;
@@ -117,7 +128,8 @@ class NativeAudioPlayer implements AudioPlayerLike {
     return st?.volume ?? 1;
   }
   set volume(val: number) {
-    if (this.sound) this.sound.setVolumeAsync(Math.max(0, Math.min(1, val))).catch((e) => console.log('[NativeAudioPlayer] setVolume error', e));
+    if (!this.sound) return;
+    this.sound.setVolumeAsync(Math.max(0, Math.min(1, val))).catch((e) => console.log('[NativeAudioPlayer] setVolume error', e));
   }
 
   get loop() {
@@ -125,7 +137,8 @@ class NativeAudioPlayer implements AudioPlayerLike {
     return st?.isLooping ?? false;
   }
   set loop(val: boolean) {
-    if (this.sound) this.sound.setIsLoopingAsync(val).catch((e) => console.log('[NativeAudioPlayer] setLoop error', e));
+    if (!this.sound) return;
+    this.sound.setIsLoopingAsync(val).catch((e) => console.log('[NativeAudioPlayer] setLoop error', e));
   }
 
   get currentTime() {
@@ -133,7 +146,8 @@ class NativeAudioPlayer implements AudioPlayerLike {
     return ((st?.positionMillis ?? 0) / 1000) || 0;
   }
   set currentTime(val: number) {
-    if (this.sound) this.sound.setPositionAsync(Math.max(0, Math.floor(val * 1000))).catch((e) => console.log('[NativeAudioPlayer] seek error', e));
+    if (!this.sound) return;
+    this.sound.setPositionAsync(Math.max(0, Math.floor(val * 1000))).catch((e) => console.log('[NativeAudioPlayer] seek error', e));
   }
 
   get duration() {
@@ -147,6 +161,7 @@ class NativeAudioPlayer implements AudioPlayerLike {
   }
 
   async play() {
+    await this.ensureReady();
     if (!this.sound) throw new Error('Sound not initialized');
     try {
       await this.sound.playAsync();
@@ -169,6 +184,7 @@ class NativeAudioPlayer implements AudioPlayerLike {
     } catch {}
     this.sound = null;
     this.status = null;
+    this.readyResolved = false;
   }
 }
 
