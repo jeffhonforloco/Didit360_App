@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@ta
 import { Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { Platform, View, StyleSheet } from "react-native";
+import { Platform, View, StyleSheet, Image } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { LibraryProvider } from "@/contexts/LibraryContext";
@@ -22,6 +22,39 @@ import { OfflineProvider } from "@/contexts/OfflineContext";
 import { logEvent, logPerf, genId } from "@/lib/logger";
 
 SplashScreen.preventAutoHideAsync();
+
+// SafeImage guard to prevent empty URI errors
+function installImageGuard() {
+  if (Platform.OS === 'web') return; // Skip on web as it handles empty URIs differently
+  
+  // @ts-ignore
+  const originalSetNativeProps = Image.prototype.setNativeProps;
+  
+  // @ts-ignore
+  Image.prototype.setNativeProps = function (props: any) {
+    try {
+      // @ts-ignore
+      const source = this.props?.source;
+      const uri = (source && typeof source === 'object' && 'uri' in source) ? source.uri : undefined;
+      
+      if (typeof uri === 'string' && uri.trim() === '') {
+        console.warn(
+          '[SafeImageGuard] Empty source.uri detected on <Image />. ' +
+          'Use SafeImage component instead or provide a valid URI.'
+        );
+        // Replace empty URI with a safe fallback
+        if (props.source && typeof props.source === 'object' && 'uri' in props.source) {
+          props.source = { uri: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==' };
+        }
+      }
+    } catch (error) {
+      console.warn('[SafeImageGuard] Error in image guard:', error);
+    }
+    
+    // @ts-ignore
+    return originalSetNativeProps?.call(this, props);
+  };
+}
 
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -99,6 +132,13 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const pathname = usePathname();
+  
+  // Install image guard on app start
+  useEffect(() => {
+    if (__DEV__) {
+      installImageGuard();
+    }
+  }, []);
   
   useEffect(() => {
     try {
