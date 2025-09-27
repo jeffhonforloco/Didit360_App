@@ -18,6 +18,7 @@ type AudioPlayerLike = {
 
 class WebAudioPlayer implements AudioPlayerLike {
   private audio: HTMLAudioElement | null = null;
+  private hasUserInteracted = false;
 
   constructor(options: { uri: string }) {
     console.log('[WebAudioPlayer] Creating audio element for:', options.uri);
@@ -25,6 +26,10 @@ class WebAudioPlayer implements AudioPlayerLike {
     if (this.audio) {
       this.audio.preload = 'auto';
       this.audio.crossOrigin = 'anonymous';
+      
+      // Set up user interaction detection for autoplay policy
+      this.setupUserInteractionDetection();
+      
       this.audio.addEventListener('error', (e) => {
         console.log('[WebAudioPlayer] Audio error:', e);
         console.log('[WebAudioPlayer] Audio error details:', {
@@ -46,6 +51,29 @@ class WebAudioPlayer implements AudioPlayerLike {
       this.audio.addEventListener('loadedmetadata', () => {
         console.log('[WebAudioPlayer] Metadata loaded, duration:', this.audio?.duration);
       });
+      this.audio.addEventListener('play', () => {
+        console.log('[WebAudioPlayer] Play event fired');
+      });
+      this.audio.addEventListener('playing', () => {
+        console.log('[WebAudioPlayer] Playing event fired');
+      });
+    }
+  }
+
+  private setupUserInteractionDetection() {
+    if (typeof window !== 'undefined') {
+      const handleUserInteraction = () => {
+        this.hasUserInteracted = true;
+        console.log('[WebAudioPlayer] User interaction detected');
+        // Remove listeners after first interaction
+        window.removeEventListener('click', handleUserInteraction);
+        window.removeEventListener('touchstart', handleUserInteraction);
+        window.removeEventListener('keydown', handleUserInteraction);
+      };
+      
+      window.addEventListener('click', handleUserInteraction, { once: true });
+      window.addEventListener('touchstart', handleUserInteraction, { once: true });
+      window.addEventListener('keydown', handleUserInteraction, { once: true });
     }
   }
 
@@ -71,10 +99,30 @@ class WebAudioPlayer implements AudioPlayerLike {
           paused: this.audio.paused,
           currentTime: this.audio.currentTime,
           duration: this.audio.duration,
-          src: this.audio.src
+          src: this.audio.src,
+          volume: this.audio.volume,
+          hasUserInteracted: this.hasUserInteracted
         });
-        await this.audio.play();
-        console.log('[WebAudioPlayer] Play successful');
+        
+        // Ensure volume is set properly
+        if (this.audio.volume === 0) {
+          console.log('[WebAudioPlayer] Volume was 0, setting to 1');
+          this.audio.volume = 1;
+        }
+        
+        // Try to enable audio context if needed (for web audio policy)
+        if (typeof window !== 'undefined' && !this.hasUserInteracted) {
+          console.log('[WebAudioPlayer] No user interaction detected yet, attempting to play anyway');
+        }
+        
+        const playPromise = this.audio.play();
+        await playPromise;
+        
+        console.log('[WebAudioPlayer] Play successful, final state:', {
+          paused: this.audio.paused,
+          volume: this.audio.volume,
+          currentTime: this.audio.currentTime
+        });
       } catch (e) {
         console.log('[WebAudioPlayer] Play error:', e);
         console.log('[WebAudioPlayer] Audio state after error:', {
@@ -82,6 +130,12 @@ class WebAudioPlayer implements AudioPlayerLike {
           networkState: this.audio.networkState,
           error: this.audio.error
         });
+        
+        // If it's an autoplay policy error, provide helpful info
+        if (e instanceof Error && e.name === 'NotAllowedError') {
+          console.log('[WebAudioPlayer] Autoplay was prevented. User interaction may be required.');
+        }
+        
         throw e;
       }
     }
@@ -89,7 +143,12 @@ class WebAudioPlayer implements AudioPlayerLike {
 
   pause() {
     if (this.audio) {
+      console.log('[WebAudioPlayer] Pausing audio');
       this.audio.pause();
+      console.log('[WebAudioPlayer] Audio paused, state:', {
+        paused: this.audio.paused,
+        currentTime: this.audio.currentTime
+      });
     }
   }
 

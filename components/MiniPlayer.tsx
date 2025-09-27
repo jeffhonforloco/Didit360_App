@@ -37,8 +37,9 @@ export function MiniPlayer() {
   // Memoize control handlers for better performance
   const handlePlayPause = useCallback((e: any) => {
     e.stopPropagation();
+    console.log('[MiniPlayer] Play/Pause button pressed, current isPlaying:', isPlaying);
     togglePlayPause();
-  }, [togglePlayPause]);
+  }, [togglePlayPause, isPlaying]);
 
   const handleSkipNext = useCallback((e: any) => {
     e.stopPropagation();
@@ -64,7 +65,12 @@ export function MiniPlayer() {
   }, [currentTrack]);
 
   // Hide MiniPlayer when full player is open or no track is loaded
-  if (!currentTrack || pathname === '/player') return null;
+  if (!currentTrack || pathname === '/player') {
+    console.log('[MiniPlayer] Hidden - currentTrack:', !!currentTrack, 'pathname:', pathname);
+    return null;
+  }
+
+  console.log('[MiniPlayer] Rendering - Track:', currentTrack.title, 'isPlaying:', isPlaying, 'Type:', currentTrack.type, 'isVideo:', currentTrack.isVideo);
 
   return (
     <TouchableOpacity

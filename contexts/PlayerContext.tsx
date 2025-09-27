@@ -101,9 +101,13 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       
       // Start audio playback
       if (track.type !== 'video' && !track.isVideo) {
+        console.log('[Player] Starting audio playback for:', track.title, 'audioUrl:', track.audioUrl);
         audioEngine
           .loadAndPlay(track, similarTracks[0])
+          .then(() => console.log('[Player] Audio load and play successful'))
           .catch((e) => console.log('[Player] audio load error', e));
+      } else {
+        console.log('[Player] Skipping audio playback for video track:', track.title);
       }
     }, 0);
     
@@ -133,12 +137,17 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       setTimeout(() => {
         try {
           const t = currentTrack;
+          console.log('[Player] togglePlayPause - currentTrack:', t?.title, 'isVideo:', t?.isVideo, 'type:', t?.type, 'next:', next);
           if (t && t.type !== 'video' && !t.isVideo) {
             if (next) {
-              audioEngine.play().catch((e) => console.log('[Player] play() error', e));
+              console.log('[Player] Calling audioEngine.play()');
+              audioEngine.play().then(() => console.log('[Player] play() successful')).catch((e) => console.log('[Player] play() error', e));
             } else {
-              audioEngine.pause().catch((e) => console.log('[Player] pause() error', e));
+              console.log('[Player] Calling audioEngine.pause()');
+              audioEngine.pause().then(() => console.log('[Player] pause() successful')).catch((e) => console.log('[Player] pause() error', e));
             }
+          } else {
+            console.log('[Player] Skipping audio engine call for video track');
           }
         } catch (e) {
           console.log('[Player] toggle error', e);
@@ -218,6 +227,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           if (!prev || prev.id !== t.id) return t;
           return prev;
         });
+        setIsPlaying(true); // Ensure UI state matches audio engine
         
         // Handle queue and preloading asynchronously
         setTimeout(() => {
@@ -251,7 +261,19 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           setIsPlaying(false);
         }
       },
-      onError: (e) => console.log('[AudioEngine] error', e),
+      onError: (e) => {
+        console.log('[AudioEngine] error', e);
+        setIsPlaying(false); // Stop playing on error
+      },
+      onStateChange: (state) => {
+        console.log('[AudioEngine] state changed to:', state);
+        // Sync UI state with audio engine state
+        if (state === 'playing') {
+          setIsPlaying(true);
+        } else if (state === 'paused' || state === 'stopped' || state === 'error') {
+          setIsPlaying(false);
+        }
+      },
     });
     
     // Configure audio engine preferences
