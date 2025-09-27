@@ -22,41 +22,57 @@ class WebAudioPlayer implements AudioPlayerLike {
 
   constructor(options: { uri: string }) {
     console.log('[WebAudioPlayer] Creating audio element for:', options.uri);
-    this.audio = new Audio(options.uri);
-    if (this.audio) {
-      this.audio.preload = 'auto';
-      this.audio.crossOrigin = 'anonymous';
-      
-      // Set up user interaction detection for autoplay policy
-      this.setupUserInteractionDetection();
-      
-      this.audio.addEventListener('error', (e) => {
-        console.log('[WebAudioPlayer] Audio error:', e);
-        console.log('[WebAudioPlayer] Audio error details:', {
-          error: this.audio?.error,
-          networkState: this.audio?.networkState,
-          readyState: this.audio?.readyState,
-          src: this.audio?.src
+    
+    try {
+      this.audio = new Audio(options.uri);
+      if (this.audio) {
+        this.audio.preload = 'auto';
+        this.audio.crossOrigin = 'anonymous';
+        
+        // Set up user interaction detection for autoplay policy
+        this.setupUserInteractionDetection();
+        
+        this.audio.addEventListener('error', (e) => {
+          console.log('[WebAudioPlayer] Audio error:', e);
+          console.log('[WebAudioPlayer] Audio error details:', {
+            error: this.audio?.error,
+            networkState: this.audio?.networkState,
+            readyState: this.audio?.readyState,
+            src: this.audio?.src
+          });
         });
-      });
-      this.audio.addEventListener('canplaythrough', () => {
-        console.log('[WebAudioPlayer] Can play through');
-      });
-      this.audio.addEventListener('loadstart', () => {
-        console.log('[WebAudioPlayer] Load started');
-      });
-      this.audio.addEventListener('loadeddata', () => {
-        console.log('[WebAudioPlayer] Data loaded');
-      });
-      this.audio.addEventListener('loadedmetadata', () => {
-        console.log('[WebAudioPlayer] Metadata loaded, duration:', this.audio?.duration);
-      });
-      this.audio.addEventListener('play', () => {
-        console.log('[WebAudioPlayer] Play event fired');
-      });
-      this.audio.addEventListener('playing', () => {
-        console.log('[WebAudioPlayer] Playing event fired');
-      });
+        this.audio.addEventListener('canplaythrough', () => {
+          console.log('[WebAudioPlayer] Can play through');
+        });
+        this.audio.addEventListener('loadstart', () => {
+          console.log('[WebAudioPlayer] Load started');
+        });
+        this.audio.addEventListener('loadeddata', () => {
+          console.log('[WebAudioPlayer] Data loaded');
+        });
+        this.audio.addEventListener('loadedmetadata', () => {
+          console.log('[WebAudioPlayer] Metadata loaded, duration:', this.audio?.duration);
+        });
+        this.audio.addEventListener('play', () => {
+          console.log('[WebAudioPlayer] Play event fired');
+        });
+        this.audio.addEventListener('playing', () => {
+          console.log('[WebAudioPlayer] Playing event fired');
+        });
+        this.audio.addEventListener('pause', () => {
+          console.log('[WebAudioPlayer] Pause event fired');
+        });
+        this.audio.addEventListener('ended', () => {
+          console.log('[WebAudioPlayer] Ended event fired');
+        });
+        
+        console.log('[WebAudioPlayer] Audio element created successfully');
+      } else {
+        console.error('[WebAudioPlayer] Failed to create audio element');
+      }
+    } catch (error) {
+      console.error('[WebAudioPlayer] Error creating audio element:', error);
+      throw error;
     }
   }
 
@@ -70,15 +86,17 @@ class WebAudioPlayer implements AudioPlayerLike {
       };
       
       // Use capture phase to ensure we catch the interaction
-      window.addEventListener('click', handleUserInteraction, { once: true, capture: true });
-      window.addEventListener('touchstart', handleUserInteraction, { once: true, capture: true });
-      window.addEventListener('touchend', handleUserInteraction, { once: true, capture: true });
-      window.addEventListener('keydown', handleUserInteraction, { once: true, capture: true });
-      window.addEventListener('pointerdown', handleUserInteraction, { once: true, capture: true });
+      const events = ['click', 'touchstart', 'touchend', 'keydown', 'pointerdown'];
+      events.forEach(event => {
+        window.addEventListener(event, handleUserInteraction, { once: true, capture: true });
+        document.addEventListener(event, handleUserInteraction, { once: true, capture: true });
+      });
       
-      // Also listen on document for broader coverage
-      document.addEventListener('click', handleUserInteraction, { once: true, capture: true });
-      document.addEventListener('touchstart', handleUserInteraction, { once: true, capture: true });
+      // Also detect any user interaction immediately if possible
+      if (document.hasFocus && document.hasFocus()) {
+        this.hasUserInteracted = true;
+        this.unlockAudioContext();
+      }
     }
   }
 
@@ -182,58 +200,10 @@ class WebAudioPlayer implements AudioPlayerLike {
           });
         }
         
-        // Multiple attempts to play with different strategies
-        let playPromise: Promise<void>;
-        
-        try {
-          // First attempt: direct play
-          playPromise = this.audio.play();
+        // Direct play attempt with better error handling
+        const playPromise = this.audio.play();
+        if (playPromise !== undefined) {
           await playPromise;
-        } catch (firstError) {
-          console.log('[WebAudioPlayer] First play attempt failed:', firstError);
-          
-          // Second attempt: reset and play
-          try {
-            this.audio.currentTime = 0;
-            this.audio.load();
-            await new Promise(resolve => setTimeout(resolve, 100));
-            playPromise = this.audio.play();
-            await playPromise;
-          } catch (secondError) {
-            console.log('[WebAudioPlayer] Second play attempt failed:', secondError);
-            
-            // Third attempt: create new audio element
-            const oldSrc = this.audio.src;
-            const newAudio = new Audio(oldSrc);
-            newAudio.volume = this.audio.volume;
-            newAudio.preload = 'auto';
-            newAudio.crossOrigin = 'anonymous';
-            
-            // Copy event listeners
-            const oldAudio = this.audio;
-            this.audio = newAudio;
-            
-            // Clean up old audio
-            oldAudio.pause();
-            oldAudio.src = '';
-            
-            // Wait for new audio to be ready
-            await new Promise((resolve, reject) => {
-              const timeout = setTimeout(() => reject(new Error('New audio timeout')), 5000);
-              const onReady = () => {
-                clearTimeout(timeout);
-                resolve(void 0);
-              };
-              if (newAudio.readyState >= 2) {
-                onReady();
-              } else {
-                newAudio.addEventListener('canplay', onReady, { once: true });
-              }
-            });
-            
-            playPromise = this.audio.play();
-            await playPromise;
-          }
         }
         
         console.log('[WebAudioPlayer] Play successful, final state:', {
@@ -242,18 +212,20 @@ class WebAudioPlayer implements AudioPlayerLike {
           currentTime: this.audio.currentTime
         });
       } catch (e) {
-        console.log('[WebAudioPlayer] All play attempts failed:', e);
+        console.log('[WebAudioPlayer] Play failed:', e);
         console.log('[WebAudioPlayer] Audio state after error:', {
-          readyState: this.audio.readyState,
-          networkState: this.audio.networkState,
-          error: this.audio.error
+          readyState: this.audio?.readyState,
+          networkState: this.audio?.networkState,
+          error: this.audio?.error
         });
         
         // If it's an autoplay policy error, provide helpful info
-        if (e instanceof Error && e.name === 'NotAllowedError') {
+        if (e instanceof Error && (e.name === 'NotAllowedError' || e.name === 'AbortError')) {
           console.log('[WebAudioPlayer] Autoplay was prevented. User interaction may be required.');
           // Try to unlock audio context for future attempts
           this.unlockAudioContext();
+          // Don't throw for autoplay errors - just log them
+          return;
         }
         
         throw e;
@@ -471,7 +443,21 @@ export class AudioEngine {
           console.log('[AudioEngine] Audio mode setup error:', audioError);
         }
       } else {
-        console.log('[AudioEngine] Web platform detected, skipping native audio mode setup');
+        console.log('[AudioEngine] Web platform detected, setting up web audio context');
+        // Initialize web audio context early
+        if (typeof window !== 'undefined') {
+          try {
+            const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContext) {
+              const audioContext = new AudioContext();
+              if (audioContext.state === 'suspended') {
+                console.log('[AudioEngine] Audio context suspended, will resume on user interaction');
+              }
+            }
+          } catch (e) {
+            console.log('[AudioEngine] Web audio context setup error:', e);
+          }
+        }
       }
       this.isConfigured = true;
       this.startProgressTracking();
@@ -594,20 +580,40 @@ export class AudioEngine {
   }
 
   async loadAndPlay(track: Track, preloadNext?: Track) {
-    console.log('[AudioEngine] loadAndPlay', track.title, 'Type:', track.type);
+    console.log('[AudioEngine] ===== LOAD AND PLAY =====');
+    console.log('[AudioEngine] Track:', track.title, 'Type:', track.type);
+    console.log('[AudioEngine] Track details:', {
+      id: track.id,
+      audioUrl: track.audioUrl,
+      localUri: track.localUri,
+      isVideo: track.isVideo
+    });
+    
     await this.configure();
     this.setState('loading');
     
     try {
       const uri = this.trackToUri(track);
       console.log('[AudioEngine] Using URI:', uri);
+      
+      // Validate URI
+      if (!uri || uri.trim() === '') {
+        throw new Error('Invalid or empty URI');
+      }
+      
       const prefs = this.contentPrefs[track.type];
       this.setCrossfade(prefs.crossfadeMs);
       this.setGapless(prefs.gapless);
       const active = this.getActive();
       await this.unload(active);
+      
       console.log('[AudioEngine] Creating player for URI:', uri);
       const sound = await this.createPlayer(uri);
+      
+      if (!sound) {
+        throw new Error('Failed to create audio player');
+      }
+      
       sound.volume = 1.0;
       sound.loop = false;
       
@@ -616,17 +622,22 @@ export class AudioEngine {
       active.track = track;
       active.uri = uri;
       
+      console.log('[AudioEngine] Player created, attempting to play...');
+      
       try {
-        console.log('[AudioEngine] Attempting to play audio...');
         await sound.play();
-        console.log('[AudioEngine] Audio playback started successfully');
+        console.log('[AudioEngine] ✅ Audio playback started successfully');
       } catch (e1) {
-        console.log('[AudioEngine] primary play failed, trying fallback', e1);
-        const fallback = fallbackUris[track.type] ?? uri;
+        console.log('[AudioEngine] ❌ Primary play failed, trying fallback:', e1);
+        const fallback = fallbackUris[track.type] ?? fallbackUris.song;
         console.log('[AudioEngine] Using fallback URI:', fallback);
         
         // Clean up the failed sound
-        sound.remove();
+        try {
+          sound.remove();
+        } catch (cleanupError) {
+          console.log('[AudioEngine] Error cleaning up failed sound:', cleanupError);
+        }
         
         const fallbackSound = await this.createPlayer(fallback);
         fallbackSound.volume = 1.0;
@@ -638,7 +649,7 @@ export class AudioEngine {
         
         console.log('[AudioEngine] Attempting to play fallback audio...');
         await fallbackSound.play();
-        console.log('[AudioEngine] Fallback audio playback started successfully');
+        console.log('[AudioEngine] ✅ Fallback audio playback started successfully');
       }
       
       this.attachEndListener(active.sound, track);
@@ -654,10 +665,13 @@ export class AudioEngine {
           this.preload(preloadNext).catch((e) => console.log('[AudioEngine] preload error', e));
         }, 100);
       }
+      
+      console.log('[AudioEngine] ===== LOAD AND PLAY COMPLETED =====');
     } catch (e) {
-      console.log('[AudioEngine] loadAndPlay error', e);
+      console.log('[AudioEngine] ❌ loadAndPlay error:', e);
       this.setState('error');
       if (this.events.onError) this.events.onError(e);
+      throw e; // Re-throw to let caller handle
     }
   }
 

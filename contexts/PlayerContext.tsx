@@ -157,6 +157,13 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       return;
     }
     
+    // Ensure audio engine is configured
+    try {
+      await audioEngine.configure();
+    } catch (e) {
+      console.log('[Player] Audio engine configuration error:', e);
+    }
+    
     // Check audio engine status first
     try {
       const engineStatus = await audioEngine.getStatus();
@@ -167,6 +174,9 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     
     const targetState = !isPlaying;
     console.log('[Player] 🔄 Target state:', targetState);
+    
+    // Optimistically update UI state first for better responsiveness
+    setIsPlaying(targetState);
     
     try {
       if (targetState) {
@@ -189,51 +199,71 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           console.log('[Player] 🔊 Volume set to 1.0');
         }
         
-        // Update UI state after successful play
-        setIsPlaying(true);
         console.log('[Player] ✅ UI state set to playing');
       } else {
         console.log('[Player] ⏸️ Calling audioEngine.pause()');
         await audioEngine.pause();
         console.log('[Player] ✅ pause() successful');
         
-        // Update UI state after successful pause
-        setIsPlaying(false);
         console.log('[Player] ✅ UI state set to paused');
       }
     } catch (error) {
       console.log('[Player] ❌ Toggle error:', error);
-      // Don't change UI state on error - keep current state
-      console.log('[Player] ❌ Keeping current UI state due to error');
+      // Revert UI state on error
+      setIsPlaying(!targetState);
+      console.log('[Player] ❌ Reverted UI state due to error');
     }
     
     startGuestTimer();
     console.log('[Player] ===== TOGGLE PLAY/PAUSE FINISHED =====');
   }, [startGuestTimer, currentTrack, isPlaying]);
 
-  const skipNext = useCallback(() => {
+  const skipNext = useCallback(async () => {
+    console.log('[Player] ===== SKIP NEXT CALLED =====');
+    console.log('[Player] Queue length:', queue.length);
+    
     if (queue.length > 0) {
       const nextTrack = queue[0];
       const remaining = queue.slice(1);
       
+      console.log('[Player] Skipping to:', nextTrack.title);
+      
       // Immediate UI updates
       setCurrentTrack(nextTrack);
       setQueue(remaining);
+      setIsPlaying(true); // Assume we'll be playing the next track
       
-      // Handle audio and storage asynchronously
-      setTimeout(() => {
-        saveLastPlayed(nextTrack);
-        const t = nextTrack;
-        if (t.type !== 'video' && !t.isVideo) {
-          audioEngine
-            .crossfadeToNext(t)
-            .catch((e) => console.log('[Player] crossfade error', e));
+      // Handle audio and storage
+      try {
+        await saveLastPlayed(nextTrack);
+        
+        if (nextTrack.type !== 'video' && !nextTrack.isVideo) {
+          console.log('[Player] Starting crossfade to next track');
+          await audioEngine.crossfadeToNext(nextTrack);
+          console.log('[Player] ✅ Crossfade successful');
+        } else {
+          console.log('[Player] Video track, navigating to player');
+          setTimeout(() => {
+            try {
+              router.push("/player");
+            } catch (e) {
+              console.error("[Player] Navigation error:", e);
+            }
+          }, 0);
         }
-      }, 0);
+      } catch (e) {
+        console.log('[Player] ❌ Skip next error:', e);
+        // Revert state on error
+        setIsPlaying(false);
+      }
       
       startGuestTimer();
+    } else {
+      console.log('[Player] No tracks in queue to skip to');
     }
-  }, [queue, startGuestTimer]);
+    
+    console.log('[Player] ===== SKIP NEXT FINISHED =====');
+  }, [queue, startGuestTimer, saveLastPlayed]);
 
   const skipPrevious = useCallback(() => {
     console.log("Skip to previous track");
@@ -324,12 +354,15 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         // Sync UI state with audio engine state, but only for non-video tracks
         const track = audioEngine.getCurrentTrack();
         if (track && track.type !== 'video' && !track.isVideo) {
-          if (state === 'playing') {
-            console.log('[AudioEngine] Setting UI to playing state');
-            setIsPlaying(true);
-          } else if (state === 'paused' || state === 'stopped' || state === 'error') {
-            console.log('[AudioEngine] Setting UI to paused state');
-            setIsPlaying(false);
+          // Only update UI state if the engine track matches our current track
+          if (currentTrack && track.id === currentTrack.id) {
+            if (state === 'playing') {
+              console.log('[AudioEngine] Setting UI to playing state');
+              setIsPlaying(true);
+            } else if (state === 'paused' || state === 'stopped' || state === 'error') {
+              console.log('[AudioEngine] Setting UI to paused state');
+              setIsPlaying(false);
+            }
           }
         }
       },

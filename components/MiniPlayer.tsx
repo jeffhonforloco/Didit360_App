@@ -36,7 +36,7 @@ export function MiniPlayer() {
 
   // Memoize control handlers for better performance
   const handlePlayPause = useCallback(async (e: any) => {
-    e.stopPropagation();
+    e?.stopPropagation?.();
     console.log('[MiniPlayer] ===== PLAY/PAUSE BUTTON PRESSED =====');
     console.log('[MiniPlayer] Current state - isPlaying:', isPlaying, 'currentTrack:', currentTrack?.title);
     console.log('[MiniPlayer] Current track details:', {
@@ -53,15 +53,6 @@ export function MiniPlayer() {
       return;
     }
     
-    // Prevent double-taps by adding a small delay
-    const button = e.currentTarget;
-    if (button) {
-      button.disabled = true;
-      setTimeout(() => {
-        if (button) button.disabled = false;
-      }, 300);
-    }
-    
     console.log('[MiniPlayer] 🎯 Calling togglePlayPause - BEFORE');
     console.log('[MiniPlayer] Button state before toggle:', { isPlaying });
     
@@ -75,14 +66,26 @@ export function MiniPlayer() {
     console.log('[MiniPlayer] 🎯 togglePlayPause call finished - AFTER');
   }, [togglePlayPause, isPlaying, currentTrack]);
 
-  const handleSkipNext = useCallback((e: any) => {
-    e.stopPropagation();
-    skipNext();
+  const handleSkipNext = useCallback(async (e: any) => {
+    e?.stopPropagation?.();
+    console.log('[MiniPlayer] ===== SKIP NEXT BUTTON PRESSED =====');
+    try {
+      await skipNext();
+      console.log('[MiniPlayer] ✅ skipNext completed successfully');
+    } catch (error) {
+      console.log('[MiniPlayer] ❌ skipNext failed:', error);
+    }
   }, [skipNext]);
 
-  const handleStop = useCallback((e: any) => {
-    e.stopPropagation();
-    stopPlayer();
+  const handleStop = useCallback(async (e: any) => {
+    e?.stopPropagation?.();
+    console.log('[MiniPlayer] ===== STOP BUTTON PRESSED =====');
+    try {
+      await stopPlayer();
+      console.log('[MiniPlayer] ✅ stopPlayer completed successfully');
+    } catch (error) {
+      console.log('[MiniPlayer] ❌ stopPlayer failed:', error);
+    }
   }, [stopPlayer]);
 
   const handlePress = useCallback(() => {
@@ -149,6 +152,9 @@ export function MiniPlayer() {
         delayPressIn={0}
         delayPressOut={50}
         disabled={false}
+        accessible={true}
+        accessibilityLabel={isPlaying ? "Pause" : "Play"}
+        accessibilityRole="button"
       >
         {isPlaying ? (
           <Pause size={24} color="#FFF" fill="#FFF" />
@@ -162,6 +168,9 @@ export function MiniPlayer() {
         onPress={handleSkipNext}
         testID="mini-next"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessible={true}
+        accessibilityLabel="Skip to next track"
+        accessibilityRole="button"
       >
         <SkipForward size={20} color="#FFF" fill="#FFF" />
       </TouchableOpacity>
@@ -171,6 +180,9 @@ export function MiniPlayer() {
         onPress={handleStop}
         testID="mini-close"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        accessible={true}
+        accessibilityLabel="Stop and close player"
+        accessibilityRole="button"
       >
         <X size={18} color="#999" />
       </TouchableOpacity>
