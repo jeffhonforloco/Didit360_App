@@ -135,8 +135,25 @@ export default function PlayerScreen() {
 
   // Memoize control handlers
   const handlePlayPause = useCallback(() => {
-    togglePlayPause();
-  }, [togglePlayPause]);
+    console.log('[Player] handlePlayPause called, isPlaying:', isPlaying);
+    
+    // For web, ensure user interaction is properly handled
+    if (Platform.OS === 'web' && currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
+      if (!isPlaying) {
+        // Try direct audio engine play first to capture user interaction
+        audioEngine.play().then(() => {
+          console.log('[Player] Direct audio engine play successful');
+        }).catch((e) => {
+          console.log('[Player] Direct audio engine play failed, using toggle:', e);
+          togglePlayPause();
+        });
+      } else {
+        togglePlayPause();
+      }
+    } else {
+      togglePlayPause();
+    }
+  }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback(() => {
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {

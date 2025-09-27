@@ -38,7 +38,17 @@ export function MiniPlayer() {
   const handlePlayPause = useCallback((e: any) => {
     e.stopPropagation();
     console.log('[MiniPlayer] Play/Pause button pressed, current isPlaying:', isPlaying);
-    togglePlayPause();
+    
+    // Trigger user interaction for web audio policy
+    if (Platform.OS === 'web' && !isPlaying) {
+      // Force audio engine to recognize user interaction
+      audioEngine.play().catch(() => {
+        // If direct play fails, try through toggle
+        togglePlayPause();
+      });
+    } else {
+      togglePlayPause();
+    }
   }, [togglePlayPause, isPlaying]);
 
   const handleSkipNext = useCallback((e: any) => {

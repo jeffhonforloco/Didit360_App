@@ -37,6 +37,9 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     loadLastPlayed();
     // Initialize audio engine early
     audioEngine.configure().catch((e) => console.log('[Player] Audio engine init error', e));
+    
+    // Set initial volume
+    audioEngine.setVolume(1.0).catch((e) => console.log('[Player] Initial volume set error', e));
   }, []);
 
   useEffect(() => {
@@ -104,7 +107,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         console.log('[Player] Starting audio playback for:', track.title, 'audioUrl:', track.audioUrl);
         audioEngine
           .loadAndPlay(track, similarTracks[0])
-          .then(() => console.log('[Player] Audio load and play successful'))
+          .then(() => {
+            console.log('[Player] Audio load and play successful');
+            // Ensure volume is set after successful load
+            audioEngine.setVolume(1.0).catch((e) => console.log('[Player] post-load volume error', e));
+          })
           .catch((e) => console.log('[Player] audio load error', e));
       } else {
         console.log('[Player] Skipping audio playback for video track:', track.title);
@@ -141,7 +148,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           if (t && t.type !== 'video' && !t.isVideo) {
             if (next) {
               console.log('[Player] Calling audioEngine.play()');
-              audioEngine.play().then(() => console.log('[Player] play() successful')).catch((e) => console.log('[Player] play() error', e));
+              audioEngine.play().then(() => {
+                console.log('[Player] play() successful');
+                // Ensure volume is properly set after play
+                audioEngine.setVolume(1.0).catch((e) => console.log('[Player] post-play volume error', e));
+              }).catch((e) => console.log('[Player] play() error', e));
             } else {
               console.log('[Player] Calling audioEngine.pause()');
               audioEngine.pause().then(() => console.log('[Player] pause() successful')).catch((e) => console.log('[Player] pause() error', e));
@@ -228,6 +239,9 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           return prev;
         });
         setIsPlaying(true); // Ensure UI state matches audio engine
+        
+        // Ensure volume is set when track starts
+        audioEngine.setVolume(1.0).catch((e) => console.log('[Player] track start volume error', e));
         
         // Handle queue and preloading asynchronously
         setTimeout(() => {

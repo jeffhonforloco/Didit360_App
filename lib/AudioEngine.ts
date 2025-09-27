@@ -65,6 +65,8 @@ class WebAudioPlayer implements AudioPlayerLike {
       const handleUserInteraction = () => {
         this.hasUserInteracted = true;
         console.log('[WebAudioPlayer] User interaction detected');
+        // Try to unlock audio context
+        this.unlockAudioContext();
         // Remove listeners after first interaction
         window.removeEventListener('click', handleUserInteraction);
         window.removeEventListener('touchstart', handleUserInteraction);
@@ -74,6 +76,26 @@ class WebAudioPlayer implements AudioPlayerLike {
       window.addEventListener('click', handleUserInteraction, { once: true });
       window.addEventListener('touchstart', handleUserInteraction, { once: true });
       window.addEventListener('keydown', handleUserInteraction, { once: true });
+    }
+  }
+
+  private unlockAudioContext() {
+    if (this.audio && typeof window !== 'undefined') {
+      // Create a silent audio context to unlock web audio
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioContext) {
+          const audioContext = new AudioContext();
+          const buffer = audioContext.createBuffer(1, 1, 22050);
+          const source = audioContext.createBufferSource();
+          source.buffer = buffer;
+          source.connect(audioContext.destination);
+          source.start(0);
+          console.log('[WebAudioPlayer] Audio context unlocked');
+        }
+      } catch (e) {
+        console.log('[WebAudioPlayer] Audio context unlock failed:', e);
+      }
     }
   }
 
@@ -110,9 +132,41 @@ class WebAudioPlayer implements AudioPlayerLike {
           this.audio.volume = 1;
         }
         
-        // Try to enable audio context if needed (for web audio policy)
-        if (typeof window !== 'undefined' && !this.hasUserInteracted) {
-          console.log('[WebAudioPlayer] No user interaction detected yet, attempting to play anyway');
+        // Force user interaction detection if not already detected
+        if (!this.hasUserInteracted) {
+          this.hasUserInteracted = true;
+          this.unlockAudioContext();
+        }
+        
+        // Wait for audio to be ready if needed
+        if (this.audio.readyState < 2) {
+          console.log('[WebAudioPlayer] Waiting for audio to be ready...');
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => {
+              reject(new Error('Audio load timeout'));
+            }, 10000);
+            
+            const onCanPlay = () => {
+              clearTimeout(timeout);
+              this.audio?.removeEventListener('canplay', onCanPlay);
+              this.audio?.removeEventListener('error', onError);
+              resolve(void 0);
+            };
+            
+            const onError = (e: Event) => {
+              clearTimeout(timeout);
+              this.audio?.removeEventListener('canplay', onCanPlay);
+              this.audio?.removeEventListener('error', onError);
+              reject(e);
+            };
+            
+            this.audio?.addEventListener('canplay', onCanPlay, { once: true });
+            this.audio?.addEventListener('error', onError, { once: true });
+            
+            if (this.audio && this.audio.readyState >= 2) {
+              onCanPlay();
+            }
+          });
         }
         
         const playPromise = this.audio.play();
@@ -134,6 +188,8 @@ class WebAudioPlayer implements AudioPlayerLike {
         // If it's an autoplay policy error, provide helpful info
         if (e instanceof Error && e.name === 'NotAllowedError') {
           console.log('[WebAudioPlayer] Autoplay was prevented. User interaction may be required.');
+          // Try to unlock audio context for future attempts
+          this.unlockAudioContext();
         }
         
         throw e;
@@ -477,9 +533,7 @@ export class AudioEngine {
     console.log('[AudioEngine] loadAndPlay', track.title, 'Type:', track.type);
     await this.configure();
     this.setState('loading');
-    if (this.events.onTrackStart) {
-      setTimeout(() => this.events.onTrackStart?.(track), 0);
-    }
+    
     try {
       const uri = this.trackToUri(track);
       console.log('[AudioEngine] Using URI:', uri);
@@ -492,28 +546,45 @@ export class AudioEngine {
       const sound = await this.createPlayer(uri);
       sound.volume = 1.0;
       sound.loop = false;
+      
+      // Set the sound first, then try to play
+      active.sound = sound;
+      active.track = track;
+      active.uri = uri;
+      
       try {
         console.log('[AudioEngine] Attempting to play audio...');
         await sound.play();
         console.log('[AudioEngine] Audio playback started successfully');
-        active.sound = sound;
       } catch (e1) {
-        console.log('[AudioEngine] primary load failed, trying fallback', e1);
+        console.log('[AudioEngine] primary play failed, trying fallback', e1);
         const fallback = fallbackUris[track.type] ?? uri;
         console.log('[AudioEngine] Using fallback URI:', fallback);
+        
+        // Clean up the failed sound
+        sound.remove();
+        
         const fallbackSound = await this.createPlayer(fallback);
         fallbackSound.volume = 1.0;
         fallbackSound.loop = false;
+        
+        // Update active with fallback
+        active.sound = fallbackSound;
+        active.uri = fallback;
+        
         console.log('[AudioEngine] Attempting to play fallback audio...');
         await fallbackSound.play();
         console.log('[AudioEngine] Fallback audio playback started successfully');
-        sound.remove();
-        active.sound = fallbackSound;
       }
-      active.track = track;
-      active.uri = uri;
+      
       this.attachEndListener(active.sound, track);
       this.setState('playing');
+      
+      // Fire onTrackStart after successful play
+      if (this.events.onTrackStart) {
+        setTimeout(() => this.events.onTrackStart?.(track), 0);
+      }
+      
       if (preloadNext) {
         setTimeout(() => {
           this.preload(preloadNext).catch((e) => console.log('[AudioEngine] preload error', e));
@@ -612,14 +683,25 @@ export class AudioEngine {
     const active = this.getActive();
     if (active.sound) {
       try {
+        console.log('[AudioEngine] play() called');
         await active.sound.play();
         this.setState('playing');
+        console.log('[AudioEngine] play() successful');
       } catch (e) {
         console.log('[AudioEngine] play error', e);
+        this.setState('error');
+        if (this.events.onError) this.events.onError(e);
         if (active.track) {
-          this.recoverFromError(active.track);
+          // Try to recover by reloading the track
+          setTimeout(() => {
+            this.recoverFromError(active.track!).catch((err) => {
+              console.log('[AudioEngine] recovery failed', err);
+            });
+          }, 1000);
         }
       }
+    } else {
+      console.log('[AudioEngine] play() called but no active sound');
     }
   }
 
@@ -627,11 +709,15 @@ export class AudioEngine {
     const active = this.getActive();
     if (active.sound) {
       try {
+        console.log('[AudioEngine] pause() called');
         active.sound.pause();
         this.setState('paused');
+        console.log('[AudioEngine] pause() successful');
       } catch (e) {
         console.log('[AudioEngine] pause error', e);
       }
+    } else {
+      console.log('[AudioEngine] pause() called but no active sound');
     }
   }
 
@@ -666,13 +752,17 @@ export class AudioEngine {
 
   async setVolume(volume: number) {
     const normalizedVolume = Math.max(0, Math.min(1, volume));
+    console.log('[AudioEngine] setVolume called with:', normalizedVolume);
     const active = this.getActive();
     if (active.sound) {
       try {
         active.sound.volume = normalizedVolume;
+        console.log('[AudioEngine] Volume set successfully to:', normalizedVolume);
       } catch (e) {
         console.log('[AudioEngine] setVolume error', e);
       }
+    } else {
+      console.log('[AudioEngine] setVolume called but no active sound');
     }
   }
 
