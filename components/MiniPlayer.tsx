@@ -35,21 +35,51 @@ export function MiniPlayer() {
   }, [updateProgress]);
 
   // Memoize control handlers for better performance
-  const handlePlayPause = useCallback((e: any) => {
+  const handlePlayPause = useCallback(async (e: any) => {
     e.stopPropagation();
-    console.log('[MiniPlayer] Play/Pause button pressed, current isPlaying:', isPlaying);
+    console.log('[MiniPlayer] ===== PLAY/PAUSE BUTTON PRESSED =====');
+    console.log('[MiniPlayer] Current state - isPlaying:', isPlaying, 'currentTrack:', currentTrack?.title);
+    console.log('[MiniPlayer] Current track details:', {
+      id: currentTrack?.id,
+      title: currentTrack?.title,
+      audioUrl: currentTrack?.audioUrl,
+      type: currentTrack?.type,
+      isVideo: currentTrack?.isVideo
+    });
     
-    // Trigger user interaction for web audio policy
-    if (Platform.OS === 'web' && !isPlaying) {
-      // Force audio engine to recognize user interaction
-      audioEngine.play().catch(() => {
-        // If direct play fails, try through toggle
-        togglePlayPause();
-      });
-    } else {
-      togglePlayPause();
+    // Check if we have a valid track
+    if (!currentTrack) {
+      console.log('[MiniPlayer] ❌ No current track available');
+      return;
     }
-  }, [togglePlayPause, isPlaying]);
+    
+    // For video tracks, delegate to player context
+    if (currentTrack.isVideo || currentTrack.type === 'video') {
+      console.log('[MiniPlayer] 🎥 Video track detected, delegating to player context');
+      togglePlayPause();
+      return;
+    }
+    
+    // For audio tracks, ensure we have a valid audioUrl
+    if (!currentTrack.audioUrl) {
+      console.log('[MiniPlayer] ❌ No audioUrl available for track:', currentTrack.title);
+      return;
+    }
+    
+    console.log('[MiniPlayer] 🎵 Audio track detected, proceeding with audio engine');
+    
+    // Check audio engine status
+    try {
+      const status = await audioEngine.getStatus();
+      console.log('[MiniPlayer] Audio engine status:', status);
+    } catch (e) {
+      console.log('[MiniPlayer] Failed to get audio engine status:', e);
+    }
+    
+    // Always use togglePlayPause for consistency
+    console.log('[MiniPlayer] 🎯 Calling togglePlayPause');
+    togglePlayPause();
+  }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback((e: any) => {
     e.stopPropagation();
@@ -117,10 +147,11 @@ export function MiniPlayer() {
       </View>
 
       <TouchableOpacity
-        style={styles.controlButton}
+        style={[styles.controlButton, styles.playButton]}
         onPress={handlePlayPause}
         testID="mini-toggle"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        activeOpacity={0.7}
       >
         {isPlaying ? (
           <Pause size={24} color="#FFF" fill="#FFF" />
@@ -214,5 +245,11 @@ const styles = StyleSheet.create({
   controlButton: {
     padding: 8,
     marginLeft: 4,
+  },
+  playButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
 });
