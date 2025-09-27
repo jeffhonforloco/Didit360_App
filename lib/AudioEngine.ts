@@ -83,13 +83,17 @@ class WebAudioPlayer implements AudioPlayerLike {
         console.log('[WebAudioPlayer] User interaction detected');
         // Try to unlock audio context
         this.unlockAudioContext();
+        // Remove listeners after first interaction
+        this.removeInteractionListeners();
       };
       
+      // Store reference to handler for cleanup
+      this.interactionHandler = handleUserInteraction;
+      
       // Use capture phase to ensure we catch the interaction
-      const events = ['click', 'touchstart', 'touchend', 'keydown', 'pointerdown'];
+      const events = ['click', 'touchstart', 'touchend', 'keydown', 'pointerdown', 'mousedown'];
       events.forEach(event => {
-        window.addEventListener(event, handleUserInteraction, { once: true, capture: true });
-        document.addEventListener(event, handleUserInteraction, { once: true, capture: true });
+        document.addEventListener(event, handleUserInteraction, { once: false, capture: true });
       });
       
       // Also detect any user interaction immediately if possible
@@ -97,6 +101,18 @@ class WebAudioPlayer implements AudioPlayerLike {
         this.hasUserInteracted = true;
         this.unlockAudioContext();
       }
+    }
+  }
+
+  private interactionHandler: (() => void) | null = null;
+
+  private removeInteractionListeners() {
+    if (typeof window !== 'undefined' && this.interactionHandler) {
+      const events = ['click', 'touchstart', 'touchend', 'keydown', 'pointerdown', 'mousedown'];
+      events.forEach(event => {
+        document.removeEventListener(event, this.interactionHandler!, { capture: true });
+      });
+      this.interactionHandler = null;
     }
   }
 
@@ -175,11 +191,13 @@ class WebAudioPlayer implements AudioPlayerLike {
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
               reject(new Error('Audio load timeout'));
-            }, 10000);
+            }, 15000); // Increased timeout
             
             const onCanPlay = () => {
               clearTimeout(timeout);
               this.audio?.removeEventListener('canplay', onCanPlay);
+              this.audio?.removeEventListener('canplaythrough', onCanPlay);
+              this.audio?.removeEventListener('loadeddata', onCanPlay);
               this.audio?.removeEventListener('error', onError);
               resolve(void 0);
             };
@@ -187,13 +205,19 @@ class WebAudioPlayer implements AudioPlayerLike {
             const onError = (e: Event) => {
               clearTimeout(timeout);
               this.audio?.removeEventListener('canplay', onCanPlay);
+              this.audio?.removeEventListener('canplaythrough', onCanPlay);
+              this.audio?.removeEventListener('loadeddata', onCanPlay);
               this.audio?.removeEventListener('error', onError);
               reject(e);
             };
             
+            // Listen to multiple ready events
             this.audio?.addEventListener('canplay', onCanPlay, { once: true });
+            this.audio?.addEventListener('canplaythrough', onCanPlay, { once: true });
+            this.audio?.addEventListener('loadeddata', onCanPlay, { once: true });
             this.audio?.addEventListener('error', onError, { once: true });
             
+            // Check if already ready
             if (this.audio && this.audio.readyState >= 2) {
               onCanPlay();
             }
@@ -219,11 +243,13 @@ class WebAudioPlayer implements AudioPlayerLike {
           error: this.audio?.error
         });
         
-        // If it's an autoplay policy error, provide helpful info
+        // If it's an autoplay policy error, try to handle it gracefully
         if (e instanceof Error && (e.name === 'NotAllowedError' || e.name === 'AbortError')) {
-          console.log('[WebAudioPlayer] Autoplay was prevented. User interaction may be required.');
-          // Try to unlock audio context for future attempts
-          this.unlockAudioContext();
+          console.log('[WebAudioPlayer] Autoplay was prevented. Waiting for user interaction.');
+          // Set up interaction detection if not already done
+          if (!this.hasUserInteracted) {
+            this.setupUserInteractionDetection();
+          }
           // Don't throw for autoplay errors - just log them
           return;
         }
@@ -250,6 +276,7 @@ class WebAudioPlayer implements AudioPlayerLike {
       this.audio.src = '';
       this.audio = null;
     }
+    this.removeInteractionListeners();
   }
 }
 
@@ -444,14 +471,16 @@ export class AudioEngine {
         }
       } else {
         console.log('[AudioEngine] Web platform detected, setting up web audio context');
-        // Initialize web audio context early
+        // Initialize web audio context early and set up user interaction detection
         if (typeof window !== 'undefined') {
           try {
             const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
             if (AudioContext) {
               const audioContext = new AudioContext();
               if (audioContext.state === 'suspended') {
-                console.log('[AudioEngine] Audio context suspended, will resume on user interaction');
+                console.log('[AudioEngine] Audio context suspended, setting up user interaction detection');
+                // Set up global user interaction detection for web
+                this.setupWebUserInteraction();
               }
             }
           } catch (e) {
@@ -466,6 +495,42 @@ export class AudioEngine {
       console.log('[AudioEngine] configure error', e);
       // Mark as configured even if there's an error to prevent infinite retries
       this.isConfigured = true;
+    }
+  }
+
+  private setupWebUserInteraction() {
+    if (typeof window !== 'undefined' && Platform.OS === 'web') {
+      const handleFirstInteraction = () => {
+        console.log('[AudioEngine] First user interaction detected on web');
+        // Try to resume any suspended audio contexts
+        try {
+          const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+          if (AudioContext) {
+            const audioContext = new AudioContext();
+            if (audioContext.state === 'suspended') {
+              audioContext.resume().then(() => {
+                console.log('[AudioEngine] Audio context resumed successfully');
+              }).catch((e) => {
+                console.log('[AudioEngine] Failed to resume audio context:', e);
+              });
+            }
+          }
+        } catch (e) {
+          console.log('[AudioEngine] Error handling web user interaction:', e);
+        }
+        
+        // Remove listeners after first interaction
+        const events = ['click', 'touchstart', 'keydown', 'mousedown'];
+        events.forEach(event => {
+          document.removeEventListener(event, handleFirstInteraction, { capture: true });
+        });
+      };
+      
+      // Add global interaction listeners
+      const events = ['click', 'touchstart', 'keydown', 'mousedown'];
+      events.forEach(event => {
+        document.addEventListener(event, handleFirstInteraction, { once: true, capture: true });
+      });
     }
   }
 

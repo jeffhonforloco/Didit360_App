@@ -164,19 +164,8 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       console.log('[Player] Audio engine configuration error:', e);
     }
     
-    // Check audio engine status first
-    try {
-      const engineStatus = await audioEngine.getStatus();
-      console.log('[Player] Audio engine status before toggle:', engineStatus);
-    } catch (e) {
-      console.log('[Player] Failed to get audio engine status:', e);
-    }
-    
     const targetState = !isPlaying;
     console.log('[Player] 🔄 Target state:', targetState);
-    
-    // Optimistically update UI state first for better responsiveness
-    setIsPlaying(targetState);
     
     try {
       if (targetState) {
@@ -188,24 +177,25 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         
         if (!currentEngineTrack || currentEngineTrack.id !== currentTrack.id) {
           console.log('[Player] 📥 Track not loaded in engine, loading now...');
+          // Don't update UI state yet - let the engine events handle it
           await audioEngine.loadAndPlay(currentTrack);
           console.log('[Player] ✅ Track loaded and playing successfully');
         } else {
           console.log('[Player] 🎯 Track already loaded, calling play()');
+          // Optimistically update UI state for better responsiveness
+          setIsPlaying(true);
           await audioEngine.play();
           console.log('[Player] ✅ play() successful');
           // Ensure volume is properly set after play
           await audioEngine.setVolume(1.0);
           console.log('[Player] 🔊 Volume set to 1.0');
         }
-        
-        console.log('[Player] ✅ UI state set to playing');
       } else {
         console.log('[Player] ⏸️ Calling audioEngine.pause()');
+        // Optimistically update UI state for better responsiveness
+        setIsPlaying(false);
         await audioEngine.pause();
         console.log('[Player] ✅ pause() successful');
-        
-        console.log('[Player] ✅ UI state set to paused');
       }
     } catch (error) {
       console.log('[Player] ❌ Toggle error:', error);
@@ -374,7 +364,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     audioEngine.setContentPrefs('podcast', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('audiobook', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('video', { crossfadeMs: 0, gapless: false });
-  }, [queue, settings.crossfadeSeconds, settings.gaplessPlayback]);
+  }, [queue, settings.crossfadeSeconds, settings.gaplessPlayback, currentTrack]);
 
   return {
     currentTrack,

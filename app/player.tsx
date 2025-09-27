@@ -136,10 +136,18 @@ export default function PlayerScreen() {
   // Memoize control handlers
   const handlePlayPause = useCallback(() => {
     console.log('[Player] handlePlayPause called, isPlaying:', isPlaying);
+    console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
+    
+    // Skip video tracks - they handle their own playback
+    if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) {
+      console.log('[Player] Video track detected, skipping audio toggle');
+      return;
+    }
     
     // For web, ensure user interaction is properly handled
     if (Platform.OS === 'web' && currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
       if (!isPlaying) {
+        console.log('[Player] Web platform - attempting direct audio engine play');
         // Try direct audio engine play first to capture user interaction
         audioEngine.play().then(() => {
           console.log('[Player] Direct audio engine play successful');
@@ -148,31 +156,43 @@ export default function PlayerScreen() {
           togglePlayPause();
         });
       } else {
+        console.log('[Player] Web platform - calling togglePlayPause for pause');
         togglePlayPause();
       }
     } else {
+      console.log('[Player] Native platform or no track - calling togglePlayPause');
       togglePlayPause();
     }
   }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback(() => {
+    console.log('[Player] handleSkipNext called');
+    console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
+    
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
+      console.log('[Player] Video track - skipping forward 10 seconds');
       // For video, skip forward 10 seconds
       if (videoPlayerRef.current) {
         videoPlayerRef.current.skipForward(10).catch((err: unknown) => console.log('[Player] video skip forward error', err));
       }
     } else {
+      console.log('[Player] Audio track - calling skipNext');
       skipNext();
     }
   }, [skipNext, currentTrack]);
 
   const handleSkipPrevious = useCallback(() => {
+    console.log('[Player] handleSkipPrevious called');
+    console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
+    
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
+      console.log('[Player] Video track - skipping backward 10 seconds');
       // For video, skip backward 10 seconds
       if (videoPlayerRef.current) {
         videoPlayerRef.current.skipBackward(10).catch((err: unknown) => console.log('[Player] video skip backward error', err));
       }
     } else {
+      console.log('[Player] Audio track - calling skipPrevious');
       skipPrevious();
     }
   }, [skipPrevious, currentTrack]);

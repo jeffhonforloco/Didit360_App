@@ -53,6 +53,12 @@ export function MiniPlayer() {
       return;
     }
     
+    // Skip video tracks - they handle their own playback
+    if (currentTrack.type === 'video' || currentTrack.isVideo) {
+      console.log('[MiniPlayer] 🎥 Video track detected, skipping toggle');
+      return;
+    }
+    
     console.log('[MiniPlayer] 🎯 Calling togglePlayPause - BEFORE');
     console.log('[MiniPlayer] Button state before toggle:', { isPlaying });
     
@@ -68,13 +74,26 @@ export function MiniPlayer() {
 
   const handleSkipNext = useCallback(async () => {
     console.log('[MiniPlayer] ===== SKIP NEXT BUTTON PRESSED =====');
+    
+    // Check if we have a valid track
+    if (!currentTrack) {
+      console.log('[MiniPlayer] ❌ No current track available for skip');
+      return;
+    }
+    
+    // Skip video tracks - they handle their own playback
+    if (currentTrack.type === 'video' || currentTrack.isVideo) {
+      console.log('[MiniPlayer] 🎥 Video track detected, skipping skip next');
+      return;
+    }
+    
     try {
       await skipNext();
       console.log('[MiniPlayer] ✅ skipNext completed successfully');
     } catch (error) {
       console.log('[MiniPlayer] ❌ skipNext failed:', error);
     }
-  }, [skipNext]);
+  }, [skipNext, currentTrack]);
 
   const handleStop = useCallback(async () => {
     console.log('[MiniPlayer] ===== STOP BUTTON PRESSED =====');
@@ -171,7 +190,7 @@ export function MiniPlayer() {
           activeOpacity={0.6}
           delayPressIn={0}
           delayPressOut={50}
-          disabled={false}
+          disabled={!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo}
           accessible={true}
           accessibilityLabel={isPlaying ? "Pause" : "Play"}
           accessibilityRole="button"
@@ -188,6 +207,7 @@ export function MiniPlayer() {
           onPress={handleSkipNext}
           testID="mini-next"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          disabled={!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo}
           accessible={true}
           accessibilityLabel="Skip to next track"
           accessibilityRole="button"
