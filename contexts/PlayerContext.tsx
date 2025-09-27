@@ -151,6 +151,12 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       return;
     }
     
+    // Skip video tracks - they handle their own playback
+    if (currentTrack.type === 'video' || currentTrack.isVideo) {
+      console.log('[Player] 🎥 Video track detected, skipping audio engine toggle');
+      return;
+    }
+    
     // Check audio engine status first
     try {
       const engineStatus = await audioEngine.getStatus();
@@ -159,72 +165,47 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       console.log('[Player] Failed to get audio engine status:', e);
     }
     
-    console.log('[Player] 🔄 About to change isPlaying state from', isPlaying, 'to', !isPlaying);
+    const targetState = !isPlaying;
+    console.log('[Player] 🔄 Target state:', targetState);
     
-    // Immediate UI feedback
-    setIsPlaying((prev) => {
-      const next = !prev;
-      console.log('[Player] ✅ UI state CHANGED from', prev, 'to', next);
-      
-      // Handle audio engine asynchronously to not block UI
-      setTimeout(async () => {
-        try {
-          const t = currentTrack;
-          console.log('[Player] 🎵 Processing audio engine call - track:', t?.title, 'isVideo:', t?.isVideo, 'type:', t?.type, 'shouldPlay:', next);
-          
-          if (t && t.type !== 'video' && !t.isVideo) {
-            if (next) {
-              console.log('[Player] ▶️ Attempting to PLAY audio...');
-              
-              // Check if audio engine has a track loaded
-              const currentEngineTrack = audioEngine.getCurrentTrack();
-              console.log('[Player] Current engine track:', currentEngineTrack?.title);
-              
-              if (!currentEngineTrack || currentEngineTrack.id !== t.id) {
-                console.log('[Player] 📥 Track not loaded in engine, loading now...');
-                try {
-                  await audioEngine.loadAndPlay(t);
-                  console.log('[Player] ✅ Track loaded and playing successfully');
-                } catch (loadError) {
-                  console.log('[Player] ❌ Failed to load and play track:', loadError);
-                  // Revert UI state on error
-                  setIsPlaying(false);
-                }
-              } else {
-                console.log('[Player] 🎯 Track already loaded, calling play()');
-                try {
-                  await audioEngine.play();
-                  console.log('[Player] ✅ play() successful');
-                  // Ensure volume is properly set after play
-                  await audioEngine.setVolume(1.0);
-                  console.log('[Player] 🔊 Volume set to 1.0');
-                } catch (playError) {
-                  console.log('[Player] ❌ play() error:', playError);
-                  // Revert UI state on error
-                  setIsPlaying(false);
-                }
-              }
-            } else {
-              console.log('[Player] ⏸️ Calling audioEngine.pause()');
-              try {
-                await audioEngine.pause();
-                console.log('[Player] ✅ pause() successful');
-              } catch (pauseError) {
-                console.log('[Player] ❌ pause() error:', pauseError);
-              }
-            }
-          } else {
-            console.log('[Player] 🎥 Skipping audio engine call for video track');
-          }
-        } catch (e) {
-          console.log('[Player] ❌ toggle error', e);
-          // Revert UI state on error
-          setIsPlaying(prev);
+    try {
+      if (targetState) {
+        console.log('[Player] ▶️ Attempting to PLAY audio...');
+        
+        // Check if audio engine has a track loaded
+        const currentEngineTrack = audioEngine.getCurrentTrack();
+        console.log('[Player] Current engine track:', currentEngineTrack?.title);
+        
+        if (!currentEngineTrack || currentEngineTrack.id !== currentTrack.id) {
+          console.log('[Player] 📥 Track not loaded in engine, loading now...');
+          await audioEngine.loadAndPlay(currentTrack);
+          console.log('[Player] ✅ Track loaded and playing successfully');
+        } else {
+          console.log('[Player] 🎯 Track already loaded, calling play()');
+          await audioEngine.play();
+          console.log('[Player] ✅ play() successful');
+          // Ensure volume is properly set after play
+          await audioEngine.setVolume(1.0);
+          console.log('[Player] 🔊 Volume set to 1.0');
         }
-      }, 0);
-      
-      return next;
-    });
+        
+        // Update UI state after successful play
+        setIsPlaying(true);
+        console.log('[Player] ✅ UI state set to playing');
+      } else {
+        console.log('[Player] ⏸️ Calling audioEngine.pause()');
+        await audioEngine.pause();
+        console.log('[Player] ✅ pause() successful');
+        
+        // Update UI state after successful pause
+        setIsPlaying(false);
+        console.log('[Player] ✅ UI state set to paused');
+      }
+    } catch (error) {
+      console.log('[Player] ❌ Toggle error:', error);
+      // Don't change UI state on error - keep current state
+      console.log('[Player] ❌ Keeping current UI state due to error');
+    }
     
     startGuestTimer();
     console.log('[Player] ===== TOGGLE PLAY/PAUSE FINISHED =====');
@@ -340,11 +321,16 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       },
       onStateChange: (state) => {
         console.log('[AudioEngine] state changed to:', state);
-        // Sync UI state with audio engine state
-        if (state === 'playing') {
-          setIsPlaying(true);
-        } else if (state === 'paused' || state === 'stopped' || state === 'error') {
-          setIsPlaying(false);
+        // Sync UI state with audio engine state, but only for non-video tracks
+        const track = audioEngine.getCurrentTrack();
+        if (track && track.type !== 'video' && !track.isVideo) {
+          if (state === 'playing') {
+            console.log('[AudioEngine] Setting UI to playing state');
+            setIsPlaying(true);
+          } else if (state === 'paused' || state === 'stopped' || state === 'error') {
+            console.log('[AudioEngine] Setting UI to paused state');
+            setIsPlaying(false);
+          }
         }
       },
     });

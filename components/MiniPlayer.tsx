@@ -53,6 +53,15 @@ export function MiniPlayer() {
       return;
     }
     
+    // Prevent double-taps by adding a small delay
+    const button = e.currentTarget;
+    if (button) {
+      button.disabled = true;
+      setTimeout(() => {
+        if (button) button.disabled = false;
+      }, 300);
+    }
+    
     console.log('[MiniPlayer] 🎯 Calling togglePlayPause - BEFORE');
     console.log('[MiniPlayer] Button state before toggle:', { isPlaying });
     
@@ -138,7 +147,8 @@ export function MiniPlayer() {
         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
         activeOpacity={0.6}
         delayPressIn={0}
-        delayPressOut={0}
+        delayPressOut={50}
+        disabled={false}
       >
         {isPlaying ? (
           <Pause size={24} color="#FFF" fill="#FFF" />

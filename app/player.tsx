@@ -597,9 +597,10 @@ export default function PlayerScreen() {
               </TouchableOpacity>
 
               <TouchableOpacity
-                onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
+                onPress={handlePlayPause}
                 style={styles.videoPlayButton}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                activeOpacity={0.8}
               >
                 {isPlaying ? (
                   <Pause size={32} color="#FFF" fill="#FFF" />
@@ -912,9 +913,10 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
+                      onPress={handlePlayPause}
                       style={styles.playButton}
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      activeOpacity={0.8}
                     >
                       {isPlaying ? (
                         <Pause size={36} color="#FFF" fill="#FFF" />
@@ -972,9 +974,10 @@ export default function PlayerScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
+                    onPress={handlePlayPause}
                     style={styles.playButton}
                     hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    activeOpacity={0.8}
                   >
                     {isPlaying ? (
                       <Pause size={36} color="#FFF" fill="#FFF" />
@@ -1131,9 +1134,10 @@ export default function PlayerScreen() {
                       </TouchableOpacity>
 
                       <TouchableOpacity
-                        onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
+                        onPress={handlePlayPause}
                         style={styles.playButton}
                         hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        activeOpacity={0.8}
                       >
                         {isPlaying ? (
                           <Pause size={36} color="#FFF" fill="#FFF" />
@@ -1191,9 +1195,10 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={() => { console.log('[Player] Play/Pause pressed'); handlePlayPause(); if (Platform.OS === 'web') { setTimeout(() => audioEngine.play().catch(() => {}), 0); } }}
+                      onPress={handlePlayPause}
                       style={styles.playButton}
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      activeOpacity={0.8}
                     >
                       {isPlaying ? (
                         <Pause size={36} color="#FFF" fill="#FFF" />

@@ -67,15 +67,18 @@ class WebAudioPlayer implements AudioPlayerLike {
         console.log('[WebAudioPlayer] User interaction detected');
         // Try to unlock audio context
         this.unlockAudioContext();
-        // Remove listeners after first interaction
-        window.removeEventListener('click', handleUserInteraction);
-        window.removeEventListener('touchstart', handleUserInteraction);
-        window.removeEventListener('keydown', handleUserInteraction);
       };
       
-      window.addEventListener('click', handleUserInteraction, { once: true });
-      window.addEventListener('touchstart', handleUserInteraction, { once: true });
-      window.addEventListener('keydown', handleUserInteraction, { once: true });
+      // Use capture phase to ensure we catch the interaction
+      window.addEventListener('click', handleUserInteraction, { once: true, capture: true });
+      window.addEventListener('touchstart', handleUserInteraction, { once: true, capture: true });
+      window.addEventListener('touchend', handleUserInteraction, { once: true, capture: true });
+      window.addEventListener('keydown', handleUserInteraction, { once: true, capture: true });
+      window.addEventListener('pointerdown', handleUserInteraction, { once: true, capture: true });
+      
+      // Also listen on document for broader coverage
+      document.addEventListener('click', handleUserInteraction, { once: true, capture: true });
+      document.addEventListener('touchstart', handleUserInteraction, { once: true, capture: true });
     }
   }
 
@@ -138,6 +141,16 @@ class WebAudioPlayer implements AudioPlayerLike {
           this.unlockAudioContext();
         }
         
+        // Reset audio element if it's in an error state
+        if (this.audio.error) {
+          console.log('[WebAudioPlayer] Audio element has error, attempting to reload');
+          const currentSrc = this.audio.src;
+          this.audio.load();
+          if (this.audio.src !== currentSrc) {
+            this.audio.src = currentSrc;
+          }
+        }
+        
         // Wait for audio to be ready if needed
         if (this.audio.readyState < 2) {
           console.log('[WebAudioPlayer] Waiting for audio to be ready...');
@@ -169,8 +182,59 @@ class WebAudioPlayer implements AudioPlayerLike {
           });
         }
         
-        const playPromise = this.audio.play();
-        await playPromise;
+        // Multiple attempts to play with different strategies
+        let playPromise: Promise<void>;
+        
+        try {
+          // First attempt: direct play
+          playPromise = this.audio.play();
+          await playPromise;
+        } catch (firstError) {
+          console.log('[WebAudioPlayer] First play attempt failed:', firstError);
+          
+          // Second attempt: reset and play
+          try {
+            this.audio.currentTime = 0;
+            this.audio.load();
+            await new Promise(resolve => setTimeout(resolve, 100));
+            playPromise = this.audio.play();
+            await playPromise;
+          } catch (secondError) {
+            console.log('[WebAudioPlayer] Second play attempt failed:', secondError);
+            
+            // Third attempt: create new audio element
+            const oldSrc = this.audio.src;
+            const newAudio = new Audio(oldSrc);
+            newAudio.volume = this.audio.volume;
+            newAudio.preload = 'auto';
+            newAudio.crossOrigin = 'anonymous';
+            
+            // Copy event listeners
+            const oldAudio = this.audio;
+            this.audio = newAudio;
+            
+            // Clean up old audio
+            oldAudio.pause();
+            oldAudio.src = '';
+            
+            // Wait for new audio to be ready
+            await new Promise((resolve, reject) => {
+              const timeout = setTimeout(() => reject(new Error('New audio timeout')), 5000);
+              const onReady = () => {
+                clearTimeout(timeout);
+                resolve(void 0);
+              };
+              if (newAudio.readyState >= 2) {
+                onReady();
+              } else {
+                newAudio.addEventListener('canplay', onReady, { once: true });
+              }
+            });
+            
+            playPromise = this.audio.play();
+            await playPromise;
+          }
+        }
         
         console.log('[WebAudioPlayer] Play successful, final state:', {
           paused: this.audio.paused,
@@ -178,7 +242,7 @@ class WebAudioPlayer implements AudioPlayerLike {
           currentTime: this.audio.currentTime
         });
       } catch (e) {
-        console.log('[WebAudioPlayer] Play error:', e);
+        console.log('[WebAudioPlayer] All play attempts failed:', e);
         console.log('[WebAudioPlayer] Audio state after error:', {
           readyState: this.audio.readyState,
           networkState: this.audio.networkState,
