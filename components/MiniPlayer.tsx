@@ -12,6 +12,7 @@ import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { audioEngine, Progress } from "@/lib/AudioEngine";
+import { searchArtists, popularArtists } from "@/data/mockData";
 
 export function MiniPlayer() {
   const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer } = usePlayer();
@@ -101,6 +102,18 @@ export function MiniPlayer() {
     return currentTrack?.isVideo || currentTrack?.type === "video";
   }, [currentTrack]);
 
+  const artworkUri = useMemo(() => {
+    const trackArt = currentTrack?.artwork?.trim();
+    if (trackArt && trackArt.length > 0) return trackArt;
+    const artistName = currentTrack?.artist?.trim().toLowerCase();
+    if (!artistName) return undefined;
+    const fromSearch = searchArtists.find((a) => a.name?.toLowerCase?.() === artistName);
+    if (fromSearch?.image) return fromSearch.image;
+    const fromPopular = popularArtists.find((a) => a.name?.toLowerCase?.() === artistName);
+    if (fromPopular?.image) return fromPopular.image;
+    return undefined;
+  }, [currentTrack]);
+
   // Hide MiniPlayer when full player is open or no track is loaded
   if (!currentTrack || pathname === '/player') {
     console.log('[MiniPlayer] Hidden - currentTrack:', !!currentTrack, 'pathname:', pathname);
@@ -117,9 +130,11 @@ export function MiniPlayer() {
       testID="mini-player"
     >
       <View style={styles.artworkContainer}>
-        <SafeImage 
-          uri={currentTrack.artwork} 
+        <SafeImage
+          uri={artworkUri}
           style={styles.artwork}
+          testID="mini-artwork"
+          accessibilityLabel="Track artwork"
         />
         {isVideoTrack && (
           <View style={styles.videoIndicator}>
