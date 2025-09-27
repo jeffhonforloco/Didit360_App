@@ -35,6 +35,8 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
 
   useEffect(() => {
     loadLastPlayed();
+    // Initialize audio engine early
+    audioEngine.configure().catch((e) => console.log('[Player] Audio engine init error', e));
   }, []);
 
   useEffect(() => {

@@ -20,15 +20,31 @@ class WebAudioPlayer implements AudioPlayerLike {
   private audio: HTMLAudioElement | null = null;
 
   constructor(options: { uri: string }) {
+    console.log('[WebAudioPlayer] Creating audio element for:', options.uri);
     this.audio = new Audio(options.uri);
     if (this.audio) {
       this.audio.preload = 'auto';
       this.audio.crossOrigin = 'anonymous';
       this.audio.addEventListener('error', (e) => {
         console.log('[WebAudioPlayer] Audio error:', e);
+        console.log('[WebAudioPlayer] Audio error details:', {
+          error: this.audio?.error,
+          networkState: this.audio?.networkState,
+          readyState: this.audio?.readyState,
+          src: this.audio?.src
+        });
       });
       this.audio.addEventListener('canplaythrough', () => {
         console.log('[WebAudioPlayer] Can play through');
+      });
+      this.audio.addEventListener('loadstart', () => {
+        console.log('[WebAudioPlayer] Load started');
+      });
+      this.audio.addEventListener('loadeddata', () => {
+        console.log('[WebAudioPlayer] Data loaded');
+      });
+      this.audio.addEventListener('loadedmetadata', () => {
+        console.log('[WebAudioPlayer] Metadata loaded, duration:', this.audio?.duration);
       });
     }
   }
@@ -48,9 +64,24 @@ class WebAudioPlayer implements AudioPlayerLike {
   async play() {
     if (this.audio) {
       try {
+        console.log('[WebAudioPlayer] Attempting to play audio...');
+        console.log('[WebAudioPlayer] Audio state before play:', {
+          readyState: this.audio.readyState,
+          networkState: this.audio.networkState,
+          paused: this.audio.paused,
+          currentTime: this.audio.currentTime,
+          duration: this.audio.duration,
+          src: this.audio.src
+        });
         await this.audio.play();
+        console.log('[WebAudioPlayer] Play successful');
       } catch (e) {
         console.log('[WebAudioPlayer] Play error:', e);
+        console.log('[WebAudioPlayer] Audio state after error:', {
+          readyState: this.audio.readyState,
+          networkState: this.audio.networkState,
+          error: this.audio.error
+        });
         throw e;
       }
     }
@@ -237,6 +268,7 @@ export class AudioEngine {
 
   async configure() {
     if (this.isConfigured) return;
+    console.log('[AudioEngine] Starting configuration...');
     try {
       await this.loadPersistedPrefs();
       if (Platform.OS !== 'web') {
@@ -245,6 +277,7 @@ export class AudioEngine {
           // eslint-disable-next-line @typescript-eslint/no-var-requires
           const av = require('expo-av') as typeof import('expo-av');
           if (av?.Audio?.setAudioModeAsync) {
+            console.log('[AudioEngine] Setting audio mode for native platform');
             await av.Audio.setAudioModeAsync({
               allowsRecordingIOS: false,
               staysActiveInBackground: true,
@@ -253,13 +286,17 @@ export class AudioEngine {
               interruptionModeAndroid: 1,
               interruptionModeIOS: 1,
             });
+            console.log('[AudioEngine] Audio mode configured successfully');
           }
         } catch (audioError) {
           console.log('[AudioEngine] Audio mode setup error:', audioError);
         }
+      } else {
+        console.log('[AudioEngine] Web platform detected, skipping native audio mode setup');
       }
       this.isConfigured = true;
       this.startProgressTracking();
+      console.log('[AudioEngine] Configuration completed successfully');
     } catch (e) {
       console.log('[AudioEngine] configure error', e);
       // Mark as configured even if there's an error to prevent infinite retries
@@ -343,10 +380,15 @@ export class AudioEngine {
   }
 
   private async createPlayer(uri: string): Promise<AudioPlayerLike> {
+    console.log('[AudioEngine] Creating player for platform:', Platform.OS, 'URI:', uri);
     if (Platform.OS === 'web') {
-      return new WebAudioPlayer({ uri });
+      const player = new WebAudioPlayer({ uri });
+      console.log('[AudioEngine] Web audio player created');
+      return player;
     }
-    return new NativeAudioPlayer({ uri });
+    const player = new NativeAudioPlayer({ uri });
+    console.log('[AudioEngine] Native audio player created');
+    return player;
   }
 
   private async unload(playable: Playable) {
@@ -373,7 +415,7 @@ export class AudioEngine {
   }
 
   async loadAndPlay(track: Track, preloadNext?: Track) {
-    console.log('[AudioEngine] loadAndPlay', track.title);
+    console.log('[AudioEngine] loadAndPlay', track.title, 'Type:', track.type);
     await this.configure();
     this.setState('loading');
     if (this.events.onTrackStart) {
@@ -381,24 +423,31 @@ export class AudioEngine {
     }
     try {
       const uri = this.trackToUri(track);
+      console.log('[AudioEngine] Using URI:', uri);
       const prefs = this.contentPrefs[track.type];
       this.setCrossfade(prefs.crossfadeMs);
       this.setGapless(prefs.gapless);
       const active = this.getActive();
       await this.unload(active);
+      console.log('[AudioEngine] Creating player for URI:', uri);
       const sound = await this.createPlayer(uri);
       sound.volume = 1.0;
       sound.loop = false;
       try {
+        console.log('[AudioEngine] Attempting to play audio...');
         await sound.play();
+        console.log('[AudioEngine] Audio playback started successfully');
         active.sound = sound;
       } catch (e1) {
         console.log('[AudioEngine] primary load failed, trying fallback', e1);
         const fallback = fallbackUris[track.type] ?? uri;
+        console.log('[AudioEngine] Using fallback URI:', fallback);
         const fallbackSound = await this.createPlayer(fallback);
         fallbackSound.volume = 1.0;
         fallbackSound.loop = false;
+        console.log('[AudioEngine] Attempting to play fallback audio...');
         await fallbackSound.play();
+        console.log('[AudioEngine] Fallback audio playback started successfully');
         sound.remove();
         active.sound = fallbackSound;
       }
