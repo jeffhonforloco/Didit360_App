@@ -23,7 +23,31 @@ export default function AccountScreen() {
 
   const pickImage = useCallback(async () => {
     try {
+      console.log('[Account] pickImage - requesting permissions');
+      
+      // Check if we're on web - different handling needed
+      if (Platform.OS === 'web') {
+        console.log('[Account] Web platform detected, launching image picker directly');
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+
+        if (!result.canceled && result.assets[0]) {
+          console.log('[Account] Image selected:', result.assets[0].uri);
+          setAvatarUrl(result.assets[0].uri);
+        } else {
+          console.log('[Account] Image selection canceled');
+        }
+        return;
+      }
+
+      // Mobile platform - request permissions first
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('[Account] Permission status:', status);
+      
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'Please grant photo library access to change your profile picture.');
         return;
@@ -36,18 +60,32 @@ export default function AccountScreen() {
         quality: 0.8,
       });
 
+      console.log('[Account] Image picker result:', result);
       if (!result.canceled && result.assets[0]) {
+        console.log('[Account] Image selected:', result.assets[0].uri);
         setAvatarUrl(result.assets[0].uri);
+      } else {
+        console.log('[Account] Image selection canceled');
       }
     } catch (error) {
-      console.error('Error picking image:', error);
+      console.error('[Account] Error picking image:', error);
       Alert.alert('Error', 'Failed to pick image. Please try again.');
     }
   }, []);
 
   const takePhoto = useCallback(async () => {
     try {
+      console.log('[Account] takePhoto - requesting camera permissions');
+      
+      // Web doesn't support camera launch in the same way
+      if (Platform.OS === 'web') {
+        Alert.alert('Not supported', 'Camera is not supported on web. Please use "Choose from Library" instead.');
+        return;
+      }
+
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      console.log('[Account] Camera permission status:', status);
+      
       if (status !== 'granted') {
         Alert.alert('Permission needed', 'Please grant camera access to take a profile picture.');
         return;
@@ -59,22 +97,30 @@ export default function AccountScreen() {
         quality: 0.8,
       });
 
+      console.log('[Account] Camera result:', result);
       if (!result.canceled && result.assets[0]) {
+        console.log('[Account] Photo taken:', result.assets[0].uri);
         setAvatarUrl(result.assets[0].uri);
+      } else {
+        console.log('[Account] Photo capture canceled');
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
+      console.error('[Account] Error taking photo:', error);
       Alert.alert('Error', 'Failed to take photo. Please try again.');
     }
   }, []);
 
   const showImageOptions = useCallback(() => {
+    console.log('[Account] showImageOptions called, platform:', Platform.OS);
+    
     if (Platform.OS === 'web') {
       // On web, only show photo library option
+      console.log('[Account] Web platform - launching image picker directly');
       pickImage();
       return;
     }
 
+    // Mobile platforms - show options
     Alert.alert(
       'Change Profile Picture',
       'Choose how you want to update your profile picture',

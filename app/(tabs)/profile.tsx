@@ -29,16 +29,11 @@ export default function ProfileScreen() {
     []
   );
 
-  // Redirect to auth if user is not signed in
+  // Show sign in prompt if user is not signed in (but don't auto-redirect)
   useEffect(() => {
     console.log('[ProfileScreen] useEffect - isLoading:', isLoading, 'profile:', !!profile);
-    if (!isLoading && !profile) {
-      console.log('[ProfileScreen] No profile found, redirecting to auth');
-      // Add a small delay to ensure the context has fully updated
-      setTimeout(() => {
-        router.replace('/auth' as Href);
-      }, 100);
-    }
+    // Don't auto-redirect to auth - let user stay on profile tab
+    // They can manually tap to sign in if needed
   }, [profile, isLoading]);
 
   // Show loading or return early if no profile
@@ -50,8 +45,24 @@ export default function ProfileScreen() {
     );
   }
 
+  // Show sign in screen if no profile
   if (!profile) {
-    return null; // Will redirect to auth
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]} testID="profile-signed-out">
+        <Text style={styles.header}>Profile</Text>
+        <View style={styles.signInPrompt}>
+          <Text style={styles.signInTitle}>Sign in to access your profile</Text>
+          <Text style={styles.signInSubtitle}>Create an account or sign in to save your music, create playlists, and more.</Text>
+          <TouchableOpacity 
+            style={styles.signInButton}
+            onPress={() => router.push('/auth' as Href)}
+            testID="sign-in-button"
+          >
+            <Text style={styles.signInButtonText}>Sign In</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   const onPress = (key: string) => {
@@ -209,5 +220,36 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontSize: 12,
     textAlign: "center",
+  },
+  signInPrompt: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  signInTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  signInSubtitle: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  signInButton: {
+    backgroundColor: '#FF0080',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  signInButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
