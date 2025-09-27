@@ -36,8 +36,7 @@ export function MiniPlayer() {
   }, [updateProgress]);
 
   // Memoize control handlers for better performance
-  const handlePlayPause = useCallback(async (e: any) => {
-    e?.stopPropagation?.();
+  const handlePlayPause = useCallback(async () => {
     console.log('[MiniPlayer] ===== PLAY/PAUSE BUTTON PRESSED =====');
     console.log('[MiniPlayer] Current state - isPlaying:', isPlaying, 'currentTrack:', currentTrack?.title);
     console.log('[MiniPlayer] Current track details:', {
@@ -67,8 +66,7 @@ export function MiniPlayer() {
     console.log('[MiniPlayer] 🎯 togglePlayPause call finished - AFTER');
   }, [togglePlayPause, isPlaying, currentTrack]);
 
-  const handleSkipNext = useCallback(async (e: any) => {
-    e?.stopPropagation?.();
+  const handleSkipNext = useCallback(async () => {
     console.log('[MiniPlayer] ===== SKIP NEXT BUTTON PRESSED =====');
     try {
       await skipNext();
@@ -78,8 +76,7 @@ export function MiniPlayer() {
     }
   }, [skipNext]);
 
-  const handleStop = useCallback(async (e: any) => {
-    e?.stopPropagation?.();
+  const handleStop = useCallback(async () => {
     console.log('[MiniPlayer] ===== STOP BUTTON PRESSED =====');
     try {
       await stopPlayer();
@@ -123,85 +120,94 @@ export function MiniPlayer() {
   console.log('[MiniPlayer] Rendering - Track:', currentTrack.title, 'isPlaying:', isPlaying, 'Type:', currentTrack.type, 'isVideo:', currentTrack.isVideo);
 
   return (
-    <TouchableOpacity
+    <View
       style={[styles.container, { bottom: tabBarHeight }]}
-      activeOpacity={0.95}
-      onPress={handlePress}
       testID="mini-player"
+      accessibilityRole="summary"
     >
-      <View style={styles.artworkContainer}>
-        <SafeImage
-          uri={artworkUri}
-          style={styles.artwork}
-          testID="mini-artwork"
-          accessibilityLabel="Track artwork"
-        />
-        {isVideoTrack && (
-          <View style={styles.videoIndicator}>
-            <Video size={12} color="#FFF" />
-          </View>
-        )}
-      </View>
-      
-      <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={1} testID="mini-title">
-          {currentTrack.title}
-        </Text>
-        <Text style={styles.artist} numberOfLines={1} testID="mini-artist">
-          {currentTrack.artist}
-        </Text>
-        <View style={styles.barTrack}>
-          <View 
-            style={[styles.barProgress, { width: `${progress * 100}%` }]} 
-            testID="mini-progress" 
+      <TouchableOpacity
+        style={styles.leftArea}
+        activeOpacity={0.95}
+        onPress={handlePress}
+        testID="mini-open"
+        accessibilityLabel="Open player"
+        accessibilityRole="button"
+      >
+        <View style={styles.artworkContainer}>
+          <SafeImage
+            uri={artworkUri}
+            style={styles.artwork}
+            testID="mini-artwork"
+            accessibilityLabel="Track artwork"
           />
+          {isVideoTrack && (
+            <View style={styles.videoIndicator}>
+              <Video size={12} color="#FFF" />
+            </View>
+          )}
         </View>
+        <View style={styles.info}>
+          <Text style={styles.title} numberOfLines={1} testID="mini-title">
+            {currentTrack.title}
+          </Text>
+          <Text style={styles.artist} numberOfLines={1} testID="mini-artist">
+            {currentTrack.artist}
+          </Text>
+          <View style={styles.barTrack}>
+            <View 
+              style={[styles.barProgress, { width: `${progress * 100}%` }]} 
+              testID="mini-progress" 
+            />
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.controls}>
+        <TouchableOpacity
+          style={[styles.controlButton, styles.playButton]}
+          onPress={handlePlayPause}
+          testID="mini-toggle"
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          activeOpacity={0.6}
+          delayPressIn={0}
+          delayPressOut={50}
+          disabled={false}
+          accessible={true}
+          accessibilityLabel={isPlaying ? "Pause" : "Play"}
+          accessibilityRole="button"
+        >
+          {isPlaying ? (
+            <Pause size={24} color="#FFF" fill="#FFF" />
+          ) : (
+            <Play size={24} color="#FFF" fill="#FFF" />
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handleSkipNext}
+          testID="mini-next"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessible={true}
+          accessibilityLabel="Skip to next track"
+          accessibilityRole="button"
+        >
+          <SkipForward size={20} color="#FFF" fill="#FFF" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.controlButton}
+          onPress={handleStop}
+          testID="mini-close"
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessible={true}
+          accessibilityLabel="Stop and close player"
+          accessibilityRole="button"
+        >
+          <X size={18} color="#999" />
+        </TouchableOpacity>
       </View>
-
-      <TouchableOpacity
-        style={[styles.controlButton, styles.playButton]}
-        onPress={handlePlayPause}
-        testID="mini-toggle"
-        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        activeOpacity={0.6}
-        delayPressIn={0}
-        delayPressOut={50}
-        disabled={false}
-        accessible={true}
-        accessibilityLabel={isPlaying ? "Pause" : "Play"}
-        accessibilityRole="button"
-      >
-        {isPlaying ? (
-          <Pause size={24} color="#FFF" fill="#FFF" />
-        ) : (
-          <Play size={24} color="#FFF" fill="#FFF" />
-        )}
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.controlButton}
-        onPress={handleSkipNext}
-        testID="mini-next"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessible={true}
-        accessibilityLabel="Skip to next track"
-        accessibilityRole="button"
-      >
-        <SkipForward size={20} color="#FFF" fill="#FFF" />
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.controlButton}
-        onPress={handleStop}
-        testID="mini-close"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        accessible={true}
-        accessibilityLabel="Stop and close player"
-        accessibilityRole="button"
-      >
-        <X size={18} color="#999" />
-      </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -218,12 +224,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderWidth: 1,
     borderColor: "#2A2A2A",
-    // Add shadow for better visual separation
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  leftArea: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   artworkContainer: {
     position: "relative",
@@ -244,6 +254,11 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
+  },
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 4,
   },
   barTrack: {
     height: 3,
