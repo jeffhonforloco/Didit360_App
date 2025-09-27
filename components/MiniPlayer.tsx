@@ -53,32 +53,17 @@ export function MiniPlayer() {
       return;
     }
     
-    // For video tracks, delegate to player context
-    if (currentTrack.isVideo || currentTrack.type === 'video') {
-      console.log('[MiniPlayer] 🎥 Video track detected, delegating to player context');
-      togglePlayPause();
-      return;
-    }
+    console.log('[MiniPlayer] 🎯 Calling togglePlayPause - BEFORE');
+    console.log('[MiniPlayer] Button state before toggle:', { isPlaying });
     
-    // For audio tracks, ensure we have a valid audioUrl
-    if (!currentTrack.audioUrl) {
-      console.log('[MiniPlayer] ❌ No audioUrl available for track:', currentTrack.title);
-      return;
-    }
-    
-    console.log('[MiniPlayer] 🎵 Audio track detected, proceeding with audio engine');
-    
-    // Check audio engine status
     try {
-      const status = await audioEngine.getStatus();
-      console.log('[MiniPlayer] Audio engine status:', status);
-    } catch (e) {
-      console.log('[MiniPlayer] Failed to get audio engine status:', e);
+      await togglePlayPause();
+      console.log('[MiniPlayer] ✅ togglePlayPause completed successfully');
+    } catch (error) {
+      console.log('[MiniPlayer] ❌ togglePlayPause failed:', error);
     }
     
-    // Always use togglePlayPause for consistency
-    console.log('[MiniPlayer] 🎯 Calling togglePlayPause');
-    togglePlayPause();
+    console.log('[MiniPlayer] 🎯 togglePlayPause call finished - AFTER');
   }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback((e: any) => {
@@ -150,8 +135,10 @@ export function MiniPlayer() {
         style={[styles.controlButton, styles.playButton]}
         onPress={handlePlayPause}
         testID="mini-toggle"
-        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        activeOpacity={0.7}
+        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        activeOpacity={0.6}
+        delayPressIn={0}
+        delayPressOut={0}
       >
         {isPlaying ? (
           <Pause size={24} color="#FFF" fill="#FFF" />

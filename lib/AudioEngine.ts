@@ -680,15 +680,33 @@ export class AudioEngine {
   }
 
   async play() {
+    console.log('[AudioEngine] ===== PLAY() CALLED =====');
     const active = this.getActive();
+    console.log('[AudioEngine] Active sound exists:', !!active.sound);
+    console.log('[AudioEngine] Active track:', active.track?.title);
+    console.log('[AudioEngine] Current state:', this.state);
+    
     if (active.sound) {
       try {
-        console.log('[AudioEngine] play() called');
+        console.log('[AudioEngine] ▶️ Attempting to play audio...');
+        console.log('[AudioEngine] Sound state before play:', {
+          paused: active.sound.paused,
+          volume: active.sound.volume,
+          currentTime: active.sound.currentTime,
+          duration: active.sound.duration
+        });
+        
         await active.sound.play();
         this.setState('playing');
-        console.log('[AudioEngine] play() successful');
+        
+        console.log('[AudioEngine] ✅ play() successful');
+        console.log('[AudioEngine] Sound state after play:', {
+          paused: active.sound.paused,
+          volume: active.sound.volume,
+          currentTime: active.sound.currentTime
+        });
       } catch (e) {
-        console.log('[AudioEngine] play error', e);
+        console.log('[AudioEngine] ❌ play error', e);
         this.setState('error');
         if (this.events.onError) this.events.onError(e);
         if (active.track) {
@@ -701,24 +719,52 @@ export class AudioEngine {
         }
       }
     } else {
-      console.log('[AudioEngine] play() called but no active sound');
+      console.log('[AudioEngine] ❌ play() called but no active sound');
+      console.log('[AudioEngine] Active playable state:', {
+        sound: !!active.sound,
+        track: active.track?.title,
+        uri: active.uri
+      });
     }
+    console.log('[AudioEngine] ===== PLAY() FINISHED =====');
   }
 
   async pause() {
+    console.log('[AudioEngine] ===== PAUSE() CALLED =====');
     const active = this.getActive();
+    console.log('[AudioEngine] Active sound exists:', !!active.sound);
+    console.log('[AudioEngine] Active track:', active.track?.title);
+    console.log('[AudioEngine] Current state:', this.state);
+    
     if (active.sound) {
       try {
-        console.log('[AudioEngine] pause() called');
+        console.log('[AudioEngine] ⏸️ Attempting to pause audio...');
+        console.log('[AudioEngine] Sound state before pause:', {
+          paused: active.sound.paused,
+          volume: active.sound.volume,
+          currentTime: active.sound.currentTime
+        });
+        
         active.sound.pause();
         this.setState('paused');
-        console.log('[AudioEngine] pause() successful');
+        
+        console.log('[AudioEngine] ✅ pause() successful');
+        console.log('[AudioEngine] Sound state after pause:', {
+          paused: active.sound.paused,
+          currentTime: active.sound.currentTime
+        });
       } catch (e) {
-        console.log('[AudioEngine] pause error', e);
+        console.log('[AudioEngine] ❌ pause error', e);
       }
     } else {
-      console.log('[AudioEngine] pause() called but no active sound');
+      console.log('[AudioEngine] ❌ pause() called but no active sound');
+      console.log('[AudioEngine] Active playable state:', {
+        sound: !!active.sound,
+        track: active.track?.title,
+        uri: active.uri
+      });
     }
+    console.log('[AudioEngine] ===== PAUSE() FINISHED =====');
   }
 
   async stop() {

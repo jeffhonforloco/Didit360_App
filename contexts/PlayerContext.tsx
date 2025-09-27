@@ -136,7 +136,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   }, [startGuestTimer]);
 
   const togglePlayPause = useCallback(async () => {
-    console.log('[Player] togglePlayPause called');
+    console.log('[Player] ===== TOGGLE PLAY/PAUSE CALLED =====');
     console.log('[Player] Current state:', {
       currentTrack: currentTrack?.title,
       isPlaying,
@@ -147,7 +147,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     
     // Check if we have a current track
     if (!currentTrack) {
-      console.log('[Player] No current track, cannot toggle play/pause');
+      console.log('[Player] ❌ No current track, cannot toggle play/pause');
       return;
     }
     
@@ -159,63 +159,65 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       console.log('[Player] Failed to get audio engine status:', e);
     }
     
+    console.log('[Player] 🔄 About to change isPlaying state from', isPlaying, 'to', !isPlaying);
+    
     // Immediate UI feedback
     setIsPlaying((prev) => {
       const next = !prev;
-      console.log('[Player] UI state changing from', prev, 'to', next);
+      console.log('[Player] ✅ UI state CHANGED from', prev, 'to', next);
       
       // Handle audio engine asynchronously to not block UI
       setTimeout(async () => {
         try {
           const t = currentTrack;
-          console.log('[Player] togglePlayPause - currentTrack:', t?.title, 'isVideo:', t?.isVideo, 'type:', t?.type, 'next:', next);
+          console.log('[Player] 🎵 Processing audio engine call - track:', t?.title, 'isVideo:', t?.isVideo, 'type:', t?.type, 'shouldPlay:', next);
           
           if (t && t.type !== 'video' && !t.isVideo) {
             if (next) {
-              console.log('[Player] Attempting to play audio...');
+              console.log('[Player] ▶️ Attempting to PLAY audio...');
               
               // Check if audio engine has a track loaded
               const currentEngineTrack = audioEngine.getCurrentTrack();
               console.log('[Player] Current engine track:', currentEngineTrack?.title);
               
               if (!currentEngineTrack || currentEngineTrack.id !== t.id) {
-                console.log('[Player] Track not loaded in engine, loading now...');
+                console.log('[Player] 📥 Track not loaded in engine, loading now...');
                 try {
                   await audioEngine.loadAndPlay(t);
-                  console.log('[Player] Track loaded and playing');
+                  console.log('[Player] ✅ Track loaded and playing successfully');
                 } catch (loadError) {
-                  console.log('[Player] Failed to load and play track:', loadError);
+                  console.log('[Player] ❌ Failed to load and play track:', loadError);
                   // Revert UI state on error
                   setIsPlaying(false);
                 }
               } else {
-                console.log('[Player] Track already loaded, calling play()');
+                console.log('[Player] 🎯 Track already loaded, calling play()');
                 try {
                   await audioEngine.play();
-                  console.log('[Player] play() successful');
+                  console.log('[Player] ✅ play() successful');
                   // Ensure volume is properly set after play
                   await audioEngine.setVolume(1.0);
-                  console.log('[Player] Volume set to 1.0');
+                  console.log('[Player] 🔊 Volume set to 1.0');
                 } catch (playError) {
-                  console.log('[Player] play() error:', playError);
+                  console.log('[Player] ❌ play() error:', playError);
                   // Revert UI state on error
                   setIsPlaying(false);
                 }
               }
             } else {
-              console.log('[Player] Calling audioEngine.pause()');
+              console.log('[Player] ⏸️ Calling audioEngine.pause()');
               try {
                 await audioEngine.pause();
-                console.log('[Player] pause() successful');
+                console.log('[Player] ✅ pause() successful');
               } catch (pauseError) {
-                console.log('[Player] pause() error:', pauseError);
+                console.log('[Player] ❌ pause() error:', pauseError);
               }
             }
           } else {
-            console.log('[Player] Skipping audio engine call for video track');
+            console.log('[Player] 🎥 Skipping audio engine call for video track');
           }
         } catch (e) {
-          console.log('[Player] toggle error', e);
+          console.log('[Player] ❌ toggle error', e);
           // Revert UI state on error
           setIsPlaying(prev);
         }
@@ -225,6 +227,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     });
     
     startGuestTimer();
+    console.log('[Player] ===== TOGGLE PLAY/PAUSE FINISHED =====');
   }, [startGuestTimer, currentTrack, isPlaying]);
 
   const skipNext = useCallback(() => {
