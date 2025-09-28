@@ -1174,13 +1174,26 @@ export default function PlayerScreen() {
                 </View>
 
                 <View style={styles.volumeContainer}>
-                  <TouchableOpacity 
-                    style={styles.volumeButton}
-                    onPress={toggleVolumeSlider}
-                    hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                  >
-                    <Volume2 size={24} color="#FFF" />
-                  </TouchableOpacity>
+                  <View style={styles.volumeControls}>
+                    <TouchableOpacity 
+                      style={styles.volumeButton}
+                      onPress={toggleMute}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      {isMuted ? (
+                        <VolumeX size={24} color="#FF0080" />
+                      ) : (
+                        <Volume2 size={24} color="#FFF" />
+                      )}
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.volumeSliderToggle}
+                      onPress={toggleVolumeSlider}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text style={styles.volumeSliderToggleText}>{showVolumeSlider ? '−' : '+'}</Text>
+                    </TouchableOpacity>
+                  </View>
                   {showVolumeSlider && (
                     <View style={styles.volumeSliderContainer}>
                       <SliderCompat
