@@ -15,6 +15,8 @@ interface VideoPlayerProps {
   isPlaying: boolean;
   onPlayPause: () => void;
   onProgressUpdate?: (progress: { position: number; duration: number }) => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
   volume?: number;
   style?: any;
 }
@@ -23,9 +25,11 @@ export interface VideoPlayerRef {
   seekTo: (positionMs: number) => Promise<void>;
   skipForward: (seconds?: number) => Promise<void>;
   skipBackward: (seconds?: number) => Promise<void>;
+  skipToNext: () => void;
+  skipToPrevious: () => void;
 }
 
-export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, volume = 1.0, style }, ref) {
+export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function VideoPlayer({ track, isPlaying, onPlayPause, onProgressUpdate, onNext, onPrevious, volume = 1.0, style }, ref) {
   const videoRef = useRef<Video>(null);
   const currentPositionRef = useRef<number>(0);
   const currentDurationRef = useRef<number>(0);
@@ -116,7 +120,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         }
       }
     },
-  }), []);
+    skipToNext: () => {
+      console.log('[VideoPlayer] Skipping to next video');
+      if (onNext) {
+        onNext();
+      }
+    },
+    skipToPrevious: () => {
+      console.log('[VideoPlayer] Skipping to previous video');
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+  }), [onNext, onPrevious]);
 
   // Use a fallback video URL if none is provided
   const videoUrl = track.videoUrl || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4";

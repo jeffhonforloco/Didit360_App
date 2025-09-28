@@ -173,11 +173,9 @@ export default function PlayerScreen() {
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
-      console.log('[Player] Video track - skipping forward 10 seconds');
-      // For video, skip forward 10 seconds
-      if (videoPlayerRef.current) {
-        videoPlayerRef.current.skipForward(10).catch((err: unknown) => console.log('[Player] video skip forward error', err));
-      }
+      console.log('[Player] Video track - skipping to next video');
+      // For video, skip to next video in queue
+      skipNext();
     } else {
       console.log('[Player] Audio track - calling skipNext');
       skipNext();
@@ -189,11 +187,9 @@ export default function PlayerScreen() {
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
-      console.log('[Player] Video track - skipping backward 10 seconds');
-      // For video, skip backward 10 seconds
-      if (videoPlayerRef.current) {
-        videoPlayerRef.current.skipBackward(10).catch((err: unknown) => console.log('[Player] video skip backward error', err));
-      }
+      console.log('[Player] Video track - skipping to previous video');
+      // For video, skip to previous video in queue
+      skipPrevious();
     } else {
       console.log('[Player] Audio track - calling skipPrevious');
       skipPrevious();
@@ -553,6 +549,8 @@ export default function PlayerScreen() {
                 togglePlayPause();
               }}
               onProgressUpdate={({ position, duration }) => updateProgress({ position, duration, buffered: duration })}
+              onNext={skipNext}
+              onPrevious={skipPrevious}
               volume={volume}
               style={styles.videoPlayer}
             />
