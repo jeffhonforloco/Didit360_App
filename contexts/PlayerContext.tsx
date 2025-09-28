@@ -151,9 +151,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       return;
     }
     
-    // Skip video tracks - they handle their own playback
-    if (currentTrack.type === 'video' || currentTrack.isVideo) {
-      console.log('[Player] 🎥 Video track detected, skipping audio engine toggle');
+    // Handle video tracks differently - just toggle the UI state
+    if (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl) {
+      console.log('[Player] 🎥 Video track detected, toggling UI state only');
+      setIsPlaying(!isPlaying);
+      startGuestTimer();
       return;
     }
     
@@ -343,7 +345,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         console.log('[AudioEngine] state changed to:', state);
         // Sync UI state with audio engine state, but only for non-video tracks
         const track = audioEngine.getCurrentTrack();
-        if (track && track.type !== 'video' && !track.isVideo) {
+        if (track && track.type !== 'video' && !track.isVideo && !track.videoUrl) {
           // Only update UI state if the engine track matches our current track
           if (currentTrack && track.id === currentTrack.id) {
             if (state === 'playing') {

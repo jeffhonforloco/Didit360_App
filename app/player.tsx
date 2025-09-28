@@ -138,9 +138,12 @@ export default function PlayerScreen() {
     console.log('[Player] handlePlayPause called, isPlaying:', isPlaying);
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
     
-    // Skip video tracks - they handle their own playback
-    if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) {
-      console.log('[Player] Video track detected, skipping audio toggle');
+    // Handle video tracks differently - they manage their own playback state
+    if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
+      console.log('[Player] Video track detected, toggling video playback state');
+      // For video tracks, we just toggle the isPlaying state
+      // The VideoPlayer component will handle the actual play/pause
+      togglePlayPause();
       return;
     }
     
@@ -543,7 +546,12 @@ export default function PlayerScreen() {
               ref={videoPlayerRef}
               track={currentTrack}
               isPlaying={isPlaying}
-              onPlayPause={handlePlayPause}
+              onPlayPause={() => {
+                console.log('[Player] VideoPlayer onPlayPause callback triggered');
+                // Don't call handlePlayPause here to avoid infinite loops
+                // Just toggle the state directly
+                togglePlayPause();
+              }}
               onProgressUpdate={({ position, duration }) => updateProgress({ position, duration, buffered: duration })}
               volume={volume}
               style={styles.videoPlayer}

@@ -29,6 +29,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   const videoRef = useRef<Video>(null);
   const currentPositionRef = useRef<number>(0);
   const currentDurationRef = useRef<number>(0);
+  const lastReportedPlayingState = useRef<boolean>(isPlaying);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -55,7 +56,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (status.isLoaded) {
-      console.log('[VideoPlayer] Playback status: loaded');
+      console.log('[VideoPlayer] Playback status: loaded, isPlaying:', status.isPlaying);
       
       if ('positionMillis' in status && 'durationMillis' in status) {
         currentPositionRef.current = status.positionMillis || 0;
@@ -66,6 +67,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
             position: status.positionMillis || 0,
             duration: status.durationMillis || 0
           });
+        }
+      }
+      
+      // Handle play/pause state changes
+      if ('isPlaying' in status) {
+        // Only call onPlayPause if the video's playing state differs from what we last reported
+        // This prevents infinite loops while still syncing state changes
+        if (status.isPlaying !== lastReportedPlayingState.current) {
+          console.log('[VideoPlayer] Video playback state changed:', status.isPlaying, 'last reported:', lastReportedPlayingState.current);
+          lastReportedPlayingState.current = status.isPlaying;
+          if (onPlayPause) {
+            onPlayPause();
+          }
         }
       }
     } else {
@@ -141,6 +155,12 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         isMuted={volume === 0}
         volume={volume}
         onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+        onLoad={() => {
+          console.log('[VideoPlayer] Video loaded successfully');
+        }}
+        onError={(error) => {
+          console.log('[VideoPlayer] Video error:', error);
+        }}
       />
     </View>
   );
