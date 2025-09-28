@@ -169,32 +169,36 @@ export default function PlayerScreen() {
   }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback(() => {
-    console.log('[Player] handleSkipNext called');
+    console.log('[Player] ===== HANDLE SKIP NEXT CALLED =====');
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
+    console.log('[Player] Queue length:', queue.length);
+    console.log('[Player] Queue tracks:', queue.map(t => t.title));
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
-      console.log('[Player] Video track - skipping to next video');
-      // For video, skip to next video in queue
+      console.log('[Player] Video track - skipping to next video in queue');
       skipNext();
     } else {
       console.log('[Player] Audio track - calling skipNext');
       skipNext();
     }
-  }, [skipNext, currentTrack]);
+    console.log('[Player] ===== HANDLE SKIP NEXT FINISHED =====');
+  }, [skipNext, currentTrack, queue]);
 
   const handleSkipPrevious = useCallback(() => {
-    console.log('[Player] handleSkipPrevious called');
+    console.log('[Player] ===== HANDLE SKIP PREVIOUS CALLED =====');
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
+    console.log('[Player] Queue length:', queue.length);
+    console.log('[Player] Queue tracks:', queue.map(t => t.title));
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
-      console.log('[Player] Video track - skipping to previous video');
-      // For video, skip to previous video in queue
+      console.log('[Player] Video track - skipping to previous video in queue');
       skipPrevious();
     } else {
       console.log('[Player] Audio track - calling skipPrevious');
       skipPrevious();
     }
-  }, [skipPrevious, currentTrack]);
+    console.log('[Player] ===== HANDLE SKIP PREVIOUS FINISHED =====');
+  }, [skipPrevious, currentTrack, queue]);
 
   const handleSeek = useCallback((e: any) => {
     if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;

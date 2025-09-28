@@ -257,10 +257,61 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     console.log('[Player] ===== SKIP NEXT FINISHED =====');
   }, [queue, startGuestTimer, saveLastPlayed]);
 
-  const skipPrevious = useCallback(() => {
-    console.log("Skip to previous track");
-    startGuestTimer();
-  }, [startGuestTimer]);
+  const skipPrevious = useCallback(async () => {
+    console.log('[Player] ===== SKIP PREVIOUS CALLED =====');
+    
+    // For now, we'll implement a simple previous track logic
+    // In a real app, you'd maintain a history of played tracks
+    if (currentTrack) {
+      // Find a track from the same type to go back to
+      const similarTracks = allTracks.filter((t) => 
+        t.id !== currentTrack.id && 
+        t.type === currentTrack.type
+      );
+      
+      if (similarTracks.length > 0) {
+        // Get a random previous track for now
+        const previousTrack = similarTracks[Math.floor(Math.random() * similarTracks.length)];
+        
+        console.log('[Player] Skipping to previous:', previousTrack.title);
+        
+        // Immediate UI updates
+        setCurrentTrack(previousTrack);
+        setIsPlaying(true);
+        
+        // Handle audio and storage
+        try {
+          await saveLastPlayed(previousTrack);
+          
+          if (previousTrack.type !== 'video' && !previousTrack.isVideo) {
+            console.log('[Player] Starting crossfade to previous track');
+            await audioEngine.crossfadeToNext(previousTrack);
+            console.log('[Player] ✅ Crossfade to previous successful');
+          } else {
+            console.log('[Player] Video track, navigating to player');
+            setTimeout(() => {
+              try {
+                router.push("/player");
+              } catch (e) {
+                console.error("[Player] Navigation error:", e);
+              }
+            }, 0);
+          }
+        } catch (e) {
+          console.log('[Player] ❌ Skip previous error:', e);
+          setIsPlaying(false);
+        }
+        
+        startGuestTimer();
+      } else {
+        console.log('[Player] No previous tracks available');
+      }
+    } else {
+      console.log('[Player] No current track to skip from');
+    }
+    
+    console.log('[Player] ===== SKIP PREVIOUS FINISHED =====');
+  }, [currentTrack, startGuestTimer, saveLastPlayed]);
 
   const addToQueue = useCallback((track: Track) => {
     setQueue((prev) => [...prev, track]);
