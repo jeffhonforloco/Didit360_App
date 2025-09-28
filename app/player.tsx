@@ -176,13 +176,39 @@ export default function PlayerScreen() {
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
       console.log('[Player] Video track - skipping to next video in queue');
-      skipNext();
+      if (queue.length > 0) {
+        console.log('[Player] Queue has tracks, calling skipNext');
+        skipNext();
+      } else {
+        console.log('[Player] No tracks in queue, generating new queue and skipping');
+        // Generate a new queue if empty
+        import('@/data/mockData').then((mockData) => {
+          const allTracks = [
+            ...mockData.featuredContent,
+            ...mockData.trendingVideos,
+            ...mockData.livePerformanceVideos,
+            ...mockData.mostViewedVideos,
+          ];
+          const videoTracks = allTracks.filter(t => 
+            (t.type === 'video' || t.isVideo || t.videoUrl) && t.id !== currentTrack.id
+          );
+          if (videoTracks.length > 0) {
+            const nextTrack = videoTracks[0];
+            console.log('[Player] Playing next video:', nextTrack.title);
+            playTrack(nextTrack);
+          } else {
+            console.log('[Player] No more video tracks available');
+          }
+        }).catch((e) => {
+          console.log('[Player] Error loading video tracks:', e);
+        });
+      }
     } else {
       console.log('[Player] Audio track - calling skipNext');
       skipNext();
     }
     console.log('[Player] ===== HANDLE SKIP NEXT FINISHED =====');
-  }, [skipNext, currentTrack, queue]);
+  }, [skipNext, currentTrack, queue, playTrack]);
 
   const handleSkipPrevious = useCallback(() => {
     console.log('[Player] ===== HANDLE SKIP PREVIOUS CALLED =====');
@@ -191,14 +217,35 @@ export default function PlayerScreen() {
     console.log('[Player] Queue tracks:', queue.map(t => t.title));
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
-      console.log('[Player] Video track - skipping to previous video in queue');
-      skipPrevious();
+      console.log('[Player] Video track - skipping to previous video');
+      // For video tracks, find a previous video track
+      import('@/data/mockData').then((mockData) => {
+        const allTracks = [
+          ...mockData.featuredContent,
+          ...mockData.trendingVideos,
+          ...mockData.livePerformanceVideos,
+          ...mockData.mostViewedVideos,
+        ];
+        const videoTracks = allTracks.filter(t => 
+          (t.type === 'video' || t.isVideo || t.videoUrl) && t.id !== currentTrack.id
+        );
+        if (videoTracks.length > 0) {
+          // Get a random previous video for now (in a real app, you'd maintain history)
+          const previousTrack = videoTracks[Math.floor(Math.random() * videoTracks.length)];
+          console.log('[Player] Playing previous video:', previousTrack.title);
+          playTrack(previousTrack);
+        } else {
+          console.log('[Player] No previous video tracks available');
+        }
+      }).catch((e) => {
+        console.log('[Player] Error loading video tracks:', e);
+      });
     } else {
       console.log('[Player] Audio track - calling skipPrevious');
       skipPrevious();
     }
     console.log('[Player] ===== HANDLE SKIP PREVIOUS FINISHED =====');
-  }, [skipPrevious, currentTrack, queue]);
+  }, [skipPrevious, currentTrack, queue, playTrack]);
 
   const handleSeek = useCallback((e: any) => {
     if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
