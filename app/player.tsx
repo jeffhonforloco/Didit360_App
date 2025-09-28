@@ -317,7 +317,7 @@ export default function PlayerScreen() {
   ), [playTrack]);
 
   if (!currentTrack) {
-    router.replace('/(tabs)/');
+    router.replace('/');
     return null;
   }
 
@@ -523,7 +523,7 @@ export default function PlayerScreen() {
       <View style={styles.container}>
         <SafeAreaView style={styles.safeArea} edges={["top"]}>
           <View style={styles.videoHeader}>
-            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
+            <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')}>
               <ArrowLeft size={28} color="#FFF" />
             </TouchableOpacity>
             <Text style={styles.videoTitle} numberOfLines={1}>
@@ -810,7 +810,7 @@ export default function PlayerScreen() {
           >
           <SafeAreaView style={styles.safeArea} edges={["top"]}>
             <View style={styles.header}>
-              <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
+              <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')}>
                 <ArrowLeft size={28} color="#FFF" />
               </TouchableOpacity>
               <View style={styles.progressIndicator}>
@@ -1044,7 +1044,7 @@ export default function PlayerScreen() {
           >
             <SafeAreaView style={styles.safeArea} edges={["top"]}>
               <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)/')}>
+                <TouchableOpacity onPress={() => router.canGoBack() ? router.back() : router.replace('/')}>
                   <ArrowLeft size={28} color="#FFF" />
                 </TouchableOpacity>
                 <View style={styles.progressIndicator}>
