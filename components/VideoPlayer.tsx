@@ -29,16 +29,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   const videoRef = useRef<Video>(null);
   const currentPositionRef = useRef<number>(0);
   const currentDurationRef = useRef<number>(0);
-  const lastReportedPlayingState = useRef<boolean>(isPlaying);
 
   useEffect(() => {
     if (videoRef.current) {
       if (isPlaying) {
         console.log('[VideoPlayer] Playing video');
-        videoRef.current.playAsync();
+        videoRef.current.playAsync().catch((error) => {
+          console.log('[VideoPlayer] Error playing video:', error);
+        });
       } else {
         console.log('[VideoPlayer] Pausing video');
-        videoRef.current.pauseAsync();
+        videoRef.current.pauseAsync().catch((error) => {
+          console.log('[VideoPlayer] Error pausing video:', error);
+        });
       }
     }
   }, [isPlaying]);
@@ -67,19 +70,6 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
             position: status.positionMillis || 0,
             duration: status.durationMillis || 0
           });
-        }
-      }
-      
-      // Handle play/pause state changes
-      if ('isPlaying' in status) {
-        // Only call onPlayPause if the video's playing state differs from what we last reported
-        // This prevents infinite loops while still syncing state changes
-        if (status.isPlaying !== lastReportedPlayingState.current) {
-          console.log('[VideoPlayer] Video playback state changed:', status.isPlaying, 'last reported:', lastReportedPlayingState.current);
-          lastReportedPlayingState.current = status.isPlaying;
-          if (onPlayPause) {
-            onPlayPause();
-          }
         }
       }
     } else {
