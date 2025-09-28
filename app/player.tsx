@@ -10,6 +10,7 @@ import {
   Modal,
   Platform,
   ImageBackground,
+  PanResponder,
 } from "react-native";
 import SafeImage from "@/components/SafeImage";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -66,6 +67,8 @@ export default function PlayerScreen() {
   const [previousVolume, setPreviousVolume] = useState<number>(1.0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showVolumeSlider, setShowVolumeSlider] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragProgress, setDragProgress] = useState<number>(0);
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
   // Memoize progress update callback for better performance
@@ -248,27 +251,132 @@ export default function PlayerScreen() {
   }, [skipPrevious, currentTrack, queue, playTrack]);
 
   const handleSeek = useCallback((e: any) => {
-    if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
+    console.log('[Player] handleSeek called with event:', e?.nativeEvent);
+    if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') {
+      console.log('[Player] Invalid seek event, missing locationX');
+      return;
+    }
     const { locationX } = e.nativeEvent;
     const containerWidth = width - 40;
     const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-    setProgress(newProgress);
     const target = Math.floor(newProgress * (durationMs || 0));
+    
+    console.log('[Player] Audio seek - locationX:', locationX, 'containerWidth:', containerWidth, 'newProgress:', newProgress, 'target:', target, 'durationMs:', durationMs);
+    
+    // Update progress immediately for responsive UI
+    setProgress(newProgress);
+    setPositionMs(target);
+    
+    // Perform the actual seek
     audioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] seek error', err));
   }, [width, durationMs]);
 
   const handleVideoSeek = useCallback((e: any) => {
-    if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') return;
+    console.log('[Player] handleVideoSeek called with event:', e?.nativeEvent);
+    if (!e?.nativeEvent?.locationX || typeof e.nativeEvent.locationX !== 'number') {
+      console.log('[Player] Invalid video seek event, missing locationX');
+      return;
+    }
     const { locationX } = e.nativeEvent;
     const containerWidth = width - 40;
     const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-    setProgress(newProgress);
     const target = Math.floor(newProgress * (durationMs || 0));
+    
+    console.log('[Player] Video seek - locationX:', locationX, 'containerWidth:', containerWidth, 'newProgress:', newProgress, 'target:', target, 'durationMs:', durationMs);
+    
+    // Update progress immediately for responsive UI
+    setProgress(newProgress);
+    setPositionMs(target);
+    
     console.log('[Player] Video seek to:', target, 'ms');
     if (videoPlayerRef.current) {
       videoPlayerRef.current.seekTo(target).catch((err: unknown) => console.log('[Player] video seek error', err));
     }
   }, [width, durationMs]);
+
+  // Create pan responder for audio progress slider
+  const audioPanResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      console.log('[Player] Audio pan responder grant');
+      setIsDragging(true);
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderMove: (evt) => {
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderRelease: (evt) => {
+      console.log('[Player] Audio pan responder release');
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      const target = Math.floor(newProgress * (durationMs || 0));
+      
+      console.log('[Player] Audio drag seek - locationX:', locationX, 'containerWidth:', containerWidth, 'newProgress:', newProgress, 'target:', target, 'durationMs:', durationMs);
+      
+      // Update progress and position
+      setProgress(newProgress);
+      setPositionMs(target);
+      setIsDragging(false);
+      
+      // Perform the actual seek
+      audioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] drag seek error', err));
+    },
+    onPanResponderTerminate: () => {
+      console.log('[Player] Audio pan responder terminate');
+      setIsDragging(false);
+    },
+  }), [width, durationMs]);
+
+  // Create pan responder for video progress slider
+  const videoPanResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      console.log('[Player] Video pan responder grant');
+      setIsDragging(true);
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderMove: (evt) => {
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderRelease: (evt) => {
+      console.log('[Player] Video pan responder release');
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = width - 40;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      const target = Math.floor(newProgress * (durationMs || 0));
+      
+      console.log('[Player] Video drag seek - locationX:', locationX, 'containerWidth:', containerWidth, 'newProgress:', newProgress, 'target:', target, 'durationMs:', durationMs);
+      
+      // Update progress and position
+      setProgress(newProgress);
+      setPositionMs(target);
+      setIsDragging(false);
+      
+      // Perform the actual seek
+      if (videoPlayerRef.current) {
+        videoPlayerRef.current.seekTo(target).catch((err: unknown) => console.log('[Player] video drag seek error', err));
+      }
+    },
+    onPanResponderTerminate: () => {
+      console.log('[Player] Video pan responder terminate');
+      setIsDragging(false);
+    },
+  }), [width, durationMs]);
 
   const handleVolumeChange = useCallback((newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
@@ -609,16 +717,21 @@ export default function PlayerScreen() {
 
           <View style={styles.videoControlsContainer}>
             <View style={styles.videoProgressContainer}>
-              <TouchableOpacity 
+              <View 
                 style={styles.sliderContainer}
-                activeOpacity={1}
-                onPress={handleVideoSeek}
+                {...videoPanResponder.panHandlers}
               >
-                <View style={styles.sliderTrack}>
-                  <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                  <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
-                </View>
-              </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.sliderTouchArea}
+                  activeOpacity={1}
+                  onPress={handleVideoSeek}
+                >
+                  <View style={styles.sliderTrack}>
+                    <View style={[styles.sliderProgress, { width: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                    <View style={[styles.sliderThumb, { left: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                  </View>
+                </TouchableOpacity>
+              </View>
               <View style={styles.timeRow}>
                 <Text style={styles.time}>{elapsed}</Text>
                 <Text style={styles.time}>{total}</Text>
@@ -923,16 +1036,21 @@ export default function PlayerScreen() {
               </View>
 
               <View style={styles.progressContainer}>
-                <TouchableOpacity 
+                <View 
                   style={styles.sliderContainer}
-                  activeOpacity={1}
-                  onPress={handleSeek}
+                  {...audioPanResponder.panHandlers}
                 >
-                  <View style={styles.sliderTrack}>
-                    <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                    <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
-                  </View>
-                </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.sliderTouchArea}
+                    activeOpacity={1}
+                    onPress={handleSeek}
+                  >
+                    <View style={styles.sliderTrack}>
+                      <View style={[styles.sliderProgress, { width: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                      <View style={[styles.sliderThumb, { left: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                    </View>
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.timeRow}>
                   <Text style={styles.time}>{elapsed}</Text>
                   <Text style={styles.time}>{total}</Text>
@@ -1157,16 +1275,21 @@ export default function PlayerScreen() {
                 </View>
 
                 <View style={styles.progressContainer}>
-                  <TouchableOpacity 
+                  <View 
                     style={styles.sliderContainer}
-                    activeOpacity={1}
-                    onPress={handleSeek}
+                    {...audioPanResponder.panHandlers}
                   >
-                    <View style={styles.sliderTrack}>
-                      <View style={[styles.sliderProgress, { width: `${progress * 100}%` }]} />
-                      <View style={[styles.sliderThumb, { left: `${progress * 100}%` }]} />
-                    </View>
-                  </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.sliderTouchArea}
+                      activeOpacity={1}
+                      onPress={handleSeek}
+                    >
+                      <View style={styles.sliderTrack}>
+                        <View style={[styles.sliderProgress, { width: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                        <View style={[styles.sliderThumb, { left: `${(isDragging ? dragProgress : progress) * 100}%` }]} />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
                   <View style={styles.timeRow}>
                     <Text style={styles.time}>{elapsed}</Text>
                     <Text style={styles.time}>{total}</Text>
@@ -1703,6 +1826,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 0,
   },
+  sliderTouchArea: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   sliderTrack: {
     height: 4,
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -1727,6 +1854,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 4,
+    zIndex: 10,
   },
   timeRow: {
     flexDirection: "row",
