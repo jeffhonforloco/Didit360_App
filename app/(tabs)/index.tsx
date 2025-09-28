@@ -38,6 +38,22 @@ export default function HomeScreen() {
     return Object.values(byArtist).slice(0, 8);
   }, []);
 
+  // Test audio function
+  const testAudio = useCallback(() => {
+    console.log('[HomeScreen] Testing audio playback...');
+    const testTrack: Track = {
+      id: "test-audio-1",
+      title: "Test Audio Track",
+      artist: "Test Artist",
+      album: "Test Album",
+      artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      duration: 180,
+      type: "song",
+    };
+    playTrack(testTrack);
+  }, [playTrack]);
+
   const renderHeader = useCallback(() => (
     <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
       <View style={styles.headerLeft}>
@@ -53,6 +69,15 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={styles.headerRight}>
+        <TouchableOpacity 
+          testID="test-audio-button" 
+          accessibilityRole="button" 
+          onPress={testAudio}
+          style={styles.testAudioButton}
+        > 
+          <Play color="#FF0080" size={18} fill="#FF0080" />
+          <Text style={styles.testAudioText}>Test Audio</Text>
+        </TouchableOpacity>
         <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => router.push('/search')}> 
           <Search color="#FFF" size={20} />
         </TouchableOpacity>
@@ -68,7 +93,7 @@ export default function HomeScreen() {
         ) : null}
       </View>
     </View>
-  ), [insets.top, profile]);
+  ), [insets.top, profile, testAudio]);
 
   const renderSectionHeader = useCallback((title: string, testID: string, route?: string) => {
     const handleSeeAll = () => {
@@ -750,5 +775,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.7)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  testAudioButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 0, 128, 0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#FF0080",
+    marginRight: 12,
+  },
+  testAudioText: {
+    color: "#FF0080",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 4,
   },
 });
