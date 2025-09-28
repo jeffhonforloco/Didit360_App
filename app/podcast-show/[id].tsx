@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   FlatList,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -29,8 +30,15 @@ export default function PodcastShowScreen() {
   const { playTrack } = usePlayer();
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const show = podcastShows.find(s => s.id === id);
-  const episodes = allPodcastEpisodes.filter(ep => ep.artist === show?.host);
+  const show = podcastShows?.find(s => s.id === id);
+  const episodes = allPodcastEpisodes?.filter(ep => ep.artist === show?.host) || [];
+  
+  console.log('[PodcastShowScreen] Rendering:', {
+    id,
+    show: show?.title || 'Not found',
+    episodesCount: episodes.length,
+    platform: Platform.OS
+  });
 
   if (!show) {
     router.back();
@@ -142,6 +150,12 @@ export default function PodcastShowScreen() {
             keyExtractor={(item) => item.id}
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No episodes available</Text>
+                <Text style={styles.emptySubtext}>Check back later for new episodes</Text>
+              </View>
+            )}
           />
         </View>
 
@@ -288,5 +302,24 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: 100,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  emptyText: {
+    color: "#FFF",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    color: "#999",
+    fontSize: 14,
+    textAlign: "center",
   },
 });

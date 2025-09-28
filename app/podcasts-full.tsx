@@ -8,7 +8,9 @@ import {
   Image,
   FlatList,
   useWindowDimensions,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft, Search, Filter, MoreHorizontal } from "lucide-react-native";
 import { router, Stack } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -32,7 +34,15 @@ interface PodcastCategory {
 export default function PodcastsScreen() {
   const { width } = useWindowDimensions();
   const { playTrack } = usePlayer();
-  const CARD_WIDTH = (width - 60) / 2;
+  const CARD_WIDTH = Math.max(150, (width - 60) / 2);
+  
+  console.log('[PodcastsScreen] Rendering with data:', {
+    popularPodcasts: popularPodcasts?.length || 0,
+    popularPodcastArtists: popularPodcastArtists?.length || 0,
+    podcastCategories: podcastCategories?.length || 0,
+    width,
+    platform: Platform.OS
+  });
 
   const renderPodcastItem = ({ item }: { item: Track }) => (
     <TouchableOpacity
@@ -96,7 +106,7 @@ export default function PodcastsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={Platform.OS === 'web' ? [] : ['top']}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -131,37 +141,52 @@ export default function PodcastsScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {renderSectionHeader("Popular Podcasts")}
         <FlatList
-          data={popularPodcasts}
+          data={popularPodcasts || []}
           renderItem={renderPodcastItem}
           keyExtractor={(item) => item.id}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalList}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No podcasts available</Text>
+            </View>
+          )}
         />
 
         {renderSectionHeader("Popular Artists")}
         <FlatList
-          data={popularPodcastArtists}
+          data={popularPodcastArtists || []}
           renderItem={renderPodcastArtist}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.row}
           scrollEnabled={false}
           contentContainerStyle={styles.gridContainer}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No podcast artists available</Text>
+            </View>
+          )}
         />
 
         {renderSectionHeader("Categories")}
         <FlatList
-          data={podcastCategories}
+          data={podcastCategories || []}
           renderItem={renderCategory}
           keyExtractor={(item) => item.id}
           numColumns={2}
           columnWrapperStyle={styles.row}
           scrollEnabled={false}
           contentContainerStyle={[styles.gridContainer, { marginBottom: 100 }]}
+          ListEmptyComponent={() => (
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>No categories available</Text>
+            </View>
+          )}
         />
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -277,5 +302,17 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
     opacity: 0.7,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 40,
+    minWidth: 200,
+  },
+  emptyText: {
+    color: "#999",
+    fontSize: 16,
+    textAlign: "center",
   },
 });

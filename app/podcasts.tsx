@@ -7,6 +7,7 @@ import {
   Image,
   FlatList,
   ScrollView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -42,6 +43,14 @@ export default function PodcastsScreen() {
   const [sortBy, setSortBy] = useState<SortOption>("recently-added");
   const [showMenu, setShowMenu] = useState<string | null>(null);
   const { playTrack } = usePlayer();
+  
+  console.log('[PodcastsScreen] Rendering with data:', {
+    likedPodcasts: likedPodcasts?.length || 0,
+    queuePodcasts: queuePodcasts?.length || 0,
+    downloadedPodcasts: downloadedPodcasts?.length || 0,
+    activeTab,
+    platform: Platform.OS
+  });
 
   const tabs = [
     { id: "your-likes" as TabId, label: "Your Likes" },
@@ -52,13 +61,13 @@ export default function PodcastsScreen() {
   const getCurrentData = (): Track[] => {
     switch (activeTab) {
       case "your-likes":
-        return likedPodcasts;
+        return likedPodcasts || [];
       case "queue":
-        return queuePodcasts;
+        return queuePodcasts || [];
       case "downloaded":
-        return downloadedPodcasts;
+        return downloadedPodcasts || [];
       default:
-        return likedPodcasts;
+        return likedPodcasts || [];
     }
   };
 
@@ -224,6 +233,20 @@ export default function PodcastsScreen() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.podcastsList}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              {activeTab === "your-likes" ? "No liked podcasts yet" :
+               activeTab === "queue" ? "No podcasts in queue" :
+               "No downloaded podcasts"}
+            </Text>
+            <Text style={styles.emptySubtext}>
+              {activeTab === "your-likes" ? "Like some podcasts to see them here" :
+               activeTab === "queue" ? "Add podcasts to your queue" :
+               "Download podcasts for offline listening"}
+            </Text>
+          </View>
+        )}
       />
     </SafeAreaView>
   );
@@ -398,5 +421,25 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontSize: 16,
     fontWeight: "500",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    color: "#999",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

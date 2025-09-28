@@ -89,6 +89,16 @@ type WatchProgress = Record<string, number>;
 export default function PodcastsScreen() {
   const { width } = useWindowDimensions();
   const { playTrack } = usePlayer();
+  
+  console.log('[PodcastsScreen] Component mounted with data:', {
+    podcasts: podcasts?.length || 0,
+    allPodcastEpisodes: allPodcastEpisodes?.length || 0,
+    podcastCategories: podcastCategories?.length || 0,
+    popularPodcasts: popularPodcasts?.length || 0,
+    popularPodcastArtists: popularPodcastArtists?.length || 0,
+    width,
+    platform: Platform.OS
+  });
 
   // Search and filtering
   const [query, setQuery] = useState<string>("");
@@ -820,6 +830,14 @@ export default function PodcastsScreen() {
             numColumns={listCols}
             scrollEnabled={false}
             contentContainerStyle={styles.list}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No podcasts found</Text>
+                <Text style={styles.emptySubtext}>
+                  Try adjusting your filters or search terms
+                </Text>
+              </View>
+            )}
           />
 
           <View style={styles.sectionHeaderCompact}>
@@ -1173,6 +1191,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  emptyText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    color: "#999",
+    fontSize: 14,
+    textAlign: "center",
+    lineHeight: 20,
   },
   controlsRow: {
     paddingHorizontal: 16,

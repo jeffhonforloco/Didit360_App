@@ -7,6 +7,7 @@ import {
   Image,
   ScrollView,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
@@ -39,10 +40,17 @@ export default function PodcastPlayerScreen() {
   const { currentTrack, isPlaying, togglePlayPause, skipNext, skipPrevious } = usePlayer();
   const { toggleFavorite, isFavorite } = useLibrary();
   const [progress, setProgress] = useState(0.4);
+  
+  console.log('[PodcastPlayerScreen] Rendering:', {
+    trackId,
+    currentTrack: currentTrack?.title || 'None',
+    platform: Platform.OS,
+    width
+  });
 
 
   // Find the track if trackId is provided, otherwise use current track
-  const track = trackId ? allTracks.find(t => t.id === trackId) || currentTrack : currentTrack;
+  const track = trackId ? allTracks?.find(t => t.id === trackId) || currentTrack : currentTrack;
 
   if (!track) {
     router.back();
@@ -50,7 +58,7 @@ export default function PodcastPlayerScreen() {
   }
 
   // Get podcast episode data if available
-  const episodeData = podcastEpisodes[track.id];
+  const episodeData = podcastEpisodes?.[track.id];
   const lyrics = episodeData?.transcript?.split('\n') || [
     "Don't remind me",
     "I'm minding my own damn business",
@@ -205,11 +213,13 @@ export default function PodcastPlayerScreen() {
             </View>
             
             <View style={styles.lyricsContainer}>
-              {lyrics.map((line, index) => (
+              {lyrics.length > 0 ? lyrics.map((line, index) => (
                 <Text key={`lyrics-${index}-${line.slice(0, 10)}`} style={styles.lyricsLine}>
                   {line}
                 </Text>
-              ))}
+              )) : (
+                <Text style={styles.lyricsLine}>No transcript available for this episode.</Text>
+              )}
             </View>
           </View>
 
