@@ -179,7 +179,8 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         
         if (!currentEngineTrack || currentEngineTrack.id !== currentTrack.id) {
           console.log('[Player] 📥 Track not loaded in engine, loading now...');
-          // Don't update UI state yet - let the engine events handle it
+          // Update UI state immediately for responsiveness
+          setIsPlaying(true);
           await audioEngine.loadAndPlay(currentTrack);
           console.log('[Player] ✅ Track loaded and playing successfully');
         } else {
@@ -189,8 +190,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           await audioEngine.play();
           console.log('[Player] ✅ play() successful');
           // Ensure volume is properly set after play
-          await audioEngine.setVolume(1.0);
-          console.log('[Player] 🔊 Volume set to 1.0');
+          const currentVolume = audioEngine.getVolume();
+          if (currentVolume === 0) {
+            await audioEngine.setVolume(1.0);
+            console.log('[Player] 🔊 Volume restored to 1.0');
+          }
         }
       } else {
         console.log('[Player] ⏸️ Calling audioEngine.pause()');
@@ -402,8 +406,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
             if (state === 'playing') {
               console.log('[AudioEngine] Setting UI to playing state');
               setIsPlaying(true);
-            } else if (state === 'paused' || state === 'stopped' || state === 'error') {
+            } else if (state === 'paused' || state === 'stopped') {
               console.log('[AudioEngine] Setting UI to paused state');
+              setIsPlaying(false);
+            } else if (state === 'error') {
+              console.log('[AudioEngine] Setting UI to paused state due to error');
               setIsPlaying(false);
             }
           }

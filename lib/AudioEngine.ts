@@ -947,6 +947,12 @@ export class AudioEngine {
       try {
         active.sound.volume = normalizedVolume;
         console.log('[AudioEngine] Volume set successfully to:', normalizedVolume);
+        
+        // Also set volume on inactive sound if it exists (for crossfading)
+        const inactive = this.getInactive();
+        if (inactive.sound && !this.isFading) {
+          inactive.sound.volume = normalizedVolume;
+        }
       } catch (e) {
         console.log('[AudioEngine] setVolume error', e);
       }
@@ -959,11 +965,14 @@ export class AudioEngine {
     const active = this.getActive();
     if (active.sound) {
       try {
-        return active.sound.volume;
+        const currentVolume = active.sound.volume;
+        console.log('[AudioEngine] getVolume returning:', currentVolume);
+        return currentVolume;
       } catch (e) {
         console.log('[AudioEngine] getVolume error', e);
       }
     }
+    console.log('[AudioEngine] getVolume returning default: 1.0');
     return 1.0;
   }
 

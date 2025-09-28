@@ -5,9 +5,11 @@ import {
   View,
   TouchableOpacity,
   Platform,
+  PanResponder,
+  useWindowDimensions,
 } from "react-native";
 import SafeImage from "@/components/SafeImage";
-import { Play, Pause, SkipForward, Video, X } from "lucide-react-native";
+import { Play, Pause, SkipForward, Video, X, Volume2, VolumeX } from "lucide-react-native";
 import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -18,22 +20,36 @@ export function MiniPlayer() {
   const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer } = usePlayer();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
+  const { width } = useWindowDimensions();
   const [progress, setProgress] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(0);
-  void duration;
+  const [positionMs, setPositionMs] = useState<number>(0);
+  const [durationMs, setDurationMs] = useState<number>(0);
+  const [volume, setVolume] = useState<number>(1.0);
+  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragProgress, setDragProgress] = useState<number>(0);
 
   // Memoize progress update callback for better performance
   const updateProgress = useCallback((p: Progress) => {
-    const d = p.duration > 0 ? p.duration : 0;
-    setDuration(d);
-    const pct = d > 0 ? p.position / d : 0;
-    setProgress(Math.max(0, Math.min(1, pct)));
-  }, []);
+    if (!isDragging) {
+      setPositionMs(p.position);
+      setDurationMs(p.duration);
+      const pct = p.duration > 0 ? p.position / p.duration : 0;
+      setProgress(Math.max(0, Math.min(1, pct)));
+    }
+  }, [isDragging]);
 
   useEffect(() => {
     const unsubscribe = audioEngine.subscribeProgress(updateProgress);
     return unsubscribe;
   }, [updateProgress]);
+
+  // Initialize volume from audio engine
+  useEffect(() => {
+    const currentVolume = audioEngine.getVolume();
+    setVolume(currentVolume);
+    setIsMuted(currentVolume === 0);
+  }, []);
 
   // Memoize control handlers for better performance
   const handlePlayPause = useCallback(async () => {
@@ -50,12 +66,6 @@ export function MiniPlayer() {
     // Check if we have a valid track
     if (!currentTrack) {
       console.log('[MiniPlayer] ❌ No current track available');
-      return;
-    }
-    
-    // Skip video tracks - they handle their own playback
-    if (currentTrack.type === 'video' || currentTrack.isVideo) {
-      console.log('[MiniPlayer] 🎥 Video track detected, skipping toggle');
       return;
     }
     
@@ -81,12 +91,6 @@ export function MiniPlayer() {
       return;
     }
     
-    // Skip video tracks - they handle their own playback
-    if (currentTrack.type === 'video' || currentTrack.isVideo) {
-      console.log('[MiniPlayer] 🎥 Video track detected, skipping skip next');
-      return;
-    }
-    
     try {
       await skipNext();
       console.log('[MiniPlayer] ✅ skipNext completed successfully');
@@ -104,6 +108,91 @@ export function MiniPlayer() {
       console.log('[MiniPlayer] ❌ stopPlayer failed:', error);
     }
   }, [stopPlayer]);
+
+  // Handle volume control
+  const handleVolumeChange = useCallback((newVolume: number) => {
+    if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
+    console.log('[MiniPlayer] Setting volume to:', newVolume);
+    
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+    
+    // Apply volume to audio engine for non-video tracks
+    if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
+      audioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[MiniPlayer] volume error', err));
+    }
+  }, [currentTrack]);
+
+  const toggleMute = useCallback(() => {
+    console.log('[MiniPlayer] Toggle mute - current state:', { isMuted, volume });
+    if (isMuted || volume === 0) {
+      // Unmute: restore to 0.5 or previous volume
+      const newVolume = 0.5;
+      handleVolumeChange(newVolume);
+    } else {
+      // Mute: set volume to 0
+      handleVolumeChange(0);
+    }
+  }, [isMuted, volume, handleVolumeChange]);
+
+  // Handle progress bar seeking
+  const handleSeek = useCallback((locationX: number) => {
+    if (!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo) return;
+    
+    const containerWidth = 200; // Approximate progress bar width
+    const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+    const target = Math.floor(newProgress * (durationMs || 0));
+    
+    console.log('[MiniPlayer] Seeking to:', target, 'ms, progress:', newProgress);
+    
+    // Update progress immediately for responsive UI
+    setProgress(newProgress);
+    setPositionMs(target);
+    
+    // Perform the actual seek
+    audioEngine.seekTo(target).catch((err: unknown) => console.log('[MiniPlayer] seek error', err));
+  }, [currentTrack, durationMs]);
+
+  // Create pan responder for progress slider
+  const progressPanResponder = useMemo(() => PanResponder.create({
+    onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
+    onPanResponderGrant: (evt) => {
+      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
+      console.log('[MiniPlayer] Progress pan responder grant');
+      setIsDragging(true);
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = 200;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderMove: (evt) => {
+      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = 200;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      setDragProgress(newProgress);
+    },
+    onPanResponderRelease: (evt) => {
+      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
+      console.log('[MiniPlayer] Progress pan responder release');
+      const { locationX } = evt.nativeEvent;
+      const containerWidth = 200;
+      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
+      const target = Math.floor(newProgress * (durationMs || 0));
+      
+      // Update progress and position
+      setProgress(newProgress);
+      setPositionMs(target);
+      setIsDragging(false);
+      
+      // Perform the actual seek
+      audioEngine.seekTo(target).catch((err: unknown) => console.log('[MiniPlayer] drag seek error', err));
+    },
+    onPanResponderTerminate: () => {
+      setIsDragging(false);
+    },
+  }), [currentTrack, durationMs]);
 
   const handlePress = useCallback(() => {
     router.push("/player");
@@ -172,16 +261,53 @@ export function MiniPlayer() {
           <Text style={styles.artist} numberOfLines={1} testID="mini-artist">
             {currentTrack.artist}
           </Text>
-          <View style={styles.barTrack}>
-            <View 
-              style={[styles.barProgress, { width: `${progress * 100}%` }]} 
-              testID="mini-progress" 
-            />
+          <View 
+            style={styles.progressBarContainer}
+            {...progressPanResponder.panHandlers}
+          >
+            <TouchableOpacity 
+              style={styles.progressBarTouchArea}
+              activeOpacity={1}
+              onPress={(e) => {
+                const { locationX } = e.nativeEvent;
+                handleSeek(locationX);
+              }}
+              disabled={currentTrack.type === 'video' || currentTrack.isVideo}
+            >
+              <View style={styles.barTrack}>
+                <View 
+                  style={[styles.barProgress, { width: `${(isDragging ? dragProgress : progress) * 100}%` }]} 
+                  testID="mini-progress" 
+                />
+                <View 
+                  style={[styles.progressThumb, { left: `${(isDragging ? dragProgress : progress) * 100}%` }]} 
+                />
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>
 
       <View style={styles.controls}>
+        {/* Volume Control for Audio Tracks */}
+        {currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo && (
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={toggleMute}
+            testID="mini-volume"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessible={true}
+            accessibilityLabel={isMuted ? "Unmute" : "Mute"}
+            accessibilityRole="button"
+          >
+            {isMuted ? (
+              <VolumeX size={18} color="#FF0080" />
+            ) : (
+              <Volume2 size={18} color="#FFF" />
+            )}
+          </TouchableOpacity>
+        )}
+
         <TouchableOpacity
           style={[styles.controlButton, styles.playButton]}
           onPress={handlePlayPause}
@@ -190,7 +316,7 @@ export function MiniPlayer() {
           activeOpacity={0.6}
           delayPressIn={0}
           delayPressOut={50}
-          disabled={!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo}
+          disabled={!currentTrack}
           accessible={true}
           accessibilityLabel={isPlaying ? "Pause" : "Play"}
           accessibilityRole="button"
@@ -207,7 +333,7 @@ export function MiniPlayer() {
           onPress={handleSkipNext}
           testID="mini-next"
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          disabled={!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo}
+          disabled={!currentTrack}
           accessible={true}
           accessibilityLabel="Skip to next track"
           accessibilityRole="button"
@@ -274,6 +400,16 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
+    marginRight: 8,
+  },
+  progressBarContainer: {
+    marginTop: 6,
+    height: 20,
+    justifyContent: 'center',
+  },
+  progressBarTouchArea: {
+    height: 20,
+    justifyContent: 'center',
   },
   controls: {
     flexDirection: 'row',
@@ -285,11 +421,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.2)',
     borderRadius: 2,
     overflow: 'hidden',
-    marginTop: 6,
+    position: 'relative',
   },
   barProgress: {
     height: '100%',
     backgroundColor: '#FF0080',
+  },
+  progressThumb: {
+    position: 'absolute',
+    top: -2,
+    width: 7,
+    height: 7,
+    backgroundColor: '#FF0080',
+    borderRadius: 3.5,
+    marginLeft: -3.5,
   },
   title: {
     fontSize: 14,
