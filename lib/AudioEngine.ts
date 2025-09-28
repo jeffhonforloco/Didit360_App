@@ -602,11 +602,36 @@ export class AudioEngine {
   }
 
   private trackToUri(track: Track): string {
-    if (track.localUri) return track.localUri;
-    if (track.isVideo && track.videoUrl) return track.videoUrl;
-    if (track.videoUrl && track.type === 'video') return track.videoUrl;
-    if (track.audioUrl) return track.audioUrl;
-    return fallbackUris[track.type] ?? fallbackUris.song;
+    console.log('[AudioEngine] trackToUri called with:', {
+      id: track.id,
+      title: track.title,
+      type: track.type,
+      audioUrl: track.audioUrl,
+      localUri: track.localUri,
+      isVideo: track.isVideo,
+      videoUrl: track.videoUrl
+    });
+    
+    if (track.localUri) {
+      console.log('[AudioEngine] Using localUri:', track.localUri);
+      return track.localUri;
+    }
+    if (track.isVideo && track.videoUrl) {
+      console.log('[AudioEngine] Using videoUrl for video track:', track.videoUrl);
+      return track.videoUrl;
+    }
+    if (track.videoUrl && track.type === 'video') {
+      console.log('[AudioEngine] Using videoUrl for video type:', track.videoUrl);
+      return track.videoUrl;
+    }
+    if (track.audioUrl) {
+      console.log('[AudioEngine] Using audioUrl:', track.audioUrl);
+      return track.audioUrl;
+    }
+    
+    const fallback = fallbackUris[track.type] ?? fallbackUris.song;
+    console.log('[AudioEngine] Using fallback URI:', fallback, 'for type:', track.type);
+    return fallback;
   }
 
   private async createPlayer(uri: string): Promise<AudioPlayerLike> {

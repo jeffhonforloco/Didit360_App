@@ -234,9 +234,9 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         await saveLastPlayed(nextTrack);
         
         if (nextTrack.type !== 'video' && !nextTrack.isVideo) {
-          console.log('[Player] Starting crossfade to next track');
-          await audioEngine.crossfadeToNext(nextTrack);
-          console.log('[Player] ✅ Crossfade successful');
+          console.log('[Player] Loading and playing next audio track');
+          await audioEngine.loadAndPlay(nextTrack, remaining[0]);
+          console.log('[Player] ✅ Next track loaded and playing');
         } else {
           console.log('[Player] Video track, navigating to player');
           setTimeout(() => {
@@ -256,10 +256,49 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       startGuestTimer();
     } else {
       console.log('[Player] No tracks in queue to skip to');
+      // Generate a new queue if empty
+      const similarTracks = allTracks
+        .filter((t) => t.id !== currentTrack?.id && t.type === currentTrack?.type)
+        .slice(0, 10);
+      
+      if (similarTracks.length > 0) {
+        const nextTrack = similarTracks[0];
+        const newQueue = similarTracks.slice(1);
+        
+        console.log('[Player] Generated new queue, skipping to:', nextTrack.title);
+        
+        setCurrentTrack(nextTrack);
+        setQueue(newQueue);
+        setIsPlaying(true);
+        
+        try {
+          await saveLastPlayed(nextTrack);
+          
+          if (nextTrack.type !== 'video' && !nextTrack.isVideo) {
+            await audioEngine.loadAndPlay(nextTrack, newQueue[0]);
+            console.log('[Player] ✅ New track loaded and playing');
+          } else {
+            setTimeout(() => {
+              try {
+                router.push("/player");
+              } catch (e) {
+                console.error("[Player] Navigation error:", e);
+              }
+            }, 0);
+          }
+        } catch (e) {
+          console.log('[Player] ❌ Skip to generated track error:', e);
+          setIsPlaying(false);
+        }
+        
+        startGuestTimer();
+      } else {
+        console.log('[Player] No similar tracks available');
+      }
     }
     
     console.log('[Player] ===== SKIP NEXT FINISHED =====');
-  }, [queue, startGuestTimer, saveLastPlayed]);
+  }, [queue, startGuestTimer, saveLastPlayed, currentTrack]);
 
   const skipPrevious = useCallback(async () => {
     console.log('[Player] ===== SKIP PREVIOUS CALLED =====');
@@ -283,14 +322,20 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         setCurrentTrack(previousTrack);
         setIsPlaying(true);
         
+        // Generate new queue with similar tracks
+        const newQueue = similarTracks
+          .filter(t => t.id !== previousTrack.id)
+          .slice(0, 10);
+        setQueue(newQueue);
+        
         // Handle audio and storage
         try {
           await saveLastPlayed(previousTrack);
           
           if (previousTrack.type !== 'video' && !previousTrack.isVideo) {
-            console.log('[Player] Starting crossfade to previous track');
-            await audioEngine.crossfadeToNext(previousTrack);
-            console.log('[Player] ✅ Crossfade to previous successful');
+            console.log('[Player] Loading and playing previous track');
+            await audioEngine.loadAndPlay(previousTrack, newQueue[0]);
+            console.log('[Player] ✅ Previous track loaded and playing');
           } else {
             console.log('[Player] Video track, navigating to player');
             setTimeout(() => {
