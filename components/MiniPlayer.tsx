@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Platform,
   PanResponder,
-  useWindowDimensions,
 } from "react-native";
 import SafeImage from "@/components/SafeImage";
 import { Play, Pause, SkipForward, Video, X, Volume2, VolumeX } from "lucide-react-native";
@@ -20,7 +19,7 @@ export function MiniPlayer() {
   const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer } = usePlayer();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const { width } = useWindowDimensions();
+
   const [progress, setProgress] = useState<number>(0);
   const [positionMs, setPositionMs] = useState<number>(0);
   const [durationMs, setDurationMs] = useState<number>(0);
@@ -110,7 +109,7 @@ export function MiniPlayer() {
   }, [stopPlayer]);
 
   // Handle volume control
-  const handleVolumeChange = useCallback((newVolume: number) => {
+  const handleVolumeChange = useCallback(async (newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
     console.log('[MiniPlayer] Setting volume to:', newVolume);
     
@@ -119,24 +118,29 @@ export function MiniPlayer() {
     
     // Apply volume to audio engine for non-video tracks
     if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
-      audioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[MiniPlayer] volume error', err));
+      try {
+        await audioEngine.setVolume(newVolume);
+        console.log('[MiniPlayer] Volume set successfully to:', newVolume);
+      } catch (err) {
+        console.log('[MiniPlayer] Volume set error:', err);
+      }
     }
   }, [currentTrack]);
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     console.log('[MiniPlayer] Toggle mute - current state:', { isMuted, volume });
     if (isMuted || volume === 0) {
-      // Unmute: restore to 0.5 or previous volume
-      const newVolume = 0.5;
-      handleVolumeChange(newVolume);
+      // Unmute: restore to 0.7 or previous volume
+      const newVolume = 0.7;
+      await handleVolumeChange(newVolume);
     } else {
       // Mute: set volume to 0
-      handleVolumeChange(0);
+      await handleVolumeChange(0);
     }
   }, [isMuted, volume, handleVolumeChange]);
 
   // Handle progress bar seeking
-  const handleSeek = useCallback((locationX: number) => {
+  const handleSeek = useCallback(async (locationX: number) => {
     if (!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo) return;
     
     const containerWidth = 200; // Approximate progress bar width
@@ -150,8 +154,16 @@ export function MiniPlayer() {
     setPositionMs(target);
     
     // Perform the actual seek
-    audioEngine.seekTo(target).catch((err: unknown) => console.log('[MiniPlayer] seek error', err));
-  }, [currentTrack, durationMs]);
+    try {
+      await audioEngine.seekTo(target);
+      console.log('[MiniPlayer] Seek successful to:', target, 'ms');
+    } catch (err) {
+      console.log('[MiniPlayer] Seek error:', err);
+      // Revert progress on error
+      const currentProgress = durationMs > 0 ? positionMs / durationMs : 0;
+      setProgress(currentProgress);
+    }
+  }, [currentTrack, durationMs, positionMs]);
 
   // Create pan responder for progress slider
   const progressPanResponder = useMemo(() => PanResponder.create({
@@ -173,7 +185,7 @@ export function MiniPlayer() {
       const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
       setDragProgress(newProgress);
     },
-    onPanResponderRelease: (evt) => {
+    onPanResponderRelease: async (evt) => {
       if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
       console.log('[MiniPlayer] Progress pan responder release');
       const { locationX } = evt.nativeEvent;
@@ -187,12 +199,20 @@ export function MiniPlayer() {
       setIsDragging(false);
       
       // Perform the actual seek
-      audioEngine.seekTo(target).catch((err: unknown) => console.log('[MiniPlayer] drag seek error', err));
+      try {
+        await audioEngine.seekTo(target);
+        console.log('[MiniPlayer] Drag seek successful to:', target, 'ms');
+      } catch (err) {
+        console.log('[MiniPlayer] Drag seek error:', err);
+        // Revert progress on error
+        const currentProgress = durationMs > 0 ? positionMs / durationMs : 0;
+        setProgress(currentProgress);
+      }
     },
     onPanResponderTerminate: () => {
       setIsDragging(false);
     },
-  }), [currentTrack, durationMs]);
+  }), [currentTrack, durationMs, positionMs]);
 
   const handlePress = useCallback(() => {
     router.push("/player");
@@ -273,6 +293,7 @@ export function MiniPlayer() {
                 handleSeek(locationX);
               }}
               disabled={currentTrack.type === 'video' || currentTrack.isVideo}
+              testID="mini-progress-bar"
             >
               <View style={styles.barTrack}>
                 <View 
