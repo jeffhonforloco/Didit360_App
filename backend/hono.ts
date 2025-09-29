@@ -55,7 +55,6 @@ app.use("*", async (c, next) => {
 app.use(
   "/trpc/*",
   trpcServer({
-    endpoint: "/api/trpc",
     router: appRouter,
     createContext,
     onError: ({ error, path, type, ctx }) => {
@@ -241,7 +240,7 @@ function toStartResponse(s: LiveSessionState): LiveStartResponse {
 // --- REST scaffolding per v1 contract ---
 
 // Updates feed
-app.get("/v1/updates", (c) => {
+app.get("/v1/updates", async (c) => {
   const since = c.req.query("since") ?? new Date(Date.now() - 3600_000).toISOString();
   const until = c.req.query("until") ?? new Date().toISOString();
   const limit = Math.min(Number(c.req.query("limit") ?? 500), 500);
@@ -255,9 +254,8 @@ app.get("/v1/updates", (c) => {
   }> = [];
 
   try {
-    // Dynamically import to avoid circular deps in some runtimes
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getMockUpdateEvents } = require("./trpc/util/catalog-mock");
+    // Import the mock utility
+    const { getMockUpdateEvents } = await import("./trpc/util/catalog-mock");
     events = getMockUpdateEvents({ since, until, limit });
   } catch (e) {
     console.warn("/v1/updates mock generation failed", e);

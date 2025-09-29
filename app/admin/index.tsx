@@ -21,13 +21,15 @@ export default function AdminDashboard() {
   
   // Test basic tRPC connection with query
   const [testResponse, setTestResponse] = useState<string | null>(null);
-  const [shouldTestConnection, setShouldTestConnection] = useState<boolean>(false);
+  const [shouldTestConnection, setShouldTestConnection] = useState<boolean>(true);
   
   const hiQuery = trpc.example.hiQuery.useQuery(
     { name: 'Admin Dashboard Connection Test' },
     { 
       enabled: shouldTestConnection,
-      retry: 1
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnMount: true
     }
   );
   

@@ -54,7 +54,7 @@ export const trpcClient = trpc.createClient({
           return {} as Record<string, string>;
         }
       },
-      fetch(url, options) {
+      async fetch(url, options) {
         console.log('[tRPC] Making request to:', url);
         console.log('[tRPC] Request options:', {
           method: options?.method || 'GET',
@@ -72,16 +72,29 @@ export const trpcClient = trpc.createClient({
           console.warn('[tRPC] AbortSignal.timeout not available:', e);
         }
         
-        return fetch(url, {
-          ...options,
-          signal: timeoutSignal || options?.signal,
-        }).then((response) => {
+        try {
+          const response = await fetch(url, {
+            ...options,
+            signal: timeoutSignal || options?.signal,
+          });
+          
           console.log('[tRPC] Response status:', response.status, response.statusText);
+          console.log('[tRPC] Response headers:', Object.fromEntries(response.headers.entries()));
+          
           if (!response.ok) {
             console.error('[tRPC] HTTP error:', response.status, response.statusText);
+            
+            // Try to get error details from response
+            try {
+              const errorText = await response.text();
+              console.error('[tRPC] Error response body:', errorText);
+            } catch (e) {
+              console.warn('[tRPC] Could not read error response body:', e);
+            }
           }
+          
           return response;
-        }).catch((error) => {
+        } catch (error: any) {
           console.error('[tRPC] Request failed:', {
             url,
             error: error.message,
@@ -89,7 +102,7 @@ export const trpcClient = trpc.createClient({
             stack: error.stack
           });
           throw error;
-        });
+        }
       },
     }),
   ],
