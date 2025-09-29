@@ -6,29 +6,29 @@ import superjson from "superjson";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
+  // First try environment variable
   if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    console.log('[tRPC] Using base URL:', process.env.EXPO_PUBLIC_RORK_API_BASE_URL);
+    console.log('[tRPC] Using base URL from env:', process.env.EXPO_PUBLIC_RORK_API_BASE_URL);
     return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
 
-  // Fallback for development - try to detect the current host
+  // For web, use the current origin (this works for both dev and production)
+  if (typeof window !== 'undefined' && window.location) {
+    const baseUrl = `${window.location.protocol}//${window.location.host}`;
+    console.log('[tRPC] Using web origin:', baseUrl);
+    return baseUrl;
+  }
+  
+  // For mobile development, try common development URLs
   if (__DEV__) {
-    console.warn('[tRPC] No EXPO_PUBLIC_RORK_API_BASE_URL found, using fallback');
-    
-    // For web, use the current origin
-    if (typeof window !== 'undefined' && window.location) {
-      const baseUrl = `${window.location.protocol}//${window.location.host}`;
-      console.log('[tRPC] Using web fallback:', baseUrl);
-      return baseUrl;
-    }
-    
-    // For mobile development
+    console.warn('[tRPC] No EXPO_PUBLIC_RORK_API_BASE_URL found, using mobile fallback');
+    // Try localhost first, then common development IPs
     return 'http://localhost:3000';
   }
 
-  throw new Error(
-    "No base url found, please set EXPO_PUBLIC_RORK_API_BASE_URL"
-  );
+  // Production fallback
+  console.error('[tRPC] No base URL found, using production fallback');
+  return 'https://didit360.com';
 };
 
 export const trpcClient = trpc.createClient({
@@ -50,6 +50,11 @@ export const trpcClient = trpc.createClient({
       },
       fetch(url, options) {
         console.log('[tRPC] Making request to:', url);
+        console.log('[tRPC] Request options:', {
+          method: options?.method || 'GET',
+          headers: options?.headers,
+          body: options?.body ? 'present' : 'none'
+        });
         
         // Create timeout signal if AbortSignal.timeout is available
         let timeoutSignal;
@@ -64,8 +69,19 @@ export const trpcClient = trpc.createClient({
         return fetch(url, {
           ...options,
           signal: timeoutSignal || options?.signal,
+        }).then((response) => {
+          console.log('[tRPC] Response status:', response.status, response.statusText);
+          if (!response.ok) {
+            console.error('[tRPC] HTTP error:', response.status, response.statusText);
+          }
+          return response;
         }).catch((error) => {
-          console.error('[tRPC] Request failed:', error);
+          console.error('[tRPC] Request failed:', {
+            url,
+            error: error.message,
+            name: error.name,
+            stack: error.stack
+          });
           throw error;
         });
       },

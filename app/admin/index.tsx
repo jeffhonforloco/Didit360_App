@@ -22,10 +22,20 @@ export default function AdminDashboard() {
   const hiMutation = trpc.example.hi.useMutation();
   const [testResponse, setTestResponse] = useState<string | null>(null);
   const [backendUrl, setBackendUrl] = useState<string>('');
+  const [connectionDetails, setConnectionDetails] = useState<{
+    backendConnected: boolean;
+    adminConnected: boolean;
+    lastTest: string;
+    errors: string[];
+  }>({ backendConnected: false, adminConnected: false, lastTest: '', errors: [] });
   
   // Test connection on mount
   useEffect(() => {
-    const testConnection = () => {
+    const testConnection = async () => {
+      const errors: string[] = [];
+      let backendConnected = false;
+      let adminConnected = false;
+      
       // Get the backend URL being used
       try {
         const baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL || 
@@ -36,22 +46,49 @@ export default function AdminDashboard() {
         console.log('[AdminDashboard] Using backend URL:', `${baseUrl}/api/trpc`);
       } catch (e) {
         console.warn('[AdminDashboard] Error getting backend URL:', e);
+        errors.push(`URL detection error: ${e}`);
       }
       
-      hiMutation.mutate({ name: 'Admin Dashboard' }, {
-        onSuccess: (data) => {
-          if (data?.hello) {
-            setTestResponse(data.hello);
-            console.log('[AdminDashboard] Hi mutation success:', data);
-          }
-        },
-        onError: (error) => {
-          console.error('[AdminDashboard] Hi mutation error:', error);
+      // Test basic tRPC connection
+      try {
+        const result = await new Promise<any>((resolve, reject) => {
+          hiMutation.mutate({ name: 'Admin Dashboard Connection Test' }, {
+            onSuccess: (data) => {
+              console.log('[AdminDashboard] Hi mutation success:', data);
+              resolve(data);
+            },
+            onError: (error) => {
+              console.error('[AdminDashboard] Hi mutation error:', error);
+              reject(error);
+            }
+          });
+        });
+        
+        if (result?.hello) {
+          setTestResponse(result.hello);
+          backendConnected = true;
         }
+      } catch (error) {
+        errors.push(`tRPC connection error: ${error}`);
+      }
+      
+      // Check if admin data is loading properly
+      if (stats && !error) {
+        adminConnected = true;
+      } else if (error) {
+        errors.push(`Admin data error: ${error}`);
+      }
+      
+      setConnectionDetails({
+        backendConnected,
+        adminConnected,
+        lastTest: new Date().toISOString(),
+        errors
       });
     };
+    
     testConnection();
-  }, [hiMutation]);
+  }, [hiMutation, stats, error]);
   
   // Update connection status based on query results
   useEffect(() => {
@@ -107,10 +144,10 @@ export default function AdminDashboard() {
     <AdminLayout title="Didit360 Admin Dashboard">
       <ScrollView contentContainerStyle={styles.scrollContent} testID="admin-dashboard">
         {/* Connection Status */}
-        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="connection-status">
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]} testID="connection-status">
           <View style={styles.cardHeader}>
             <Activity color={connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b'} size={18} />
-            <Text style={styles.cardTitle}>Frontend ↔ Backend Connection</Text>
+            <Text style={styles.cardTitle}>Frontend ↔ Backend Connection Status</Text>
           </View>
           <View style={styles.connectionInfo}>
             <View style={styles.statusRow}>
@@ -118,22 +155,48 @@ export default function AdminDashboard() {
               <Text style={[styles.statusText, { color: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]}>
                 {connectionStatus === 'connected' ? '✅ Connected & Working' : connectionStatus === 'error' ? '❌ Connection Error' : '🔄 Checking...'}
               </Text>
+              <Pressable 
+                style={styles.refreshButton}
+                onPress={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload();
+                  }
+                }}
+              >
+                <Text style={styles.refreshText}>🔄 Refresh</Text>
+              </Pressable>
             </View>
             {backendUrl && (
               <Text style={styles.connectionDetail}>🔗 Backend URL: {backendUrl}</Text>
             )}
             {testResponse && (
-              <Text style={styles.connectionDetail}>✓ tRPC Test: {testResponse}</Text>
+              <Text style={styles.connectionDetail}>✓ tRPC Test Response: {testResponse}</Text>
             )}
-            {stats && (
-              <Text style={styles.connectionDetail}>✓ Admin API: Dashboard data loaded</Text>
+            {connectionDetails.backendConnected && (
+              <Text style={styles.connectionDetail}>✅ Backend Connection: Working</Text>
             )}
-            {(error || hiMutation.error) && (
-              <Text style={[styles.connectionDetail, { color: '#ef4444' }]}>
-                ❌ Error: {String((error as any)?.message || (hiMutation.error as any)?.message || error || hiMutation.error)}
+            {connectionDetails.adminConnected && (
+              <Text style={styles.connectionDetail}>✅ Admin API: Dashboard data loaded</Text>
+            )}
+            {connectionDetails.errors.length > 0 && (
+              <View style={styles.errorContainer}>
+                {connectionDetails.errors.map((err, idx) => (
+                  <Text key={`error-${idx}`} style={[styles.connectionDetail, { color: '#ef4444' }]}>
+                    ❌ {err}
+                  </Text>
+                ))}
+              </View>
+            )}
+            {connectionDetails.lastTest && (
+              <Text style={[styles.connectionDetail, { fontSize: 11, color: '#64748b' }]}>
+                Last tested: {new Date(connectionDetails.lastTest).toLocaleTimeString()}
               </Text>
             )}
-            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>✅ Admin panel is fully connected to backend services</Text>
+            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>
+              {connectionDetails.backendConnected && connectionDetails.adminConnected 
+                ? '✅ All systems connected and operational' 
+                : '⚠️ Some connection issues detected'}
+            </Text>
             <Text style={[styles.connectionDetail, { fontSize: 11, color: '#64748b' }]}>Frontend ↔ tRPC ↔ Hono Backend ↔ Admin Routes</Text>
           </View>
         </View>
@@ -503,8 +566,22 @@ const styles = StyleSheet.create({
   connectionInfo: { gap: 8 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontSize: 14, fontWeight: '600' as const },
+  statusText: { fontSize: 14, fontWeight: '600' as const, flex: 1 },
+  refreshButton: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#1f2937',
+    borderWidth: 1,
+    borderColor: '#374151',
+  },
+  refreshText: {
+    color: '#94a3b8',
+    fontSize: 12,
+    fontWeight: '500' as const,
+  },
   connectionDetail: { color: '#94a3b8', fontSize: 12, marginLeft: 16 },
+  errorContainer: { marginTop: 8 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#fff' },
   errorText: { color: '#ef4444' },

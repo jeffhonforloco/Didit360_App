@@ -59,8 +59,17 @@ app.use(
     router: appRouter,
     createContext,
     onError: ({ error, path, type, ctx }) => {
-      console.error(`[tRPC] Error in ${type} procedure ${path}:`, error);
-      console.error(`[tRPC] Context:`, ctx);
+      console.error(`[tRPC] Error in ${type} procedure ${path}:`, {
+        error: error.message,
+        stack: error.stack,
+        code: error.code,
+        cause: error.cause
+      });
+      console.error(`[tRPC] Context:`, {
+        url: ctx?.req?.url,
+        method: ctx?.req?.method,
+        headers: Object.fromEntries(ctx?.req?.headers?.entries() || [])
+      });
     },
   })
 );
@@ -94,7 +103,20 @@ function notModified(c: any) {
 
 // Simple health check endpoint
 app.get("/", (c) => {
-  return c.json({ status: "ok", message: "API is running" });
+  const health = {
+    status: "ok",
+    message: "Didit360 API is running",
+    timestamp: new Date().toISOString(),
+    uptime: Math.floor((Date.now() - metrics.startedAt) / 1000),
+    version: "1.0.0",
+    endpoints: {
+      trpc: "/api/trpc",
+      metrics: "/api/metrics",
+      health: "/api"
+    }
+  };
+  console.log('[API] Health check requested:', health);
+  return c.json(health);
 });
 
 // Metrics endpoint (Prometheus text format)
