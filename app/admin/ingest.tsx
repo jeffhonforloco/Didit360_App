@@ -6,6 +6,7 @@ import {
   Clock, FileText, Music, Video, Headphones, BookOpen,
   Play, Pause, RotateCcw, Trash2, Eye, Settings, Zap
 } from 'lucide-react-native';
+import { trpc } from '@/lib/trpc';
 
 interface IngestJob {
   id: string;
@@ -21,58 +22,14 @@ interface IngestJob {
   errorMessage?: string;
 }
 
-const mockJobs: IngestJob[] = [
-  {
-    id: '1',
-    type: 'ddex',
-    source: 'Universal Music Group',
-    status: 'processing',
-    progress: 67,
-    itemsTotal: 1500,
-    itemsProcessed: 1005,
-    itemsFailed: 12,
-    startedAt: '2024-01-15T10:30:00Z',
-    estimatedCompletion: '2024-01-15T12:45:00Z'
-  },
-  {
-    id: '2',
-    type: 'rss',
-    source: 'Podcast Network RSS',
-    status: 'completed',
-    progress: 100,
-    itemsTotal: 234,
-    itemsProcessed: 234,
-    itemsFailed: 0,
-    startedAt: '2024-01-15T09:00:00Z'
-  },
-  {
-    id: '3',
-    type: 'json',
-    source: 'Independent Artists Batch',
-    status: 'failed',
-    progress: 23,
-    itemsTotal: 89,
-    itemsProcessed: 20,
-    itemsFailed: 69,
-    startedAt: '2024-01-15T08:15:00Z',
-    errorMessage: 'Invalid metadata format in batch items 21-89'
-  },
-  {
-    id: '4',
-    type: 'manual',
-    source: 'Admin Upload',
-    status: 'pending',
-    progress: 0,
-    itemsTotal: 45,
-    itemsProcessed: 0,
-    itemsFailed: 0,
-    startedAt: '2024-01-15T11:00:00Z'
-  }
-];
-
 export default function AdminIngest() {
   const [selectedTab, setSelectedTab] = useState<string>('jobs');
   const [newJobSource, setNewJobSource] = useState<string>('');
+  
+  const { data: jobsData, isLoading, error } = trpc.admin.ingest.getJobs.useQuery({
+    limit: 50,
+    offset: 0,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -135,35 +92,46 @@ export default function AdminIngest() {
         {selectedTab === 'jobs' && (
           <>
             {/* Stats Overview */}
-            <View style={[styles.statsContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
-              <Text style={styles.sectionTitle}>Ingestion Overview</Text>
-              <View style={styles.statsGrid}>
-                <View style={styles.statCard}>
-                  <Database color="#3b82f6" size={20} />
-                  <Text style={styles.statValue}>1.2M</Text>
-                  <Text style={styles.statLabel}>Items Ingested</Text>
-                  <Text style={styles.statChange}>+5.2K today</Text>
-                </View>
-                <View style={styles.statCard}>
-                  <CheckCircle color="#22c55e" size={20} />
-                  <Text style={styles.statValue}>98.7%</Text>
-                  <Text style={styles.statLabel}>Success Rate</Text>
-                  <Text style={styles.statChange}>+0.3% ↗</Text>
-                </View>
-                <View style={styles.statCard}>
-                  <Clock color="#f59e0b" size={20} />
-                  <Text style={styles.statValue}>4</Text>
-                  <Text style={styles.statLabel}>Active Jobs</Text>
-                  <Text style={styles.statChange}>2 pending</Text>
-                </View>
-                <View style={styles.statCard}>
-                  <AlertTriangle color="#ef4444" size={20} />
-                  <Text style={styles.statValue}>23</Text>
-                  <Text style={styles.statLabel}>Failed Items</Text>
-                  <Text style={styles.statChange}>-12 vs yesterday</Text>
-                </View>
+            {/* Loading/Error States */}
+            {isLoading ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+                <Text style={{ color: '#fff' }}>Loading ingest jobs...</Text>
               </View>
-            </View>
+            ) : error ? (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 }}>
+                <Text style={{ color: '#ef4444' }}>Error loading jobs: {error.message}</Text>
+              </View>
+            ) : (
+              <>
+                <View style={[styles.statsContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
+                  <Text style={styles.sectionTitle}>Ingestion Overview</Text>
+                  <View style={styles.statsGrid}>
+                    <View style={styles.statCard}>
+                      <Database color="#3b82f6" size={20} />
+                      <Text style={styles.statValue}>{jobsData?.stats.totalIngested}</Text>
+                      <Text style={styles.statLabel}>Items Ingested</Text>
+                      <Text style={styles.statChange}>+5.2K today</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                      <CheckCircle color="#22c55e" size={20} />
+                      <Text style={styles.statValue}>{jobsData?.stats.successRate}</Text>
+                      <Text style={styles.statLabel}>Success Rate</Text>
+                      <Text style={styles.statChange}>+0.3% ↗</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                      <Clock color="#f59e0b" size={20} />
+                      <Text style={styles.statValue}>{jobsData?.stats.activeJobs}</Text>
+                      <Text style={styles.statLabel}>Active Jobs</Text>
+                      <Text style={styles.statChange}>2 pending</Text>
+                    </View>
+                    <View style={styles.statCard}>
+                      <AlertTriangle color="#ef4444" size={20} />
+                      <Text style={styles.statValue}>{jobsData?.stats.failedItems}</Text>
+                      <Text style={styles.statLabel}>Failed Items</Text>
+                      <Text style={styles.statChange}>-12 vs yesterday</Text>
+                    </View>
+                  </View>
+                </View>
 
             {/* New Job Creation */}
             <View style={[styles.newJobContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
@@ -202,7 +170,7 @@ export default function AdminIngest() {
             <View style={[styles.jobsContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
               <Text style={styles.sectionTitle}>Active & Recent Jobs</Text>
               
-              {mockJobs.map((job) => {
+              {(jobsData?.jobs || []).map((job) => {
                 const TypeIcon = getTypeIcon(job.type);
                 return (
                   <View key={job.id} style={[styles.jobItem, { backgroundColor: '#0b0f12', borderColor: '#1f2937' }]}>
@@ -272,6 +240,8 @@ export default function AdminIngest() {
                 );
               })}
             </View>
+              </>
+            )}
           </>
         )}
 

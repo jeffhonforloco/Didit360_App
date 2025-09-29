@@ -6,6 +6,7 @@ import {
   RotateCcw, Save, AlertTriangle, CheckCircle, Clock,
   TrendingUp, Users, BarChart3, Cpu, Database, Activity
 } from 'lucide-react-native';
+import { trpc } from '@/lib/trpc';
 
 interface MixMindConfig {
   enabled: boolean;
@@ -28,29 +29,42 @@ interface MixMindSession {
   createdAt: string;
 }
 
-const mockSessions: MixMindSession[] = [
-  { id: '1', userId: 'user123', status: 'active', duration: 3600, tracksCount: 15, satisfaction: 4.8, createdAt: '2024-01-15T10:30:00Z' },
-  { id: '2', userId: 'user456', status: 'completed', duration: 2400, tracksCount: 12, satisfaction: 4.2, createdAt: '2024-01-15T09:15:00Z' },
-  { id: '3', userId: 'user789', status: 'completed', duration: 4200, tracksCount: 18, satisfaction: 4.9, createdAt: '2024-01-15T08:45:00Z' },
-  { id: '4', userId: 'user101', status: 'failed', duration: 0, tracksCount: 0, satisfaction: 0, createdAt: '2024-01-15T08:00:00Z' },
-];
-
 export default function AdminMixMind() {
-  const [config, setConfig] = useState<MixMindConfig>({
-    enabled: true,
-    maxSessionLength: 240, // minutes
-    crossfadeDuration: 8, // seconds
-    energyVariation: 0.3,
-    genreBlending: true,
-    aiModelVersion: 'v2.1',
-    qualityThreshold: 0.8,
-    userFeedbackWeight: 0.4
-  });
-
   const [selectedTab, setSelectedTab] = useState<string>('overview');
+  
+  const { data: sessionsData, isLoading: sessionsLoading, error: sessionsError } = trpc.admin.mixmind.getSessions.useQuery({
+    limit: 50,
+    offset: 0,
+  });
+  
+  const { data: config, isLoading: configLoading, error: configError } = trpc.admin.mixmind.getConfig.useQuery();
+  const updateConfigMutation = trpc.admin.mixmind.updateConfig.useMutation();
+  
+  const [localConfig, setLocalConfig] = useState<MixMindConfig | null>(null);
+  
+  // Update local config when backend config loads
+  React.useEffect(() => {
+    if (config && !localConfig) {
+      setLocalConfig(config);
+    }
+  }, [config, localConfig]);
 
   const updateConfig = (key: keyof MixMindConfig, value: any) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
+    if (localConfig) {
+      setLocalConfig(prev => prev ? { ...prev, [key]: value } : null);
+    }
+  };
+  
+  const saveConfig = async () => {
+    if (localConfig) {
+      try {
+        await updateConfigMutation.mutateAsync(localConfig);
+        // Show success message or handle success
+      } catch (error) {
+        // Handle error
+        console.error('Failed to save config:', error);
+      }
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -172,10 +186,10 @@ export default function AdminMixMind() {
               <View style={styles.configItem}>
                 <Text style={styles.configLabel}>Enable MixMind AI DJ</Text>
                 <Switch
-                  value={config.enabled}
+                  value={localConfig?.enabled || false}
                   onValueChange={(value) => updateConfig('enabled', value)}
                   trackColor={{ false: '#374151', true: '#22c55e' }}
-                  thumbColor={config.enabled ? '#fff' : '#9ca3af'}
+                  thumbColor={localConfig?.enabled ? '#fff' : '#9ca3af'}
                   testID="config-enabled"
                 />
               </View>
@@ -184,7 +198,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>Max Session Length (minutes)</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.maxSessionLength.toString()}
+                  value={localConfig?.maxSessionLength.toString() || ''}
                   onChangeText={(text) => updateConfig('maxSessionLength', parseInt(text) || 0)}
                   keyboardType="numeric"
                   testID="config-max-session"
@@ -195,7 +209,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>Crossfade Duration (seconds)</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.crossfadeDuration.toString()}
+                  value={localConfig?.crossfadeDuration.toString() || ''}
                   onChangeText={(text) => updateConfig('crossfadeDuration', parseInt(text) || 0)}
                   keyboardType="numeric"
                   testID="config-crossfade"
@@ -206,7 +220,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>Energy Variation (0-1)</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.energyVariation.toString()}
+                  value={localConfig?.energyVariation.toString() || ''}
                   onChangeText={(text) => updateConfig('energyVariation', parseFloat(text) || 0)}
                   keyboardType="decimal-pad"
                   testID="config-energy"
@@ -216,10 +230,10 @@ export default function AdminMixMind() {
               <View style={styles.configItem}>
                 <Text style={styles.configLabel}>Enable Genre Blending</Text>
                 <Switch
-                  value={config.genreBlending}
+                  value={localConfig?.genreBlending || false}
                   onValueChange={(value) => updateConfig('genreBlending', value)}
                   trackColor={{ false: '#374151', true: '#22c55e' }}
-                  thumbColor={config.genreBlending ? '#fff' : '#9ca3af'}
+                  thumbColor={localConfig?.genreBlending ? '#fff' : '#9ca3af'}
                   testID="config-genre-blending"
                 />
               </View>
@@ -232,7 +246,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>AI Model Version</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.aiModelVersion}
+                  value={localConfig?.aiModelVersion || ''}
                   onChangeText={(text) => updateConfig('aiModelVersion', text)}
                   testID="config-model-version"
                 />
@@ -242,7 +256,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>Quality Threshold (0-1)</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.qualityThreshold.toString()}
+                  value={localConfig?.qualityThreshold.toString() || ''}
                   onChangeText={(text) => updateConfig('qualityThreshold', parseFloat(text) || 0)}
                   keyboardType="decimal-pad"
                   testID="config-quality"
@@ -253,7 +267,7 @@ export default function AdminMixMind() {
                 <Text style={styles.configLabel}>User Feedback Weight (0-1)</Text>
                 <TextInput
                   style={styles.configInput}
-                  value={config.userFeedbackWeight.toString()}
+                  value={localConfig?.userFeedbackWeight.toString() || ''}
                   onChangeText={(text) => updateConfig('userFeedbackWeight', parseFloat(text) || 0)}
                   keyboardType="decimal-pad"
                   testID="config-feedback-weight"
@@ -262,11 +276,22 @@ export default function AdminMixMind() {
             </View>
 
             <View style={styles.configActions}>
-              <Pressable style={styles.saveButton} testID="save-config">
+              <Pressable 
+                style={[styles.saveButton, updateConfigMutation.isPending && { opacity: 0.6 }]} 
+                onPress={saveConfig}
+                disabled={updateConfigMutation.isPending}
+                testID="save-config"
+              >
                 <Save color="#fff" size={16} />
-                <Text style={styles.saveButtonText}>Save Configuration</Text>
+                <Text style={styles.saveButtonText}>
+                  {updateConfigMutation.isPending ? 'Saving...' : 'Save Configuration'}
+                </Text>
               </Pressable>
-              <Pressable style={styles.resetButton} testID="reset-config">
+              <Pressable 
+                style={styles.resetButton} 
+                onPress={() => config && setLocalConfig(config)}
+                testID="reset-config"
+              >
                 <RotateCcw color="#cbd5e1" size={16} />
                 <Text style={styles.resetButtonText}>Reset to Defaults</Text>
               </Pressable>
@@ -279,7 +304,7 @@ export default function AdminMixMind() {
           <View style={[styles.sessionsContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
             <Text style={styles.sectionTitle}>Active MixMind Sessions</Text>
             
-            {mockSessions.map((session) => (
+            {(sessionsData?.sessions || []).map((session) => (
               <View key={session.id} style={[styles.sessionItem, { backgroundColor: '#0b0f12', borderColor: '#1f2937' }]}>
                 <View style={styles.sessionHeader}>
                   <Text style={styles.sessionId}>Session #{session.id}</Text>

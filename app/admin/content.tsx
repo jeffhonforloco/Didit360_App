@@ -1,15 +1,52 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, TextInput } from 'react-native';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Search as SearchIcon, MoreVertical } from 'lucide-react-native';
-import { recentlyAddedContent } from '@/data/mockData';
+import { trpc } from '@/lib/trpc';
 
-interface Item { id: string; title: string; artist?: string; type: string; duration?: number; artwork?: string }
+interface Item { 
+  id: string; 
+  title: string; 
+  artist?: string; 
+  type: 'audio' | 'video' | 'podcast' | 'audiobook'; 
+  duration?: number; 
+  artwork?: string;
+  uploadDate: string;
+  status: 'active' | 'pending' | 'rejected' | 'processing';
+  plays: number;
+  reports: number;
+}
 
 export default function AdminContent() {
   const [search, setSearch] = useState<string>('');
-  const items: Item[] = useMemo(() => recentlyAddedContent.map(i => ({ id: i.id, title: i.title, artist: i.artist, type: i.type, duration: i.duration, artwork: i.artwork })), []);
-  const filtered = useMemo(() => items.filter(i => i.title.toLowerCase().includes(search.toLowerCase())), [items, search]);
+  
+  const { data: contentData, isLoading, error } = trpc.admin.content.getContent.useQuery({
+    search: search || undefined,
+    limit: 50,
+    offset: 0,
+  });
+  
+  if (isLoading) {
+    return (
+      <AdminLayout title="Content Management">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#fff' }}>Loading content...</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+  
+  if (error) {
+    return (
+      <AdminLayout title="Content Management">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#ef4444' }}>Error loading content: {error.message}</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+  
+  const items = contentData?.items || [];
 
   return (
     <AdminLayout title="Content Management">
@@ -25,7 +62,7 @@ export default function AdminContent() {
         />
       </View>
       <FlatList
-        data={filtered}
+        data={items}
         keyExtractor={(i) => i.id}
         contentContainerStyle={{ paddingBottom: 40 }}
         renderItem={({ item }) => (

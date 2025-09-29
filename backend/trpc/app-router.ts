@@ -25,6 +25,10 @@ import { getDDLProcedure } from "./routes/admin/db/ddl/route";
 import { getUsersProcedure } from "./routes/admin/users/get-users/route";
 import { getAnalyticsProcedure } from "./routes/admin/analytics/get-analytics/route";
 import { getDashboardStatsProcedure } from "./routes/admin/dashboard/get-stats/route";
+import { getContentProcedure } from "./routes/admin/content/get-content/route";
+import { getIngestJobsProcedure } from "./routes/admin/ingest/get-jobs/route";
+import { getMixMindSessionsProcedure } from "./routes/admin/mixmind/get-sessions/route";
+import { getMixMindConfigProcedure, updateMixMindConfigProcedure } from "./routes/admin/mixmind/get-config/route";
 
 // Enrichment
 import { 
@@ -85,6 +89,17 @@ export const appRouter = createTRPCRouter({
     }),
     dashboard: createTRPCRouter({
       getStats: getDashboardStatsProcedure,
+    }),
+    content: createTRPCRouter({
+      getContent: getContentProcedure,
+    }),
+    ingest: createTRPCRouter({
+      getJobs: getIngestJobsProcedure,
+    }),
+    mixmind: createTRPCRouter({
+      getSessions: getMixMindSessionsProcedure,
+      getConfig: getMixMindConfigProcedure,
+      updateConfig: updateMixMindConfigProcedure,
     }),
   }),
   djInstinct: createTRPCRouter({
