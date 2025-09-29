@@ -1,5 +1,5 @@
 import { createTRPCRouter } from "./create-context";
-import hiRoute from "./routes/example/hi/route";
+import hiRoute, { hiQuery, hiMutation } from "./routes/example/hi/route";
 import { getLibraryProcedure } from "./routes/library/get-library/route";
 import { updateLibraryProcedure } from "./routes/library/update-library/route";
 
@@ -46,7 +46,9 @@ import { liveEmergencyFadeProcedure } from "./routes/dj-instinct/live/emergency/
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
-    hi: hiRoute,
+    hi: hiRoute, // mutation (backward compatibility)
+    hiQuery: hiQuery, // query version
+    hiMutation: hiMutation, // explicit mutation
   }),
   library: createTRPCRouter({
     get: getLibraryProcedure,

@@ -19,9 +19,28 @@ export default function AdminDashboard() {
   
   const { data: stats, isLoading, error } = trpc.admin.dashboard.getStats.useQuery();
   
-  // Test basic tRPC connection with mutation
-  const hiMutation = trpc.example.hi.useMutation();
+  // Test basic tRPC connection with query
   const [testResponse, setTestResponse] = useState<string | null>(null);
+  const [shouldTestConnection, setShouldTestConnection] = useState<boolean>(false);
+  
+  const hiQuery = trpc.example.hiQuery.useQuery(
+    { name: 'Admin Dashboard Connection Test' },
+    { 
+      enabled: shouldTestConnection,
+      retry: 1
+    }
+  );
+  
+  // Handle query results
+  useEffect(() => {
+    if (hiQuery.data) {
+      console.log('[AdminDashboard] Hi query success:', hiQuery.data);
+      setTestResponse(hiQuery.data?.hello || 'Connected successfully');
+    } else if (hiQuery.error) {
+      console.error('[AdminDashboard] Hi query error:', hiQuery.error);
+      setTestResponse(`Connection failed: ${hiQuery.error.message}`);
+    }
+  }, [hiQuery.data, hiQuery.error]);
   const [backendUrl, setBackendUrl] = useState<string>('');
   const [connectionDetails, setConnectionDetails] = useState<{
     backendConnected: boolean;
@@ -52,22 +71,14 @@ export default function AdminDashboard() {
       
       // Test basic tRPC connection
       try {
-        const result = await new Promise<any>((resolve, reject) => {
-          hiMutation.mutate({ name: 'Admin Dashboard Connection Test' }, {
-            onSuccess: (data) => {
-              console.log('[AdminDashboard] Hi mutation success:', data);
-              resolve(data);
-            },
-            onError: (error) => {
-              console.error('[AdminDashboard] Hi mutation error:', error);
-              reject(error);
-            }
-          });
-        });
+        setShouldTestConnection(true);
+        // Wait a bit for the query to execute
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        if (result?.hello) {
-          setTestResponse(result.hello);
+        if (hiQuery.data?.hello) {
           backendConnected = true;
+        } else if (hiQuery.error) {
+          errors.push(`tRPC connection error: ${hiQuery.error.message}`);
         }
       } catch (error) {
         errors.push(`tRPC connection error: ${error}`);
@@ -89,7 +100,7 @@ export default function AdminDashboard() {
     };
     
     testConnection();
-  }, [hiMutation, stats, error]);
+  }, [hiQuery.data, hiQuery.error, stats, error]);
   
   // Update connection status based on query results
   useEffect(() => {

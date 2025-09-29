@@ -60,7 +60,7 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   }, [searchQuery]);
 
   // Search query using tRPC with pagination support
-  const searchQuery_tRPC = trpc.catalog.search.useQuery(
+  const searchQueryTRPC = trpc.catalog.search.useQuery(
     { 
       q: debouncedQuery, 
       type: searchType, 
@@ -71,42 +71,46 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
       enabled: debouncedQuery.length > 0,
       staleTime: 30000, // Cache results for 30 seconds
       refetchOnWindowFocus: false,
-      retry: 2,
+      retry: 2
     }
   );
 
   // Handle search errors and success
   useEffect(() => {
-    if (searchQuery_tRPC.error) {
-      console.error('[SearchContext] Search error:', searchQuery_tRPC.error);
-      setSearchError(searchQuery_tRPC.error.message || 'Search failed');
+    if (searchQueryTRPC.error) {
+      console.error('[SearchContext] tRPC search error:', searchQueryTRPC.error);
+      setSearchError(searchQueryTRPC.error.message || 'Search failed');
       setTotalResults(0);
       setHasMore(false);
-    } else if (searchQuery_tRPC.data) {
+    } else if (searchQueryTRPC.data) {
+      console.log('[SearchContext] tRPC search success:', searchQueryTRPC.data?.length || 0, 'results');
       setSearchError(null);
-      // For now, we'll estimate total results since the API doesn't return it
-      // In a real implementation, the API should return total count
-      const newResultsCount = searchQuery_tRPC.data.length;
+    }
+  }, [searchQueryTRPC.error, searchQueryTRPC.data]);
+
+  // Handle search results and pagination
+  useEffect(() => {
+    if (searchQueryTRPC.data) {
+      const newResultsCount = searchQueryTRPC.data.length;
       setTotalResults(currentOffset + newResultsCount);
       setHasMore(newResultsCount === 20); // Has more if we got a full page
     }
-  }, [searchQuery_tRPC.error, searchQuery_tRPC.data, currentOffset]);
+  }, [searchQueryTRPC.data, currentOffset]);
 
   const searchResults = useMemo(() => {
-    if (!searchQuery_tRPC.data) return [];
+    if (!searchQueryTRPC.data) return [];
     
-    // If this is the first page (offset 0), replace results
-    // Otherwise, append to existing results for pagination
-    if (currentOffset === 0) {
-      return searchQuery_tRPC.data as SearchResult[];
-    } else {
-      // This would need to be handled differently in a real pagination scenario
-      // For now, we'll just return the current data
-      return searchQuery_tRPC.data as SearchResult[];
-    }
-  }, [searchQuery_tRPC.data, currentOffset]);
+    // Type-safe result mapping
+    return searchQueryTRPC.data.map(item => ({
+      ...item,
+      // Ensure all required SearchResult fields are present
+      relevance_score: item.relevance_score ?? 0.8,
+      canonical_id: item.canonical_id || `${item.type}:${item.id}`,
+      quality_score: item.quality_score ?? 0.8
+    })) as SearchResult[];
+  }, [searchQueryTRPC.data]);
 
-  const isSearching = searchQuery_tRPC.isLoading;
+  const isSearching = searchQueryTRPC.isLoading;
 
   const loadSearchHistory = useCallback(async () => {
     try {
@@ -215,8 +219,8 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   const refetchSearch = useCallback(() => {
     console.log('[SearchContext] Refetching search');
     setSearchError(null);
-    searchQuery_tRPC.refetch();
-  }, [searchQuery_tRPC]);
+    searchQueryTRPC.refetch();
+  }, [searchQueryTRPC]);
 
   return {
     recentSearches,
