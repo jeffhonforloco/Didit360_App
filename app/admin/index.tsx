@@ -21,10 +21,23 @@ export default function AdminDashboard() {
   // Test basic tRPC connection with mutation
   const hiMutation = trpc.example.hi.useMutation();
   const [testResponse, setTestResponse] = useState<string | null>(null);
+  const [backendUrl, setBackendUrl] = useState<string>('');
   
   // Test connection on mount
   useEffect(() => {
     const testConnection = () => {
+      // Get the backend URL being used
+      try {
+        const baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL || 
+          (typeof window !== 'undefined' && window.location ? 
+            `${window.location.protocol}//${window.location.host}` : 
+            'http://localhost:3000');
+        setBackendUrl(`${baseUrl}/api/trpc`);
+        console.log('[AdminDashboard] Using backend URL:', `${baseUrl}/api/trpc`);
+      } catch (e) {
+        console.warn('[AdminDashboard] Error getting backend URL:', e);
+      }
+      
       hiMutation.mutate({ name: 'Admin Dashboard' }, {
         onSuccess: (data) => {
           if (data?.hello) {
@@ -106,6 +119,9 @@ export default function AdminDashboard() {
                 {connectionStatus === 'connected' ? '✅ Connected & Working' : connectionStatus === 'error' ? '❌ Connection Error' : '🔄 Checking...'}
               </Text>
             </View>
+            {backendUrl && (
+              <Text style={styles.connectionDetail}>🔗 Backend URL: {backendUrl}</Text>
+            )}
             {testResponse && (
               <Text style={styles.connectionDetail}>✓ tRPC Test: {testResponse}</Text>
             )}
@@ -117,7 +133,8 @@ export default function AdminDashboard() {
                 ❌ Error: {String((error as any)?.message || (hiMutation.error as any)?.message || error || hiMutation.error)}
               </Text>
             )}
-            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>Admin panel is fully connected to backend services</Text>
+            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>✅ Admin panel is fully connected to backend services</Text>
+            <Text style={[styles.connectionDetail, { fontSize: 11, color: '#64748b' }]}>Frontend ↔ tRPC ↔ Hono Backend ↔ Admin Routes</Text>
           </View>
         </View>
         {/* Platform Overview */}

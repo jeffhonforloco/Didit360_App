@@ -4,6 +4,7 @@ import { useUser, useSignOut } from "@/contexts/UserContext";
 import { ChevronRight, ArrowLeft, Settings as SettingsIcon } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { ConnectionStatus } from "@/components/ConnectionStatus";
 
 
 export default function SettingsScreen() {
@@ -492,6 +493,24 @@ export default function SettingsScreen() {
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
+        <TouchableOpacity 
+          style={styles.settingsItem}
+          onPress={() => router.push('/admin')}
+          activeOpacity={0.8}
+        >
+          <View>
+            <Text style={styles.settingsItemText}>Admin Panel</Text>
+            <Text style={styles.settingsItemSubtext}>Access admin dashboard and management tools</Text>
+          </View>
+          <ChevronRight size={20} color="#666" />
+        </TouchableOpacity>
+        
+        <Text style={styles.sectionTitle}>Connection Status</Text>
+        
+        <View style={styles.connectionSection}>
+          <ConnectionStatus showDetails={true} />
+        </View>
+        
         <Text style={styles.sectionTitle}>Sign Out</Text>
         
         <TouchableOpacity 
@@ -669,5 +688,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#FFF',
     fontWeight: '600',
+  },
+  connectionSection: {
+    marginBottom: 20,
   },
 });
