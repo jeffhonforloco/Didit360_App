@@ -8,7 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PlayerProvider } from "@/contexts/PlayerContext";
 import { LibraryProvider } from "@/contexts/LibraryContext";
 import { UserProvider } from "@/contexts/UserContext";
-import { SearchContext } from "@/contexts/SearchContext";
+import { SearchContext as SearchProvider } from "@/contexts/SearchContext";
 import { MixMindProvider } from "@/contexts/MixMindContext";
 import { SecurityProvider } from "@/contexts/SecurityContext";
 import { UXProvider } from "@/contexts/UXContext";
@@ -223,7 +223,7 @@ export default function RootLayout() {
             <UserProvider>
               <SecurityProvider>
                 <UXProvider>
-                  <SearchContext>
+                  <SearchProvider>
                     <MixMindProvider>
                       <OfflineProvider>
                         <PlayerProvider>
@@ -241,7 +241,7 @@ export default function RootLayout() {
                         </PlayerProvider>
                       </OfflineProvider>
                     </MixMindProvider>
-                  </SearchContext>
+                  </SearchProvider>
                 </UXProvider>
               </SecurityProvider>
             </UserProvider>

@@ -58,6 +58,10 @@ app.use(
     endpoint: "/api/trpc",
     router: appRouter,
     createContext,
+    onError: ({ error, path, type, ctx }) => {
+      console.error(`[tRPC] Error in ${type} procedure ${path}:`, error);
+      console.error(`[tRPC] Context:`, ctx);
+    },
   })
 );
 
