@@ -26,9 +26,15 @@ const getBaseUrl = () => {
     return 'http://localhost:3000';
   }
 
-  // Production fallback
-  console.error('[tRPC] No base URL found, using production fallback');
-  return 'https://didit360.com';
+  // Production fallback - check if we're in a deployed environment
+  if (typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    console.log('[tRPC] Production environment detected, using current host');
+    return typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.host}` : 'https://didit360.com';
+  }
+
+  // Development fallback
+  console.error('[tRPC] No base URL found, using development fallback');
+  return 'http://localhost:3000';
 };
 
 export const trpcClient = trpc.createClient({

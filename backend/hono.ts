@@ -103,20 +103,36 @@ function notModified(c: any) {
 
 // Simple health check endpoint
 app.get("/", (c) => {
-  const health = {
-    status: "ok",
-    message: "Didit360 API is running",
-    timestamp: new Date().toISOString(),
-    uptime: Math.floor((Date.now() - metrics.startedAt) / 1000),
-    version: "1.0.0",
-    endpoints: {
-      trpc: "/api/trpc",
-      metrics: "/api/metrics",
-      health: "/api"
-    }
-  };
-  console.log('[API] Health check requested:', health);
-  return c.json(health);
+  try {
+    const health = {
+      status: "ok",
+      message: "Didit360 API is running",
+      timestamp: new Date().toISOString(),
+      uptime: Math.floor((Date.now() - metrics.startedAt) / 1000),
+      version: "1.0.0",
+      environment: process.env.NODE_ENV || 'development',
+      endpoints: {
+        trpc: "/api/trpc",
+        metrics: "/api/metrics",
+        health: "/api"
+      },
+      deployment: {
+        platform: typeof process !== 'undefined' ? process.platform : 'unknown',
+        nodeVersion: typeof process !== 'undefined' ? process.version : 'unknown',
+        memoryUsage: typeof process !== 'undefined' && process.memoryUsage ? process.memoryUsage() : 'unknown'
+      }
+    };
+    console.log('[API] Health check requested:', health);
+    return c.json(health);
+  } catch (error) {
+    console.error('[API] Health check error:', error);
+    return c.json({ 
+      status: "error", 
+      message: "Health check failed", 
+      error: String(error),
+      timestamp: new Date().toISOString() 
+    }, 500);
+  }
 });
 
 // Metrics endpoint (Prometheus text format)

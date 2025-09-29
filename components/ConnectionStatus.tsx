@@ -1,118 +1,145 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Activity, CheckCircle, XCircle, RefreshCw } from 'lucide-react-native';
-import { runFullConnectionTest, type ConnectionTestResult } from '@/lib/connection-test';
+import { testBackendConnection, testTRPCConnection, type ConnectionTestResult } from '@/lib/connection-test';
 
 interface ConnectionStatusProps {
   showDetails?: boolean;
-  onStatusChange?: (connected: boolean) => void;
 }
 
-export function ConnectionStatus({ showDetails = false, onStatusChange }: ConnectionStatusProps) {
-  const [status, setStatus] = useState<'checking' | 'connected' | 'error'>('checking');
-  const [testResults, setTestResults] = useState<{
-    backend: ConnectionTestResult;
-    admin: ConnectionTestResult;
-    overall: boolean;
-  } | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
+export function ConnectionStatus({ showDetails = false }: ConnectionStatusProps) {
+  const [backendTest, setBackendTest] = useState<ConnectionTestResult | null>(null);
+  const [trpcTest, setTRPCTest] = useState<ConnectionTestResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<string>('');
 
-  const runTest = async () => {
-    setIsRefreshing(true);
-    setStatus('checking');
-    
+  const runTests = async () => {
+    setIsLoading(true);
     try {
-      const results = await runFullConnectionTest();
-      setTestResults(results);
+      console.log('[ConnectionStatus] Running connection tests...');
       
-      if (results.overall) {
-        setStatus('connected');
-        onStatusChange?.(true);
-      } else {
-        setStatus('error');
-        onStatusChange?.(false);
-      }
+      const [backendResult, trpcResult] = await Promise.all([
+        testBackendConnection(),
+        testTRPCConnection()
+      ]);
+      
+      setBackendTest(backendResult);
+      setTRPCTest(trpcResult);
+      setLastUpdate(new Date().toLocaleTimeString());
+      
+      console.log('[ConnectionStatus] Backend test result:', backendResult);
+      console.log('[ConnectionStatus] tRPC test result:', trpcResult);
     } catch (error) {
-      console.error('[ConnectionStatus] Test failed:', error);
-      setStatus('error');
-      onStatusChange?.(false);
+      console.error('[ConnectionStatus] Test error:', error);
     } finally {
-      setIsRefreshing(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    runTest();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    runTests();
   }, []);
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'connected': return '#22c55e';
-      case 'error': return '#ef4444';
-      default: return '#f59e0b';
-    }
+  const getStatusIcon = (test: ConnectionTestResult | null) => {
+    if (!test) return <Activity color="#f59e0b" size={16} />;
+    if (test.success) return <CheckCircle color="#22c55e" size={16} />;
+    return <XCircle color="#ef4444" size={16} />;
   };
 
-  const getStatusIcon = () => {
-    const color = getStatusColor();
-    const size = 16;
-    
-    if (isRefreshing) {
-      return <RefreshCw color={color} size={size} />;
-    }
-    
-    switch (status) {
-      case 'connected': return <CheckCircle color={color} size={size} />;
-      case 'error': return <XCircle color={color} size={size} />;
-      default: return <Activity color={color} size={size} />;
-    }
+  const getStatusColor = (test: ConnectionTestResult | null) => {
+    if (!test) return '#f59e0b';
+    if (test.success) return '#22c55e';
+    return '#ef4444';
   };
 
-  const getStatusText = () => {
-    switch (status) {
-      case 'connected': return 'Connected';
-      case 'error': return 'Connection Error';
-      default: return 'Checking...';
-    }
+  const getStatusText = (test: ConnectionTestResult | null) => {
+    if (!test) return 'Testing...';
+    if (test.success) return 'Connected';
+    return 'Failed';
   };
+
+  const overallStatus = backendTest && trpcTest && backendTest.success && trpcTest.success;
 
   return (
     <View style={styles.container}>
-      <Pressable 
-        style={[styles.statusRow, { borderColor: getStatusColor() }]} 
-        onPress={runTest}
-        disabled={isRefreshing}
-      >
-        {getStatusIcon()}
-        <Text style={[styles.statusText, { color: getStatusColor() }]}>
-          {getStatusText()}
-        </Text>
-        {testResults && (
-          <Text style={styles.latencyText}>
-            {Math.max(testResults.backend.latency || 0, testResults.admin.latency || 0)}ms
-          </Text>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          {getStatusIcon(overallStatus ? { success: true } as ConnectionTestResult : null)}
+          <Text style={styles.title}>Connection Status</Text>
+          <Pressable 
+            style={[styles.refreshButton, isLoading && styles.refreshButtonLoading]}
+            onPress={runTests}
+            disabled={isLoading}
+          >
+            <RefreshCw 
+              color="#94a3b8" 
+              size={14} 
+              style={isLoading ? styles.spinning : undefined}
+            />
+          </Pressable>
+        </View>
+        {lastUpdate && (
+          <Text style={styles.lastUpdate}>Last checked: {lastUpdate}</Text>
         )}
-      </Pressable>
-      
-      {showDetails && testResults && (
+      </View>
+
+      <View style={styles.statusGrid}>
+        <View style={styles.statusItem}>
+          {getStatusIcon(backendTest)}
+          <Text style={[styles.statusLabel, { color: getStatusColor(backendTest) }]}>
+            Backend API
+          </Text>
+          <Text style={styles.statusValue}>{getStatusText(backendTest)}</Text>
+          {backendTest?.details.responseTime && (
+            <Text style={styles.responseTime}>{backendTest.details.responseTime}ms</Text>
+          )}
+        </View>
+
+        <View style={styles.statusItem}>
+          {getStatusIcon(trpcTest)}
+          <Text style={[styles.statusLabel, { color: getStatusColor(trpcTest) }]}>
+            tRPC API
+          </Text>
+          <Text style={styles.statusValue}>{getStatusText(trpcTest)}</Text>
+          {trpcTest?.details.responseTime && (
+            <Text style={styles.responseTime}>{trpcTest.details.responseTime}ms</Text>
+          )}
+        </View>
+      </View>
+
+      {showDetails && (backendTest || trpcTest) && (
         <View style={styles.details}>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Backend:</Text>
-            <Text style={[styles.detailValue, { color: testResults.backend.success ? '#22c55e' : '#ef4444' }]}>
-              {testResults.backend.success ? '✅' : '❌'} {testResults.backend.latency}ms
-            </Text>
-          </View>
-          <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Admin Panel:</Text>
-            <Text style={[styles.detailValue, { color: testResults.admin.success ? '#22c55e' : '#ef4444' }]}>
-              {testResults.admin.success ? '✅' : '❌'} {testResults.admin.latency}ms
-            </Text>
-          </View>
-          {testResults.backend.backendUrl && (
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>URL:</Text>
-              <Text style={styles.detailValue}>{testResults.backend.backendUrl}</Text>
+          {backendTest && (
+            <View style={styles.detailSection}>
+              <Text style={styles.detailTitle}>Backend Details:</Text>
+              <Text style={styles.detailText}>URL: {backendTest.details.endpoint}</Text>
+              {backendTest.details.status && (
+                <Text style={styles.detailText}>
+                  Status: {backendTest.details.status} {backendTest.details.statusText}
+                </Text>
+              )}
+              {backendTest.error && (
+                <Text style={[styles.detailText, { color: '#ef4444' }]}>
+                  Error: {backendTest.error}
+                </Text>
+              )}
+            </View>
+          )}
+
+          {trpcTest && (
+            <View style={styles.detailSection}>
+              <Text style={styles.detailTitle}>tRPC Details:</Text>
+              <Text style={styles.detailText}>URL: {trpcTest.details.endpoint}</Text>
+              {trpcTest.details.status && (
+                <Text style={styles.detailText}>
+                  Status: {trpcTest.details.status} {trpcTest.details.statusText}
+                </Text>
+              )}
+              {trpcTest.error && (
+                <Text style={[styles.detailText, { color: '#ef4444' }]}>
+                  Error: {trpcTest.error}
+                </Text>
+              )}
             </View>
           )}
         </View>
@@ -123,44 +150,84 @@ export function ConnectionStatus({ showDetails = false, onStatusChange }: Connec
 
 const styles = StyleSheet.create({
   container: {
-    gap: 8,
+    backgroundColor: '#111315',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#1f2937',
   },
-  statusRow: {
+  header: {
+    marginBottom: 12,
+  },
+  titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    backgroundColor: '#111315',
   },
-  statusText: {
-    fontSize: 14,
+  title: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600' as const,
     flex: 1,
   },
-  latencyText: {
+  refreshButton: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: '#1f2937',
+  },
+  refreshButtonLoading: {
+    opacity: 0.5,
+  },
+  spinning: {
+    // Note: React Native doesn't support CSS animations directly
+    // This would need to be implemented with Animated API for actual spinning
+  },
+  lastUpdate: {
+    color: '#64748b',
     fontSize: 12,
-    color: '#94a3b8',
+    marginTop: 4,
   },
-  details: {
-    backgroundColor: '#0f172a',
-    borderRadius: 8,
-    padding: 12,
-    gap: 6,
-  },
-  detailRow: {
+  statusGrid: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 16,
+  },
+  statusItem: {
+    flex: 1,
     alignItems: 'center',
+    gap: 4,
   },
-  detailLabel: {
+  statusLabel: {
     fontSize: 12,
-    color: '#94a3b8',
-  },
-  detailValue: {
-    fontSize: 12,
-    color: '#cbd5e1',
     fontWeight: '500' as const,
   },
+  statusValue: {
+    color: '#cbd5e1',
+    fontSize: 11,
+  },
+  responseTime: {
+    color: '#64748b',
+    fontSize: 10,
+  },
+  details: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#1f2937',
+    gap: 12,
+  },
+  detailSection: {
+    gap: 4,
+  },
+  detailTitle: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600' as const,
+  },
+  detailText: {
+    color: '#94a3b8',
+    fontSize: 11,
+    fontFamily: 'monospace',
+  },
 });
+
+export default ConnectionStatus;

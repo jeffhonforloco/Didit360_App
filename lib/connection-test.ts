@@ -1,129 +1,186 @@
-import { trpcClient } from '@/lib/trpc';
+import { Platform } from 'react-native';
 
 export interface ConnectionTestResult {
   success: boolean;
-  message: string;
-  backendUrl?: string;
-  latency?: number;
   error?: string;
+  details: {
+    baseUrl: string;
+    endpoint: string;
+    method: string;
+    status?: number;
+    statusText?: string;
+    responseTime: number;
+    timestamp: string;
+  };
+  response?: any;
 }
 
 export async function testBackendConnection(): Promise<ConnectionTestResult> {
   const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  
+  // Get the base URL
+  let baseUrl: string;
+  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+  } else if (typeof window !== 'undefined' && window.location) {
+    baseUrl = `${window.location.protocol}//${window.location.host}`;
+  } else {
+    baseUrl = 'http://localhost:3000';
+  }
+  
+  const endpoint = `${baseUrl}/api`;
   
   try {
-    // Get the backend URL being used
-    const baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL || 
-      (typeof window !== 'undefined' && window.location ? 
-        `${window.location.protocol}//${window.location.host}` : 
-        'http://localhost:3000');
-    const backendUrl = `${baseUrl}/api/trpc`;
+    console.log('[ConnectionTest] Testing backend connection to:', endpoint);
     
-    console.log('[ConnectionTest] Testing connection to:', backendUrl);
+    const response = await fetch(endpoint, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      // Add timeout for web
+      ...(Platform.OS === 'web' && {
+        signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
+      })
+    });
     
-    // Test basic tRPC connection
-    const result = await trpcClient.example.hi.mutate({ name: 'Connection Test' });
+    const responseTime = Date.now() - startTime;
     
-    const latency = Date.now() - startTime;
+    console.log('[ConnectionTest] Response status:', response.status, response.statusText);
     
-    if (result?.hello) {
-      console.log('[ConnectionTest] Connection successful:', result);
-      return {
-        success: true,
-        message: `Connected successfully! Response: ${result.hello}`,
-        backendUrl,
-        latency,
-      };
-    } else {
-      console.warn('[ConnectionTest] Unexpected response:', result);
-      return {
-        success: false,
-        message: 'Unexpected response from backend',
-        backendUrl,
-        latency,
-        error: 'Invalid response format',
-      };
+    let responseData;
+    try {
+      responseData = await response.json();
+      console.log('[ConnectionTest] Response data:', responseData);
+    } catch (e) {
+      console.warn('[ConnectionTest] Failed to parse response as JSON:', e);
+      responseData = { error: 'Failed to parse response' };
     }
-  } catch (error) {
-    const latency = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    const result: ConnectionTestResult = {
+      success: response.ok,
+      details: {
+        baseUrl,
+        endpoint,
+        method: 'GET',
+        status: response.status,
+        statusText: response.statusText,
+        responseTime,
+        timestamp
+      },
+      response: responseData
+    };
+    
+    if (!response.ok) {
+      result.error = `HTTP ${response.status}: ${response.statusText}`;
+    }
+    
+    return result;
+    
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
     
     console.error('[ConnectionTest] Connection failed:', error);
     
     return {
       success: false,
-      message: `Connection failed: ${errorMessage}`,
-      latency,
-      error: errorMessage,
+      error: error.message || String(error),
+      details: {
+        baseUrl,
+        endpoint,
+        method: 'GET',
+        responseTime,
+        timestamp
+      }
     };
   }
 }
 
-export async function testAdminConnection(): Promise<ConnectionTestResult> {
+export async function testTRPCConnection(): Promise<ConnectionTestResult> {
   const startTime = Date.now();
+  const timestamp = new Date().toISOString();
+  
+  // Get the base URL
+  let baseUrl: string;
+  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+  } else if (typeof window !== 'undefined' && window.location) {
+    baseUrl = `${window.location.protocol}//${window.location.host}`;
+  } else {
+    baseUrl = 'http://localhost:3000';
+  }
+  
+  const endpoint = `${baseUrl}/api/trpc/example.hi`;
   
   try {
-    console.log('[ConnectionTest] Testing admin dashboard connection...');
+    console.log('[ConnectionTest] Testing tRPC connection to:', endpoint);
     
-    // Test admin dashboard stats endpoint
-    const stats = await trpcClient.admin.dashboard.getStats.query();
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({
+        json: { name: 'Connection Test' },
+        meta: { values: { name: ['undefined'] } }
+      }),
+      // Add timeout for web
+      ...(Platform.OS === 'web' && {
+        signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
+      })
+    });
     
-    const latency = Date.now() - startTime;
+    const responseTime = Date.now() - startTime;
     
-    if (stats?.platform) {
-      console.log('[ConnectionTest] Admin connection successful');
-      return {
-        success: true,
-        message: `Admin panel connected! Platform has ${stats.platform.activeUsers} active users`,
-        latency,
-      };
-    } else {
-      console.warn('[ConnectionTest] Unexpected admin response:', stats);
-      return {
-        success: false,
-        message: 'Admin endpoint returned unexpected data',
-        latency,
-        error: 'Invalid admin response format',
-      };
+    console.log('[ConnectionTest] tRPC Response status:', response.status, response.statusText);
+    
+    let responseData;
+    try {
+      responseData = await response.json();
+      console.log('[ConnectionTest] tRPC Response data:', responseData);
+    } catch (e) {
+      console.warn('[ConnectionTest] Failed to parse tRPC response as JSON:', e);
+      responseData = { error: 'Failed to parse response' };
     }
-  } catch (error) {
-    const latency = Date.now() - startTime;
-    const errorMessage = error instanceof Error ? error.message : String(error);
     
-    console.error('[ConnectionTest] Admin connection failed:', error);
+    const result: ConnectionTestResult = {
+      success: response.ok,
+      details: {
+        baseUrl,
+        endpoint,
+        method: 'POST',
+        status: response.status,
+        statusText: response.statusText,
+        responseTime,
+        timestamp
+      },
+      response: responseData
+    };
+    
+    if (!response.ok) {
+      result.error = `HTTP ${response.status}: ${response.statusText}`;
+    }
+    
+    return result;
+    
+  } catch (error: any) {
+    const responseTime = Date.now() - startTime;
+    
+    console.error('[ConnectionTest] tRPC Connection failed:', error);
     
     return {
       success: false,
-      message: `Admin connection failed: ${errorMessage}`,
-      latency,
-      error: errorMessage,
+      error: error.message || String(error),
+      details: {
+        baseUrl,
+        endpoint,
+        method: 'POST',
+        responseTime,
+        timestamp
+      }
     };
   }
-}
-
-export async function runFullConnectionTest(): Promise<{
-  backend: ConnectionTestResult;
-  admin: ConnectionTestResult;
-  overall: boolean;
-}> {
-  console.log('[ConnectionTest] Running full connection test...');
-  
-  const [backend, admin] = await Promise.all([
-    testBackendConnection(),
-    testAdminConnection(),
-  ]);
-  
-  const overall = backend.success && admin.success;
-  
-  console.log('[ConnectionTest] Full test results:', {
-    backend: backend.success ? '✅' : '❌',
-    admin: admin.success ? '✅' : '❌',
-    overall: overall ? '✅' : '❌',
-  });
-  
-  return {
-    backend,
-    admin,
-    overall,
-  };
 }

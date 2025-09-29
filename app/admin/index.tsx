@@ -10,6 +10,7 @@ import {
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
+import { ConnectionStatus } from '@/components/ConnectionStatus';
 
 
 export default function AdminDashboard() {
@@ -144,62 +145,7 @@ export default function AdminDashboard() {
     <AdminLayout title="Didit360 Admin Dashboard">
       <ScrollView contentContainerStyle={styles.scrollContent} testID="admin-dashboard">
         {/* Connection Status */}
-        <View style={[styles.card, { backgroundColor: '#111315', borderColor: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]} testID="connection-status">
-          <View style={styles.cardHeader}>
-            <Activity color={connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b'} size={18} />
-            <Text style={styles.cardTitle}>Frontend ↔ Backend Connection Status</Text>
-          </View>
-          <View style={styles.connectionInfo}>
-            <View style={styles.statusRow}>
-              <View style={[styles.statusDot, { backgroundColor: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]} />
-              <Text style={[styles.statusText, { color: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]}>
-                {connectionStatus === 'connected' ? '✅ Connected & Working' : connectionStatus === 'error' ? '❌ Connection Error' : '🔄 Checking...'}
-              </Text>
-              <Pressable 
-                style={styles.refreshButton}
-                onPress={() => {
-                  if (typeof window !== 'undefined') {
-                    window.location.reload();
-                  }
-                }}
-              >
-                <Text style={styles.refreshText}>🔄 Refresh</Text>
-              </Pressable>
-            </View>
-            {backendUrl && (
-              <Text style={styles.connectionDetail}>🔗 Backend URL: {backendUrl}</Text>
-            )}
-            {testResponse && (
-              <Text style={styles.connectionDetail}>✓ tRPC Test Response: {testResponse}</Text>
-            )}
-            {connectionDetails.backendConnected && (
-              <Text style={styles.connectionDetail}>✅ Backend Connection: Working</Text>
-            )}
-            {connectionDetails.adminConnected && (
-              <Text style={styles.connectionDetail}>✅ Admin API: Dashboard data loaded</Text>
-            )}
-            {connectionDetails.errors.length > 0 && (
-              <View style={styles.errorContainer}>
-                {connectionDetails.errors.map((err, idx) => (
-                  <Text key={`error-${idx}`} style={[styles.connectionDetail, { color: '#ef4444' }]}>
-                    ❌ {err}
-                  </Text>
-                ))}
-              </View>
-            )}
-            {connectionDetails.lastTest && (
-              <Text style={[styles.connectionDetail, { fontSize: 11, color: '#64748b' }]}>
-                Last tested: {new Date(connectionDetails.lastTest).toLocaleTimeString()}
-              </Text>
-            )}
-            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>
-              {connectionDetails.backendConnected && connectionDetails.adminConnected 
-                ? '✅ All systems connected and operational' 
-                : '⚠️ Some connection issues detected'}
-            </Text>
-            <Text style={[styles.connectionDetail, { fontSize: 11, color: '#64748b' }]}>Frontend ↔ tRPC ↔ Hono Backend ↔ Admin Routes</Text>
-          </View>
-        </View>
+        <ConnectionStatus showDetails={true} />
         {/* Platform Overview */}
         <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="platform-overview">
           <View style={styles.cardHeader}>
@@ -563,25 +509,7 @@ const styles = StyleSheet.create({
   auditDot: { width: 6, height: 6, borderRadius: 3 },
   auditText: { color: '#cbd5e1', flex: 1, fontSize: 13 },
   auditDate: { color: '#94a3b8', fontSize: 11 },
-  connectionInfo: { gap: 8 },
-  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  statusDot: { width: 8, height: 8, borderRadius: 4 },
-  statusText: { fontSize: 14, fontWeight: '600' as const, flex: 1 },
-  refreshButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: '#1f2937',
-    borderWidth: 1,
-    borderColor: '#374151',
-  },
-  refreshText: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontWeight: '500' as const,
-  },
-  connectionDetail: { color: '#94a3b8', fontSize: 12, marginLeft: 16 },
-  errorContainer: { marginTop: 8 },
+
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loadingText: { color: '#fff' },
   errorText: { color: '#ef4444' },
