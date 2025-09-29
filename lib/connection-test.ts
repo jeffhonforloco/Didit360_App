@@ -19,14 +19,17 @@ export async function testBackendConnection(): Promise<ConnectionTestResult> {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   
-  // Get the base URL
+  // Get the base URL - prioritize current window location for web
   let baseUrl: string;
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-  } else if (typeof window !== 'undefined' && window.location) {
+  if (typeof window !== 'undefined' && window.location) {
     baseUrl = `${window.location.protocol}//${window.location.host}`;
+    console.log('[ConnectionTest] Using current window location:', baseUrl);
+  } else if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+    console.log('[ConnectionTest] Using env variable:', baseUrl);
   } else {
     baseUrl = 'http://localhost:3000';
+    console.log('[ConnectionTest] Using localhost fallback:', baseUrl);
   }
   
   const endpoint = `${baseUrl}/api`;
@@ -102,31 +105,36 @@ export async function testTRPCConnection(): Promise<ConnectionTestResult> {
   const startTime = Date.now();
   const timestamp = new Date().toISOString();
   
-  // Get the base URL
+  // Get the base URL - prioritize current window location for web
   let baseUrl: string;
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-  } else if (typeof window !== 'undefined' && window.location) {
+  if (typeof window !== 'undefined' && window.location) {
     baseUrl = `${window.location.protocol}//${window.location.host}`;
+    console.log('[ConnectionTest] Using current window location for tRPC:', baseUrl);
+  } else if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    baseUrl = process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
+    console.log('[ConnectionTest] Using env variable for tRPC:', baseUrl);
   } else {
     baseUrl = 'http://localhost:3000';
+    console.log('[ConnectionTest] Using localhost fallback for tRPC:', baseUrl);
   }
   
-  const endpoint = `${baseUrl}/api/trpc/example.hi`;
+  const endpoint = `${baseUrl}/api/trpc/example.hiQuery`;
   
   try {
     console.log('[ConnectionTest] Testing tRPC connection to:', endpoint);
     
-    const response = await fetch(endpoint, {
-      method: 'POST',
+    // For tRPC query, we need to pass parameters as URL query params
+    const queryParams = new URLSearchParams({
+      input: JSON.stringify({ name: 'Connection Test' })
+    });
+    const fullEndpoint = `${endpoint}?${queryParams.toString()}`;
+    
+    const response = await fetch(fullEndpoint, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        json: { name: 'Connection Test' },
-        meta: { values: { name: ['undefined'] } }
-      }),
       // Add timeout for web
       ...(Platform.OS === 'web' && {
         signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
@@ -151,7 +159,7 @@ export async function testTRPCConnection(): Promise<ConnectionTestResult> {
       details: {
         baseUrl,
         endpoint,
-        method: 'POST',
+        method: 'GET',
         status: response.status,
         statusText: response.statusText,
         responseTime,
@@ -177,7 +185,7 @@ export async function testTRPCConnection(): Promise<ConnectionTestResult> {
       details: {
         baseUrl,
         endpoint,
-        method: 'POST',
+        method: 'GET',
         responseTime,
         timestamp
       }

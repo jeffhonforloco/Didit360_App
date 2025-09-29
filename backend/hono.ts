@@ -120,6 +120,10 @@ app.get("/", (c) => {
         platform: typeof process !== 'undefined' ? process.platform : 'unknown',
         nodeVersion: typeof process !== 'undefined' ? process.version : 'unknown',
         memoryUsage: typeof process !== 'undefined' && process.memoryUsage ? process.memoryUsage() : 'unknown'
+      },
+      connection: {
+        test: "Backend connection successful",
+        ready: true
       }
     };
     console.log('[API] Health check requested:', health);

@@ -6,17 +6,17 @@ import superjson from "superjson";
 export const trpc = createTRPCReact<AppRouter>();
 
 const getBaseUrl = () => {
-  // First try environment variable
-  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
-    console.log('[tRPC] Using base URL from env:', process.env.EXPO_PUBLIC_RORK_API_BASE_URL);
-    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
-  }
-
-  // For web, use the current origin (this works for both dev and production)
+  // For web, prioritize the current origin (this works for both dev and production)
   if (typeof window !== 'undefined' && window.location) {
     const baseUrl = `${window.location.protocol}//${window.location.host}`;
     console.log('[tRPC] Using web origin:', baseUrl);
     return baseUrl;
+  }
+
+  // Then try environment variable
+  if (process.env.EXPO_PUBLIC_RORK_API_BASE_URL) {
+    console.log('[tRPC] Using base URL from env:', process.env.EXPO_PUBLIC_RORK_API_BASE_URL);
+    return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
   
   // For mobile development, try common development URLs
