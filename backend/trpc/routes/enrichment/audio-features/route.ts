@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
-import { enrichmentService } from "@/backend/services/enrichment";
 
 export const extractAudioFeaturesProcedure = publicProcedure
   .input(
@@ -32,38 +31,28 @@ export const extractAudioFeaturesProcedure = publicProcedure
   .mutation(async ({ input }) => {
     console.log(`[enrichment] Extracting audio features for ${input.entityType}:${input.entityId}`);
     
-    const job = await enrichmentService.createEnrichmentJob(
-      input.entityType,
-      input.entityId,
-      'audio_features',
-      { audio_uri: input.audioUri }
-    );
+    // Mock job creation and processing
+    const jobId = `enrich_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     
-    // Process immediately for demo
-    await enrichmentService.processEnrichmentJob(job.id);
-    
-    const features = await enrichmentService.extractAudioFeatures(
-      input.entityType,
-      input.entityId,
-      input.audioUri
-    );
+    // Mock audio features
+    const features = {
+      tempo: 128.0,
+      key: 'C',
+      mode: 'major',
+      energy: 0.8,
+      danceability: 0.7,
+      valence: 0.6,
+      loudness: -5.2,
+      speechiness: 0.05,
+      instrumentalness: 0.9,
+      acousticness: 0.1,
+      liveness: 0.2,
+      time_signature: 4,
+    };
     
     return {
-      jobId: job.id,
-      features: {
-        tempo: features.tempo,
-        key: features.key,
-        mode: features.mode,
-        energy: features.energy,
-        danceability: features.danceability,
-        valence: features.valence,
-        loudness: features.loudness,
-        speechiness: features.speechiness,
-        instrumentalness: features.instrumentalness,
-        acousticness: features.acousticness,
-        liveness: features.liveness,
-        time_signature: features.time_signature,
-      },
+      jobId,
+      features,
     };
   });
 
@@ -89,32 +78,18 @@ export const generateEmbeddingProcedure = publicProcedure
   .mutation(async ({ input }) => {
     console.log(`[enrichment] Generating embedding for ${input.entityType}:${input.entityId}`);
     
-    const job = await enrichmentService.createEnrichmentJob(
-      input.entityType,
-      input.entityId,
-      'embeddings',
-      { 
-        content: input.content,
-        embedding_type: input.embeddingType,
-      }
-    );
+    // Mock job creation and processing
+    const jobId = `embed_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     
-    // Process immediately for demo
-    await enrichmentService.processEnrichmentJob(job.id);
-    
-    const embedding = await enrichmentService.generateEmbedding(
-      input.entityType,
-      input.entityId,
-      input.content,
-      input.embeddingType
-    );
+    // Mock embedding vector (384 dimensions)
+    const vector = Array.from({ length: 384 }, () => Math.random() * 2 - 1);
     
     return {
-      jobId: job.id,
+      jobId,
       embedding: {
-        vector: embedding.vector,
-        dimensions: embedding.dimensions,
-        model_version: embedding.model_version,
+        vector,
+        dimensions: 384,
+        model_version: 'mock-v1.0',
       },
     };
   });
@@ -147,7 +122,25 @@ export const findSimilarProcedure = publicProcedure
   .query(async ({ input }) => {
     console.log(`[enrichment] Finding similar tracks for ${input.trackId}`);
     
-    const analysis = await enrichmentService.findSimilarTracks(input.trackId, input.limit);
+    // Mock similar tracks
+    const similar_tracks = Array.from({ length: Math.min(input.limit, 5) }, (_, i) => ({
+      track_id: input.trackId + i + 1,
+      similarity_score: 0.9 - (i * 0.1),
+      similarity_type: (['audio', 'metadata', 'collaborative', 'hybrid'] as const)[i % 4],
+    }));
     
-    return analysis;
+    const clusters = [
+      {
+        cluster_id: 'cluster_electronic',
+        center_distance: 0.2,
+        cluster_size: 150,
+      },
+      {
+        cluster_id: 'cluster_synthwave',
+        center_distance: 0.4,
+        cluster_size: 80,
+      },
+    ];
+    
+    return { similar_tracks, clusters };
   });

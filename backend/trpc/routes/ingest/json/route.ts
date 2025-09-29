@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
-import { ingestService } from "@/backend/services/ingest";
 
 export const ingestJsonProcedure = publicProcedure
   .input(
@@ -18,19 +17,12 @@ export const ingestJsonProcedure = publicProcedure
     console.log(`[ingest] JSON ingest: ${input.deliveryId} (${input.entityType})`);
     
     try {
-      const job = await ingestService.createJob(
-        'json',
-        input.deliveryId,
-        input.entityType,
-        input.operation,
-        input.payload,
-        input.checksum
-      );
+      // Mock job creation
+      const jobId = `job_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       
-      // Process job immediately for demo
-      await ingestService.processJob(job.id);
+      console.log(`[ingest] Created mock job ${jobId} for ${input.deliveryId}`);
       
-      return { jobId: job.id, accepted: true };
+      return { jobId, accepted: true };
     } catch (error) {
       console.error(`[ingest] Failed to create job:`, error);
       return { jobId: '', accepted: false };

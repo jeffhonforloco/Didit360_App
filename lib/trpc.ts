@@ -11,10 +11,19 @@ const getBaseUrl = () => {
     return process.env.EXPO_PUBLIC_RORK_API_BASE_URL;
   }
 
-  // Fallback for development
+  // Fallback for development - try to detect the current host
   if (__DEV__) {
     console.warn('[tRPC] No EXPO_PUBLIC_RORK_API_BASE_URL found, using fallback');
-    return 'http://localhost:3000'; // Default fallback
+    
+    // For web, use the current origin
+    if (typeof window !== 'undefined' && window.location) {
+      const baseUrl = `${window.location.protocol}//${window.location.host}`;
+      console.log('[tRPC] Using web fallback:', baseUrl);
+      return baseUrl;
+    }
+    
+    // For mobile development
+    return 'http://localhost:3000';
   }
 
   throw new Error(

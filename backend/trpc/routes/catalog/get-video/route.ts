@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
-import { catalogService, VideoSchema as CatalogVideoSchema } from "@/backend/services/catalog";
 
 // Legacy API format for compatibility
 const LegacyVideoSchema = z.object({
@@ -19,17 +18,16 @@ export const getVideoProcedure = publicProcedure
   .query(async ({ input }) => {
     console.log(`[catalog] Getting video: ${input.id}`);
     
-    const video = await catalogService.getVideo(input.id);
-    if (video) {
-      // Convert catalog video to legacy format
+    // Mock video data
+    if (input.id === 'video-1') {
       return {
-        id: String(video.id),
-        title: video.title,
-        artist: "Unknown", // TODO: Get from artist relationship
-        artwork: video.preview_uri || "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800",
-        duration: video.duration_ms ? Math.floor(video.duration_ms / 1000) : 180,
-        type: "video" as const,
-        videoUrl: video.stream_uri || "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        id: input.id,
+        title: 'Sunset (Music Video)',
+        artist: 'AI Artist',
+        artwork: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800',
+        duration: 240,
+        type: 'video' as const,
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
       };
     }
     

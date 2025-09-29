@@ -70,7 +70,6 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
     { 
       enabled: debouncedQuery.length > 0,
       staleTime: 30000, // Cache results for 30 seconds
-
       refetchOnWindowFocus: false,
       retry: 2,
     }
