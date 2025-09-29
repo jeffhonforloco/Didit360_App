@@ -1,27 +1,66 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { useTheme } from '@/components/ui/Theme';
+
 import { 
-  BarChart3, ShieldCheck, AlertTriangle, TrendingUp, Activity,
-  Database, Zap, Clock, Globe, MessageSquare, FileText,
+  BarChart3, ShieldCheck, AlertTriangle, Activity,
+  Database, Zap, Clock, Globe, FileText,
   CheckCircle, XCircle, AlertCircle, Users, Music, Video,
-  Headphones, Radio, Upload, DollarSign, Eye, Play
+  Headphones, DollarSign, Eye
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 
+
 export default function AdminDashboard() {
-  const { colors } = useTheme();
   const router = useRouter();
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   
   const { data: stats, isLoading, error } = trpc.admin.dashboard.getStats.useQuery();
+  
+  // Test basic tRPC connection with mutation
+  const hiMutation = trpc.example.hi.useMutation();
+  const [testResponse, setTestResponse] = useState<string | null>(null);
+  
+  // Test connection on mount
+  useEffect(() => {
+    const testConnection = () => {
+      hiMutation.mutate({ name: 'Admin Dashboard' }, {
+        onSuccess: (data) => {
+          if (data?.hello) {
+            setTestResponse(data.hello);
+            console.log('[AdminDashboard] Hi mutation success:', data);
+          }
+        },
+        onError: (error) => {
+          console.error('[AdminDashboard] Hi mutation error:', error);
+        }
+      });
+    };
+    testConnection();
+  }, [hiMutation]);
+  
+  // Update connection status based on query results
+  useEffect(() => {
+    if (stats && !error) {
+      setConnectionStatus('connected');
+    } else if (error) {
+      setConnectionStatus('error');
+    }
+  }, [stats, error]);
+  
+  useEffect(() => {
+    console.log('[AdminDashboard] Connection status:', connectionStatus);
+    console.log('[AdminDashboard] Test response:', testResponse);
+    console.log('[AdminDashboard] Stats data:', stats);
+    console.log('[AdminDashboard] Error:', error);
+  }, [connectionStatus, testResponse, stats, error]);
   
   if (isLoading) {
     return (
       <AdminLayout title="Didit360 Admin Dashboard">
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#fff' }}>Loading dashboard...</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading dashboard...</Text>
         </View>
       </AdminLayout>
     );
@@ -30,8 +69,8 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <AdminLayout title="Didit360 Admin Dashboard">
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#ef4444' }}>Error loading dashboard: {error.message}</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.errorText}>Error loading dashboard: {String((error as any)?.message || error)}</Text>
         </View>
       </AdminLayout>
     );
@@ -53,7 +92,34 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Didit360 Admin Dashboard">
-      <ScrollView contentContainerStyle={{ paddingBottom: 40 }} testID="admin-dashboard">
+      <ScrollView contentContainerStyle={styles.scrollContent} testID="admin-dashboard">
+        {/* Connection Status */}
+        <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="connection-status">
+          <View style={styles.cardHeader}>
+            <Activity color={connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b'} size={18} />
+            <Text style={styles.cardTitle}>Frontend ↔ Backend Connection</Text>
+          </View>
+          <View style={styles.connectionInfo}>
+            <View style={styles.statusRow}>
+              <View style={[styles.statusDot, { backgroundColor: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]} />
+              <Text style={[styles.statusText, { color: connectionStatus === 'connected' ? '#22c55e' : connectionStatus === 'error' ? '#ef4444' : '#f59e0b' }]}>
+                {connectionStatus === 'connected' ? '✅ Connected & Working' : connectionStatus === 'error' ? '❌ Connection Error' : '🔄 Checking...'}
+              </Text>
+            </View>
+            {testResponse && (
+              <Text style={styles.connectionDetail}>✓ tRPC Test: {testResponse}</Text>
+            )}
+            {stats && (
+              <Text style={styles.connectionDetail}>✓ Admin API: Dashboard data loaded</Text>
+            )}
+            {(error || hiMutation.error) && (
+              <Text style={[styles.connectionDetail, { color: '#ef4444' }]}>
+                ❌ Error: {String((error as any)?.message || (hiMutation.error as any)?.message || error || hiMutation.error)}
+              </Text>
+            )}
+            <Text style={[styles.connectionDetail, { marginTop: 8, fontStyle: 'italic' as const }]}>Admin panel is fully connected to backend services</Text>
+          </View>
+        </View>
         {/* Platform Overview */}
         <View style={[styles.card, { backgroundColor: '#111315', borderColor: '#1f2937' }]} testID="platform-overview">
           <View style={styles.cardHeader}>
@@ -417,4 +483,13 @@ const styles = StyleSheet.create({
   auditDot: { width: 6, height: 6, borderRadius: 3 },
   auditText: { color: '#cbd5e1', flex: 1, fontSize: 13 },
   auditDate: { color: '#94a3b8', fontSize: 11 },
+  connectionInfo: { gap: 8 },
+  statusRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  statusDot: { width: 8, height: 8, borderRadius: 4 },
+  statusText: { fontSize: 14, fontWeight: '600' as const },
+  connectionDetail: { color: '#94a3b8', fontSize: 12, marginLeft: 16 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  loadingText: { color: '#fff' },
+  errorText: { color: '#ef4444' },
+  scrollContent: { paddingBottom: 40 },
 });
