@@ -1,21 +1,86 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { trpc } from '@/lib/trpc';
 
 const SEARCH_HISTORY_KEY = 'search_history';
 const MAX_SEARCH_HISTORY = 8;
 
+type SearchType = 'all' | 'track' | 'video' | 'artist' | 'release' | 'podcast' | 'episode' | 'audiobook' | 'book' | 'image';
+
+interface SearchResult {
+  id: string;
+  type: string;
+  title: string;
+  subtitle?: string;
+  artwork?: string;
+  version: number;
+  relevance_score?: number;
+  canonical_id: string;
+  quality_score: number;
+}
+
 interface SearchState {
   recentSearches: string[];
   isLoading: boolean;
+  searchQuery: string;
+  searchType: SearchType;
+  searchResults: SearchResult[];
+  isSearching: boolean;
+  searchError: string | null;
   addToSearchHistory: (query: string) => void;
   removeFromSearchHistory: (query: string) => void;
   clearSearchHistory: () => void;
+  setSearchQuery: (query: string) => void;
+  setSearchType: (type: SearchType) => void;
+  performSearch: (query: string, type?: SearchType) => void;
+  clearSearch: () => void;
 }
 
 export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchType, setSearchType] = useState<SearchType>('all');
+  const [debouncedQuery, setDebouncedQuery] = useState<string>('');
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Search query using tRPC
+  const searchQuery_tRPC = trpc.catalog.search.useQuery(
+    { 
+      q: debouncedQuery, 
+      type: searchType, 
+      limit: 50 
+    },
+    { 
+      enabled: debouncedQuery.length > 0,
+      staleTime: 30000, // Cache results for 30 seconds
+    }
+  );
+
+  // Handle search errors and success
+  useEffect(() => {
+    if (searchQuery_tRPC.error) {
+      console.error('[SearchContext] Search error:', searchQuery_tRPC.error);
+      setSearchError(searchQuery_tRPC.error.message || 'Search failed');
+    } else if (searchQuery_tRPC.data) {
+      setSearchError(null);
+    }
+  }, [searchQuery_tRPC.error, searchQuery_tRPC.data]);
+
+  const searchResults = useMemo(() => {
+    return (searchQuery_tRPC.data || []) as SearchResult[];
+  }, [searchQuery_tRPC.data]);
+
+  const isSearching = searchQuery_tRPC.isLoading;
 
   const loadSearchHistory = useCallback(async () => {
     try {
@@ -77,11 +142,39 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
     saveSearchHistory([]);
   }, [saveSearchHistory]);
 
+  const performSearch = useCallback((query: string, type: SearchType = 'all') => {
+    console.log('[SearchContext] Performing search:', { query, type });
+    setSearchQuery(query);
+    setSearchType(type);
+    setSearchError(null);
+    
+    // Add to search history if query is not empty
+    if (query.trim().length > 0) {
+      addToSearchHistory(query.trim());
+    }
+  }, [addToSearchHistory]);
+
+  const clearSearch = useCallback(() => {
+    console.log('[SearchContext] Clearing search');
+    setSearchQuery('');
+    setDebouncedQuery('');
+    setSearchError(null);
+  }, []);
+
   return {
     recentSearches,
     isLoading,
+    searchQuery,
+    searchType,
+    searchResults,
+    isSearching,
+    searchError,
     addToSearchHistory,
     removeFromSearchHistory,
     clearSearchHistory,
+    setSearchQuery,
+    setSearchType,
+    performSearch,
+    clearSearch,
   };
 });

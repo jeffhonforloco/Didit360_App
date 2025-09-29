@@ -42,7 +42,7 @@ import {
   allPodcastEpisodes,
 } from "@/data/mockData";
 import type { Track } from "@/types";
-import { trpc, trpcClient } from "@/lib/trpc";
+import { trpcClient } from "@/lib/trpc";
 
 const browseCategories: Array<{ name: string; color: string; image: string; route?: string }> = [
   {
@@ -213,9 +213,7 @@ function ContextMenu({ visible, onClose, track, position }: ContextMenuProps) {
 }
 
 export default function SearchScreen() {
-  const [searchQuery, setSearchQuery] = useState<string>("");
   const [activeFilter, setActiveFilter] = useState<FilterTab>("Top");
-  const [debouncedQuery, setDebouncedQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const [contextMenu, setContextMenu] = useState<{
     visible: boolean;
@@ -223,16 +221,22 @@ export default function SearchScreen() {
     position: { x: number; y: number };
   }>({ visible: false, track: null, position: { x: 0, y: 0 } });
   const { playTrack } = usePlayer();
-  const { recentSearches, addToSearchHistory, removeFromSearchHistory, clearSearchHistory } = useSearch();
+  const { 
+    recentSearches, 
+    removeFromSearchHistory, 
+    clearSearchHistory,
+    searchQuery,
+    searchType,
+    searchResults,
+    isSearching,
+    searchError,
+    setSearchQuery,
+    setSearchType,
+    performSearch,
+    clearSearch
+  } = useSearch();
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef<TextInput>(null);
-
-  React.useEffect(() => {
-    const id = setTimeout(() => {
-      setDebouncedQuery(searchQuery.trim());
-    }, 250);
-    return () => clearTimeout(id);
-  }, [searchQuery]);
 
   const filteredTracks = allTracks.filter(
     (track) =>
@@ -283,7 +287,7 @@ export default function SearchScreen() {
   };
 
   const handleRecentSearchPress = (query: string) => {
-    setSearchQuery(query);
+    performSearch(query, searchType);
     setIsSearchFocused(false);
     Keyboard.dismiss();
   };
@@ -329,27 +333,29 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
-  const backendType = useMemo(() => {
-    switch (activeFilter) {
-      case "Songs":
-        return "track" as const;
-      case "Artists":
-        return "artist" as const;
-      case "Albums":
-        return "release" as const;
-      case "Podcasts":
-        return "podcast" as const;
-      default:
-        return "all" as const;
+  // Update search type when filter changes
+  React.useEffect(() => {
+    const newType = (() => {
+      switch (activeFilter) {
+        case "Songs":
+          return "track" as const;
+        case "Artists":
+          return "artist" as const;
+        case "Albums":
+          return "release" as const;
+        case "Podcasts":
+          return "podcast" as const;
+        default:
+          return "all" as const;
+      }
+    })();
+    
+    if (newType !== searchType) {
+      setSearchType(newType);
     }
-  }, [activeFilter]);
+  }, [activeFilter, searchType, setSearchType]);
 
-  const backendResults = trpc.catalog.search.useQuery(
-    { q: debouncedQuery || "", type: backendType, limit: 20 },
-    { enabled: debouncedQuery.length > 0 }
-  );
-
-  const isUsingBackend = useMemo(() => debouncedQuery.length > 0, [debouncedQuery]);
+  const isUsingBackend = useMemo(() => searchQuery.length > 0, [searchQuery]);
 
   const typePill = (label: string) => (
     <View style={styles.typePill}>
@@ -592,7 +598,7 @@ export default function SearchScreen() {
             onSubmitEditing={() => {
               const q = searchQuery.trim();
               if (q.length > 0) {
-                addToSearchHistory(q);
+                performSearch(q, searchType);
               }
             }}
             autoCapitalize="none"
@@ -601,7 +607,7 @@ export default function SearchScreen() {
             testID="search-input"
           />
           {searchQuery.length > 0 ? (
-            <TouchableOpacity onPress={() => setSearchQuery("")} accessibilityLabel="Clear search" testID="clear-search">
+            <TouchableOpacity onPress={() => clearSearch()} accessibilityLabel="Clear search" testID="clear-search">
               <X size={20} color="#999" />
             </TouchableOpacity>
           ) : (
@@ -631,35 +637,28 @@ export default function SearchScreen() {
             </View>
             {(() => {
               if (isUsingBackend) {
-                if (backendResults.isLoading) {
+                if (isSearching) {
                   return (
                     <Text style={styles.resultsTitle} testID="search-loading">
                       Searching…
                     </Text>
                   );
                 }
-                if (backendResults.error) {
+                if (searchError) {
                   return (
                     <Text style={styles.resultsTitle} testID="search-error">
-                      Search error
+                      Search error: {searchError}
                     </Text>
                   );
                 }
-                const data = (backendResults.data ?? []) as Array<{
-                  id: string;
-                  type: string;
-                  title: string;
-                  subtitle?: string;
-                  artwork?: string;
-                }>;
-                if (data.length === 0) {
+                if (searchResults.length === 0) {
                   return (
                     <View style={styles.marginTop16}>{renderNotFound()}</View>
                   );
                 }
                 return (
                   <FlatList
-                    data={data}
+                    data={searchResults}
                     keyExtractor={(item) => `${item.type}-${item.id}`}
                     scrollEnabled={false}
                     style={styles.resultsList}
