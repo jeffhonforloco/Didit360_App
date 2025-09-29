@@ -6,10 +6,36 @@ import {
   BookOpen, DollarSign, Globe, Calendar, Download, Play,
   Eye, Heart, Share2, MessageSquare, Clock, Zap
 } from 'lucide-react-native';
+import { trpc } from '@/lib/trpc';
 
 export default function AdminAnalytics() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>('7d');
   const [selectedMetric, setSelectedMetric] = useState<string>('streams');
+  
+  const { data: analytics, isLoading, error } = trpc.admin.analytics.getAnalytics.useQuery({
+    period: selectedPeriod as any,
+    metric: selectedMetric as any,
+  });
+  
+  if (isLoading) {
+    return (
+      <AdminLayout title="Analytics & Reports">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#fff' }}>Loading analytics...</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+  
+  if (error) {
+    return (
+      <AdminLayout title="Analytics & Reports">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#ef4444' }}>Error loading analytics: {error.message}</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
 
   const periods = [
     { key: '24h', label: '24 Hours' },
@@ -54,27 +80,27 @@ export default function AdminAnalytics() {
           <View style={styles.metricsGrid}>
             <View style={styles.metricCard}>
               <Play color="#22c55e" size={24} />
-              <Text style={styles.metricValue}>847M</Text>
+              <Text style={styles.metricValue}>{analytics?.keyMetrics.totalStreams.value}</Text>
               <Text style={styles.metricLabel}>Total Streams</Text>
-              <Text style={styles.metricChange}>+12.4% ↗</Text>
+              <Text style={styles.metricChange}>{analytics?.keyMetrics.totalStreams.change}</Text>
             </View>
             <View style={styles.metricCard}>
               <Users color="#3b82f6" size={24} />
-              <Text style={styles.metricValue}>2.4M</Text>
+              <Text style={styles.metricValue}>{analytics?.keyMetrics.activeUsers.value}</Text>
               <Text style={styles.metricLabel}>Active Users</Text>
-              <Text style={styles.metricChange}>+8.7% ↗</Text>
+              <Text style={styles.metricChange}>{analytics?.keyMetrics.activeUsers.change}</Text>
             </View>
             <View style={styles.metricCard}>
               <DollarSign color="#f59e0b" size={24} />
-              <Text style={styles.metricValue}>$1.2M</Text>
+              <Text style={styles.metricValue}>{analytics?.keyMetrics.revenue.value}</Text>
               <Text style={styles.metricLabel}>Revenue</Text>
-              <Text style={styles.metricChange}>+15.2% ↗</Text>
+              <Text style={styles.metricChange}>{analytics?.keyMetrics.revenue.change}</Text>
             </View>
             <View style={styles.metricCard}>
               <Clock color="#8b5cf6" size={24} />
-              <Text style={styles.metricValue}>4.2h</Text>
+              <Text style={styles.metricValue}>{analytics?.keyMetrics.avgSession.value}</Text>
               <Text style={styles.metricLabel}>Avg. Session</Text>
-              <Text style={styles.metricChange}>+3.1% ↗</Text>
+              <Text style={styles.metricChange}>{analytics?.keyMetrics.avgSession.change}</Text>
             </View>
           </View>
         </View>
@@ -86,33 +112,33 @@ export default function AdminAnalytics() {
             <View style={styles.contentCard}>
               <Music color="#3b82f6" size={20} />
               <View style={styles.contentStats}>
-                <Text style={styles.contentValue}>1.2M</Text>
+                <Text style={styles.contentValue}>{analytics?.contentPerformance.audioTracks.count}</Text>
                 <Text style={styles.contentLabel}>Audio Tracks</Text>
-                <Text style={styles.contentMetric}>847M streams</Text>
+                <Text style={styles.contentMetric}>{analytics?.contentPerformance.audioTracks.streams}</Text>
               </View>
             </View>
             <View style={styles.contentCard}>
               <Video color="#ef4444" size={20} />
               <View style={styles.contentStats}>
-                <Text style={styles.contentValue}>340K</Text>
+                <Text style={styles.contentValue}>{analytics?.contentPerformance.videos.count}</Text>
                 <Text style={styles.contentLabel}>Videos</Text>
-                <Text style={styles.contentMetric}>234M views</Text>
+                <Text style={styles.contentMetric}>{analytics?.contentPerformance.videos.views}</Text>
               </View>
             </View>
             <View style={styles.contentCard}>
               <Headphones color="#22c55e" size={20} />
               <View style={styles.contentStats}>
-                <Text style={styles.contentValue}>89K</Text>
+                <Text style={styles.contentValue}>{analytics?.contentPerformance.podcasts.count}</Text>
                 <Text style={styles.contentLabel}>Podcasts</Text>
-                <Text style={styles.contentMetric}>45M listens</Text>
+                <Text style={styles.contentMetric}>{analytics?.contentPerformance.podcasts.listens}</Text>
               </View>
             </View>
             <View style={styles.contentCard}>
               <BookOpen color="#8b5cf6" size={20} />
               <View style={styles.contentStats}>
-                <Text style={styles.contentValue}>45K</Text>
+                <Text style={styles.contentValue}>{analytics?.contentPerformance.audiobooks.count}</Text>
                 <Text style={styles.contentLabel}>Audiobooks</Text>
-                <Text style={styles.contentMetric}>12M hours</Text>
+                <Text style={styles.contentMetric}>{analytics?.contentPerformance.audiobooks.hours}</Text>
               </View>
             </View>
           </View>

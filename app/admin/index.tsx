@@ -9,10 +9,33 @@ import {
   Headphones, Radio, Upload, DollarSign, Eye, Play
 } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { trpc } from '@/lib/trpc';
 
 export default function AdminDashboard() {
   const { colors } = useTheme();
   const router = useRouter();
+  
+  const { data: stats, isLoading, error } = trpc.admin.dashboard.getStats.useQuery();
+  
+  if (isLoading) {
+    return (
+      <AdminLayout title="Didit360 Admin Dashboard">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#fff' }}>Loading dashboard...</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+  
+  if (error) {
+    return (
+      <AdminLayout title="Didit360 Admin Dashboard">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#ef4444' }}>Error loading dashboard: {error.message}</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
 
   const platformActions = [
     { id: 'manage-users', label: 'Manage Users', icon: Users, color: '#3b82f6', route: '/admin/users' },
@@ -40,22 +63,22 @@ export default function AdminDashboard() {
           <View style={styles.metricsGrid}>
             <View style={styles.metricItem}>
               <Users color="#3b82f6" size={16} />
-              <Text style={[styles.metricValue, { color: '#3b82f6' }]}>2.4M</Text>
+              <Text style={[styles.metricValue, { color: '#3b82f6' }]}>{stats?.platform.activeUsers}</Text>
               <Text style={styles.metricLabel}>Active Users</Text>
             </View>
             <View style={styles.metricItem}>
               <Music color="#22c55e" size={16} />
-              <Text style={styles.metricValue}>847K</Text>
+              <Text style={styles.metricValue}>{stats?.platform.tracks}</Text>
               <Text style={styles.metricLabel}>Tracks</Text>
             </View>
             <View style={styles.metricItem}>
               <Video color="#8b5cf6" size={16} />
-              <Text style={[styles.metricValue, { color: '#8b5cf6' }]}>124K</Text>
+              <Text style={[styles.metricValue, { color: '#8b5cf6' }]}>{stats?.platform.videos}</Text>
               <Text style={styles.metricLabel}>Videos</Text>
             </View>
             <View style={styles.metricItem}>
               <Headphones color="#f59e0b" size={16} />
-              <Text style={[styles.metricValue, { color: '#f59e0b' }]}>45K</Text>
+              <Text style={[styles.metricValue, { color: '#f59e0b' }]}>{stats?.platform.podcasts}</Text>
               <Text style={styles.metricLabel}>Podcasts</Text>
             </View>
           </View>
@@ -71,22 +94,22 @@ export default function AdminDashboard() {
             <View style={styles.statRow}>
               <View style={[styles.frameworkDot, { backgroundColor: '#22c55e' }]} />
               <Text style={styles.statLabel}>Daily Streams</Text>
-              <Text style={[styles.statValue, { color: '#22c55e' }]}>12.4M</Text>
+              <Text style={[styles.statValue, { color: '#22c55e' }]}>{stats?.content.dailyStreams}</Text>
             </View>
             <View style={styles.statRow}>
               <View style={[styles.frameworkDot, { backgroundColor: '#3b82f6' }]} />
               <Text style={styles.statLabel}>New Uploads (24h)</Text>
-              <Text style={[styles.statValue, { color: '#3b82f6' }]}>2,847</Text>
+              <Text style={[styles.statValue, { color: '#3b82f6' }]}>{stats?.content.newUploads}</Text>
             </View>
             <View style={styles.statRow}>
               <View style={[styles.frameworkDot, { backgroundColor: '#f59e0b' }]} />
               <Text style={styles.statLabel}>Pending Moderation</Text>
-              <Text style={[styles.statValue, { color: '#f59e0b' }]}>156</Text>
+              <Text style={[styles.statValue, { color: '#f59e0b' }]}>{stats?.content.pendingModeration}</Text>
             </View>
             <View style={styles.statRow}>
               <View style={[styles.frameworkDot, { backgroundColor: '#8b5cf6' }]} />
               <Text style={styles.statLabel}>Live Streams</Text>
-              <Text style={[styles.statValue, { color: '#8b5cf6' }]}>89</Text>
+              <Text style={[styles.statValue, { color: '#8b5cf6' }]}>{stats?.content.liveStreams}</Text>
             </View>
           </View>
         </View>
@@ -99,14 +122,14 @@ export default function AdminDashboard() {
           </View>
           <View style={styles.revenueStats}>
             <View style={styles.revenueItem}>
-              <Text style={[styles.revenueValue, { color: '#22c55e' }]}>$847K</Text>
+              <Text style={[styles.revenueValue, { color: '#22c55e' }]}>{stats?.revenue.monthly.value}</Text>
               <Text style={styles.revenueLabel}>Monthly Revenue</Text>
-              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>+12.4%</Text>
+              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>{stats?.revenue.monthly.change}</Text>
             </View>
             <View style={styles.revenueItem}>
-              <Text style={styles.revenueValue}>$234K</Text>
+              <Text style={styles.revenueValue}>{stats?.revenue.payouts.value}</Text>
               <Text style={styles.revenueLabel}>Creator Payouts</Text>
-              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>+8.7%</Text>
+              <Text style={[styles.revenueChange, { color: '#22c55e' }]}>{stats?.revenue.payouts.change}</Text>
             </View>
           </View>
         </View>

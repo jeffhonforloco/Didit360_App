@@ -7,6 +7,7 @@ import {
   Mail, Calendar, MapPin, Crown, Eye, Edit3, Trash2,
   AlertTriangle, CheckCircle, Clock, Users
 } from 'lucide-react-native';
+import { trpc } from '@/lib/trpc';
 
 interface UserRow { 
   id: string; 
@@ -37,15 +38,35 @@ export default function AdminUsers() {
   const [selectedRole, setSelectedRole] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const filteredUsers = useMemo(() => {
-    return mockUsers.filter(user => {
-      const matchesSearch = user.name.toLowerCase().includes(search.toLowerCase()) || 
-                           user.email.toLowerCase().includes(search.toLowerCase());
-      const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-      const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
-      return matchesSearch && matchesRole && matchesStatus;
-    });
-  }, [search, selectedRole, selectedStatus, mockUsers]);
+  const { data: usersData, isLoading, error } = trpc.admin.users.getUsers.useQuery({
+    search: search || undefined,
+    role: selectedRole !== 'all' ? selectedRole as any : undefined,
+    status: selectedStatus !== 'all' ? selectedStatus as any : undefined,
+    limit: 50,
+    offset: 0,
+  });
+
+  if (isLoading) {
+    return (
+      <AdminLayout title="User Management">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#fff' }}>Loading users...</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout title="User Management">
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#ef4444' }}>Error loading users: {error.message}</Text>
+        </View>
+      </AdminLayout>
+    );
+  }
+
+  const users = usersData?.users || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -148,14 +169,14 @@ export default function AdminUsers() {
         {/* Users List */}
         <View style={[styles.usersContainer, { backgroundColor: '#111315', borderColor: '#1f2937' }]}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Users ({filteredUsers.length})</Text>
+            <Text style={styles.headerTitle}>Users ({usersData?.total || 0})</Text>
             <Pressable testID="add-user" style={styles.addBtn}>
               <UserPlus color="#fff" size={16} />
               <Text style={styles.addText}>Add User</Text>
             </Pressable>
           </View>
           
-          {filteredUsers.map((user) => {
+          {users.map((user) => {
             const RoleIcon = getRoleIcon(user.role);
             return (
               <View key={user.id} style={[styles.userRow, { backgroundColor: '#0b0f12', borderColor: '#1f2937' }]} testID={`user-${user.id}`}>

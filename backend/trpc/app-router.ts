@@ -22,6 +22,9 @@ import { mixmindNextProcedure } from "./routes/mixmind/sessions/next/route";
 
 // Admin
 import { getDDLProcedure } from "./routes/admin/db/ddl/route";
+import { getUsersProcedure } from "./routes/admin/users/get-users/route";
+import { getAnalyticsProcedure } from "./routes/admin/analytics/get-analytics/route";
+import { getDashboardStatsProcedure } from "./routes/admin/dashboard/get-stats/route";
 
 // Enrichment
 import { 
@@ -73,6 +76,15 @@ export const appRouter = createTRPCRouter({
   admin: createTRPCRouter({
     db: createTRPCRouter({
       ddl: getDDLProcedure,
+    }),
+    users: createTRPCRouter({
+      getUsers: getUsersProcedure,
+    }),
+    analytics: createTRPCRouter({
+      getAnalytics: getAnalyticsProcedure,
+    }),
+    dashboard: createTRPCRouter({
+      getStats: getDashboardStatsProcedure,
     }),
   }),
   djInstinct: createTRPCRouter({
