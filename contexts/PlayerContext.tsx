@@ -5,6 +5,7 @@ import type { Track } from "@/types";
 import { allTracks } from "@/data/mockData";
 import { router } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import { audioEngine } from "@/lib/AudioEngine";
 import { trpcClient } from "@/lib/trpc";
 
@@ -19,6 +20,8 @@ interface PlayerState {
   addToQueue: (track: Track) => void;
   clearQueue: () => void;
   stopPlayer: () => void;
+  showAdModal: boolean;
+  closeAdModal: () => void;
 }
 
 export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => {
@@ -28,9 +31,11 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     crossfadeSeconds: 6,
     gaplessPlayback: true,
   };
+  const subscription = useSubscription();
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [queue, setQueue] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const [showAdModal, setShowAdModal] = useState<boolean>(false);
   const guestTimerRef = useRef<null | ReturnType<typeof setTimeout>>(null);
   const GUEST_LIMIT_MS = 180000;
 
@@ -225,6 +230,25 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     console.log('[Player] ===== SKIP NEXT CALLED =====');
     console.log('[Player] Queue length:', queue.length);
     
+    // Check skip limit for free users
+    if (subscription.tier === 'free' && !subscription.canSkip()) {
+      console.log('[Player] Skip limit reached for free user');
+      router.push('/subscription' as any);
+      return;
+    }
+    
+    // Record skip for free users
+    if (subscription.tier === 'free') {
+      subscription.recordSkip();
+    }
+    
+    // Check if ad should be shown
+    if (subscription.shouldShowAd()) {
+      console.log('[Player] Showing ad before skip');
+      setShowAdModal(true);
+      return;
+    }
+    
     if (queue.length > 0) {
       const nextTrack = queue[0];
       const remaining = queue.slice(1);
@@ -305,7 +329,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     }
     
     console.log('[Player] ===== SKIP NEXT FINISHED =====');
-  }, [queue, startGuestTimer, saveLastPlayed, currentTrack]);
+  }, [queue, startGuestTimer, saveLastPlayed, currentTrack, subscription]);
 
   const skipPrevious = useCallback(async () => {
     console.log('[Player] ===== SKIP PREVIOUS CALLED =====');
@@ -396,6 +420,10 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     } catch (error) {
       console.error("Error clearing last played track:", error);
     }
+  }, []);
+  
+  const closeAdModal = useCallback(() => {
+    setShowAdModal(false);
   }, []);
 
   useEffect(() => {
@@ -489,5 +517,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     addToQueue,
     clearQueue,
     stopPlayer,
+    showAdModal,
+    closeAdModal,
   };
 });

@@ -14,9 +14,10 @@ import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { audioEngine, Progress } from "@/lib/AudioEngine";
 import { searchArtists, popularArtists } from "@/data/mockData";
+import AdPlayer from "@/components/AdPlayer";
 
 export function MiniPlayer() {
-  const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer } = usePlayer();
+  const { currentTrack, isPlaying, togglePlayPause, skipNext, stopPlayer, showAdModal, closeAdModal } = usePlayer();
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
 
@@ -245,7 +246,13 @@ export function MiniPlayer() {
   console.log('[MiniPlayer] Rendering - Track:', currentTrack.title, 'isPlaying:', isPlaying, 'Type:', currentTrack.type, 'isVideo:', currentTrack.isVideo);
 
   return (
-    <View
+    <>
+      <AdPlayer
+        visible={showAdModal}
+        onClose={closeAdModal}
+        onComplete={closeAdModal}
+      />
+      <View
       style={[styles.container, { bottom: tabBarHeight }]}
       testID="mini-player"
       accessibilityRole="summary"
@@ -372,6 +379,7 @@ export function MiniPlayer() {
         </TouchableOpacity>
       </View>
     </View>
+    </>
   );
 }
 
