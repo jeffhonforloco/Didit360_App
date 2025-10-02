@@ -2343,6 +2343,14 @@ export const browseCategories: CategoryItem[] = [
     description: "Curated collections for every mood",
     route: "/playlists",
   },
+  {
+    id: "new-releases",
+    title: "New Releases",
+    colors: ["#1DB954", "#1ED760"] as const,
+    image: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=400&h=400&fit=crop",
+    description: "Fresh tracks and videos just dropped",
+    route: "/new-releases",
+  },
 ];
 
 // History data
