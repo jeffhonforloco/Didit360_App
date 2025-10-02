@@ -6,7 +6,7 @@ const signupInputSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   displayName: z.string().min(1),
-  avatarUrl: z.string().nullable().optional(),
+  avatarUrl: z.union([z.string().url(), z.null()]).optional(),
 });
 
 const signupOutputSchema = z.object({
