@@ -132,25 +132,44 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const pathname = usePathname();
-  const [isReady, setIsReady] = React.useState(false);
+  const [appReady, setAppReady] = React.useState(false);
   
-  // Install image guard on app start
   useEffect(() => {
     if (__DEV__) {
       installImageGuard();
     }
   }, []);
   
-  // Initialize app
   useEffect(() => {
     const initApp = async () => {
       try {
         console.log('[RootLayout] Initializing app...');
-        setIsReady(true);
+        
+        const sessionId = genId('sess');
+        const traceId = genId('trace');
+        (globalThis as any).__OBS = { sessionId, traceId };
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        setAppReady(true);
+        
+        setTimeout(() => {
+          const t0 = Date.now();
+          SplashScreen.hideAsync().finally(() => {
+            try {
+              const ms = Date.now() - t0;
+              logPerf('splash_hide', ms);
+            } catch (e) {
+              console.log('[RootLayout] splash perf error', e);
+            }
+          });
+        }, 50);
+        
         console.log('[RootLayout] App ready');
       } catch (error) {
         console.error('[RootLayout] Init error:', error);
-        setIsReady(true);
+        setAppReady(true);
+        SplashScreen.hideAsync();
       }
     };
     
@@ -165,36 +184,12 @@ export default function RootLayout() {
     }
   }, [pathname]);
 
-  useEffect(() => {
-    try {
-      const sessionId = genId('sess');
-      const traceId = genId('trace');
-      (globalThis as any).__OBS = { sessionId, traceId };
-    } catch (e) {
-      console.log('[RootLayout] session init error', e);
-    }
-  }, []);
-
-  useEffect(() => {
-    try {
-      const t0 = Date.now();
-      SplashScreen.hideAsync().finally(() => {
-        try {
-          const ms = Date.now() - t0;
-          logPerf('splash_hide', ms);
-        } catch (e) {
-          console.log('[RootLayout] splash perf error', e);
-        }
-      });
-    } catch (e) {
-      console.log('[RootLayout] splash hide error', e);
-    }
-  }, []);
-
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
-  if (!isReady) {
-    return null;
+  if (!appReady) {
+    return (
+      <View style={[styles.container, styles.loading]} />
+    );
   }
 
   return (
@@ -237,11 +232,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#0B0A14',
   },
   loading: {
     backgroundColor: '#0B0A14',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   loadingContent: {
     alignItems: 'center',
