@@ -14,6 +14,7 @@ import { SecurityProvider } from "@/contexts/SecurityContext";
 import { UXProvider } from "@/contexts/UXContext";
 import { SecretsProvider } from "@/contexts/SecretsContext";
 import { DJInstinctProvider } from "@/contexts/DJInstinctContext";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
 import { ToastProvider, ToastViewport } from "@/components/ui/Toast";
 import { trpc, trpcClient } from "@/lib/trpc";
@@ -126,6 +127,14 @@ function RootLayoutNav() {
           animation: "slide_from_bottom"
         }} 
       />
+      <Stack.Screen 
+        name="subscription" 
+        options={{ 
+          presentation: "modal",
+          headerShown: false,
+          animation: "slide_from_bottom"
+        }} 
+      />
     </Stack>
   );
 }
@@ -194,29 +203,31 @@ export default function RootLayout() {
         <RootContainer style={styles.container}>
           <ErrorBoundary>
             <UserProvider>
-              <SecurityProvider>
-                <UXProvider>
-                  <SearchProvider>
-                    <MixMindProvider>
-                      <OfflineProvider>
-                        <PlayerProvider>
-                          <DJInstinctProvider>
-                            <LibraryProvider>
-                              <ToastProvider>
-                                <SecretsProvider>
-                                  <RootLayoutNav />
-                                  <MiniPlayer />
-                                  <ToastViewport />
-                                </SecretsProvider>
-                              </ToastProvider>
-                            </LibraryProvider>
-                          </DJInstinctProvider>
-                        </PlayerProvider>
-                      </OfflineProvider>
-                    </MixMindProvider>
-                  </SearchProvider>
-                </UXProvider>
-              </SecurityProvider>
+              <SubscriptionProvider>
+                <SecurityProvider>
+                  <UXProvider>
+                    <SearchProvider>
+                      <MixMindProvider>
+                        <OfflineProvider>
+                          <PlayerProvider>
+                            <DJInstinctProvider>
+                              <LibraryProvider>
+                                <ToastProvider>
+                                  <SecretsProvider>
+                                    <RootLayoutNav />
+                                    <MiniPlayer />
+                                    <ToastViewport />
+                                  </SecretsProvider>
+                                </ToastProvider>
+                              </LibraryProvider>
+                            </DJInstinctProvider>
+                          </PlayerProvider>
+                        </OfflineProvider>
+                      </MixMindProvider>
+                    </SearchProvider>
+                  </UXProvider>
+                </SecurityProvider>
+              </SubscriptionProvider>
             </UserProvider>
           </ErrorBoundary>
         </RootContainer>
