@@ -149,21 +149,17 @@ export default function RootLayout() {
         const traceId = genId('trace');
         (globalThis as any).__OBS = { sessionId, traceId };
         
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
         setAppReady(true);
         
-        setTimeout(() => {
-          const t0 = Date.now();
-          SplashScreen.hideAsync().finally(() => {
-            try {
-              const ms = Date.now() - t0;
-              logPerf('splash_hide', ms);
-            } catch (e) {
-              console.log('[RootLayout] splash perf error', e);
-            }
-          });
-        }, 50);
+        const t0 = Date.now();
+        SplashScreen.hideAsync().finally(() => {
+          try {
+            const ms = Date.now() - t0;
+            logPerf('splash_hide', ms);
+          } catch (e) {
+            console.log('[RootLayout] splash perf error', e);
+          }
+        });
         
         console.log('[RootLayout] App ready');
       } catch (error) {

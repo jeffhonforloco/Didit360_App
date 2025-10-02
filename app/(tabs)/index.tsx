@@ -142,7 +142,9 @@ export default function HomeScreen() {
       return sections;
     };
 
-    setPersonalizedSections(generatePersonalizedContent());
+    setTimeout(() => {
+      setPersonalizedSections(generatePersonalizedContent());
+    }, 0);
   }, [currentTrack, userRecentlyPlayed]);
 
   const quickAccessItems = useMemo(() => {

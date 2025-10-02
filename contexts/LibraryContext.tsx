@@ -73,25 +73,15 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
   const loadLibraryData = useCallback(async () => {
     if (!profile?.email) return;
     
-    try {
-      const [
-        playlistsData, 
-        favoritesData, 
-        downloadsData, 
-        recentData,
-        audiobooksData,
-        podcastsData,
-        mixmindData
-      ] = await Promise.all([
-        AsyncStorage.getItem(getUserKey("playlists")),
-        AsyncStorage.getItem(getUserKey("favorites")),
-        AsyncStorage.getItem(getUserKey("downloads")),
-        AsyncStorage.getItem(getUserKey("recentlyPlayed")),
-        AsyncStorage.getItem(getUserKey("audiobooks")),
-        AsyncStorage.getItem(getUserKey("podcasts")),
-        AsyncStorage.getItem(getUserKey("mixmind_sets")),
-      ]);
-
+    Promise.all([
+      AsyncStorage.getItem(getUserKey("playlists")),
+      AsyncStorage.getItem(getUserKey("favorites")),
+      AsyncStorage.getItem(getUserKey("downloads")),
+      AsyncStorage.getItem(getUserKey("recentlyPlayed")),
+      AsyncStorage.getItem(getUserKey("audiobooks")),
+      AsyncStorage.getItem(getUserKey("podcasts")),
+      AsyncStorage.getItem(getUserKey("mixmind_sets")),
+    ]).then(([playlistsData, favoritesData, downloadsData, recentData, audiobooksData, podcastsData, mixmindData]) => {
       if (playlistsData) setPlaylists(JSON.parse(playlistsData));
       if (favoritesData) setFavorites(JSON.parse(favoritesData));
       if (downloadsData) setDownloads(JSON.parse(downloadsData));
@@ -99,9 +89,9 @@ export const [LibraryProvider, useLibrary] = createContextHook<LibraryState>(() 
       if (audiobooksData) setUserAudiobooks(JSON.parse(audiobooksData));
       if (podcastsData) setUserPodcasts(JSON.parse(podcastsData));
       if (mixmindData) setMixmindSets(JSON.parse(mixmindData));
-    } catch (error) {
+    }).catch((error) => {
       console.error("Error loading library data:", error);
-    }
+    });
   }, [profile?.email, getUserKey]);
 
   useEffect(() => {
