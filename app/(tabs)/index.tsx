@@ -604,10 +604,6 @@ export default function HomeScreen() {
               <Sparkles size={20} color="#FFD700" />
               <Text style={styles.featuredHeaderText}>Featured</Text>
             </View>
-            <View style={styles.featuredRotationIndicator}>
-              <Clock size={14} color="#999" />
-              <Text style={styles.featuredRotationText}>Algorithm-based</Text>
-            </View>
           </View>
           <FlatList
             data={featuredItems}
@@ -782,20 +778,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#FFF',
   },
-  featuredRotationIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  featuredRotationText: {
-    fontSize: 11,
-    color: '#999',
-    fontWeight: '600',
-  },
+
   heroList: {
     paddingHorizontal: 16,
     gap: 16,
