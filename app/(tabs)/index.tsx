@@ -11,7 +11,7 @@ import {
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio, Clock } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
 import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
@@ -32,6 +32,33 @@ export default function HomeScreen() {
   const { recentlyPlayed: userRecentlyPlayed } = useLibrary();
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
+  const [featuredItems, setFeaturedItems] = useState<Track[]>([]);
+  const [featuredRotationIndex, setFeaturedRotationIndex] = useState(0);
+
+  useEffect(() => {
+    const rotateFeaturedContent = () => {
+      const allFeaturedPools = [
+        [...featuredContent],
+        [...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5)],
+        [...newReleases.slice(0, 5)],
+        [...topCharts.slice(0, 5)],
+        [...allTracks.filter(t => t.type === 'video' || t.isVideo).slice(0, 5)],
+        [...allTracks.filter(t => t.type === 'song').slice(0, 5)],
+      ];
+
+      const currentTime = Date.now();
+      const rotationInterval = 30000;
+      const poolIndex = Math.floor(currentTime / rotationInterval) % allFeaturedPools.length;
+      
+      setFeaturedRotationIndex(poolIndex);
+      setFeaturedItems(allFeaturedPools[poolIndex]);
+    };
+
+    rotateFeaturedContent();
+    const interval = setInterval(rotateFeaturedContent, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
@@ -561,10 +588,20 @@ export default function HomeScreen() {
         )}
 
         <View style={styles.heroSection}>
+          <View style={styles.featuredHeader}>
+            <View style={styles.featuredHeaderLeft}>
+              <Sparkles size={20} color="#FFD700" />
+              <Text style={styles.featuredHeaderText}>Featured</Text>
+            </View>
+            <View style={styles.featuredRotationIndicator}>
+              <Clock size={14} color="#999" />
+              <Text style={styles.featuredRotationText}>Updates every 30s</Text>
+            </View>
+          </View>
           <FlatList
-            data={featuredContent.slice(0, 5)}
+            data={featuredItems}
             renderItem={renderHeroItem}
-            keyExtractor={(item) => `hero-${item.id}`}
+            keyExtractor={(item) => `hero-${item.id}-${featuredRotationIndex}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             snapToInterval={width - 32 + 16}
@@ -716,6 +753,37 @@ const styles = StyleSheet.create({
   heroSection: {
     marginTop: 80,
     marginBottom: 8,
+  },
+  featuredHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  featuredHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  featuredHeaderText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFF',
+  },
+  featuredRotationIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  featuredRotationText: {
+    fontSize: 11,
+    color: '#999',
+    fontWeight: '600',
   },
   heroList: {
     paddingHorizontal: 16,
