@@ -11,7 +11,7 @@ import {
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio, Clock } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio, Clock, Flame, Star, Zap, Heart, PlayCircle } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
 import { recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
@@ -180,31 +180,36 @@ export default function HomeScreen() {
   const renderHeader = useCallback(() => (
     <Animated.View style={[styles.header, { paddingTop: 12 + insets.top, backgroundColor: headerOpacity.interpolate({
       inputRange: [0, 1],
-      outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.95)']
+      outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.98)']
     }) }]}> 
       <View style={styles.headerLeft}>
         {profile && (
-          <SafeImage
-            uri={profile.avatarUrl}
-            style={styles.avatar}
-          />
+          <View style={styles.avatarContainer}>
+            <SafeImage
+              uri={profile.avatarUrl}
+              style={styles.avatar}
+            />
+            <View style={styles.avatarBadge}>
+              <View style={styles.avatarBadgeDot} />
+            </View>
+          </View>
         )}
         <View>
-          <Text style={styles.subtleText}>{profile ? "Welcome back" : "Welcome"} 👋</Text>
+          <Text style={styles.subtleText}>{profile ? "Welcome back" : "Welcome"}</Text>
           <Text style={styles.headerName} numberOfLines={1}>{profile ? (profile.displayName || profile.email) : "Guest"}</Text>
         </View>
       </View>
       <View style={styles.headerRight}>
         <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => router.push('/search')} style={styles.headerIcon}> 
-          <Search color="#FFF" size={22} />
+          <Search color="#FFF" size={20} />
         </TouchableOpacity>
         {profile ? (
           <>
             <TouchableOpacity testID="bell-button" accessibilityRole="button" onPress={() => router.push('/notifications')} style={styles.headerIcon}> 
-              <Bell color="#FFF" size={22} />
+              <Bell color="#FFF" size={20} />
             </TouchableOpacity>
             <TouchableOpacity testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.headerIcon}> 
-              <SettingsIcon color="#FFF" size={22} />
+              <SettingsIcon color="#FFF" size={20} />
             </TouchableOpacity>
           </>
         ) : null}
@@ -266,7 +271,7 @@ export default function HomeScreen() {
           key={item.id}
           style={styles.quickAccessItem}
           onPress={() => router.push(item.route as any)}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           <LinearGradient
             colors={item.gradient}
@@ -274,7 +279,12 @@ export default function HomeScreen() {
             end={{ x: 1, y: 1 }}
             style={styles.quickAccessGradient}
           >
-            <Text style={styles.quickAccessTitle} numberOfLines={1}>{item.title}</Text>
+            <View style={styles.quickAccessContent}>
+              <Text style={styles.quickAccessTitle} numberOfLines={1}>{item.title}</Text>
+              <View style={styles.quickAccessIcon}>
+                <PlayCircle size={18} color="rgba(255,255,255,0.9)" />
+              </View>
+            </View>
           </LinearGradient>
         </TouchableOpacity>
       ))}
@@ -293,9 +303,13 @@ export default function HomeScreen() {
           uri={item.artwork} 
           style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
         />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.8)']}
+          style={styles.cardGradientOverlay}
+        />
         <View style={styles.cardPlayOverlay}>
           <View style={styles.cardPlayButton}>
-            <Play size={20} color="#000" fill="#FFF" />
+            <Play size={22} color="#000" fill="#FFF" />
           </View>
         </View>
       </View>
@@ -429,12 +443,20 @@ export default function HomeScreen() {
       <View style={styles.artistImageContainer}>
         <SafeImage uri={item.image} style={styles.artistImage} />
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.6)']}
+          colors={['transparent', 'rgba(0,0,0,0.7)']}
           style={styles.artistGradient}
         />
+        {item.verified && (
+          <View style={styles.verifiedBadge}>
+            <Star size={14} color="#FFD700" fill="#FFD700" />
+          </View>
+        )}
       </View>
       <Text style={styles.artistName} numberOfLines={1}>{item.name}</Text>
-      <Text style={styles.artistFollowers} numberOfLines={1}>{item.followers} followers</Text>
+      <View style={styles.artistFollowersContainer}>
+        <Heart size={12} color="#FF0080" />
+        <Text style={styles.artistFollowers} numberOfLines={1}>{item.followers}</Text>
+      </View>
     </TouchableOpacity>
   ), []);
 
@@ -520,35 +542,67 @@ export default function HomeScreen() {
       >
         {!profile && (
           <View style={styles.guestBanner}>
-            <Sparkles size={20} color="#FF0080" />
-            <View style={styles.guestBannerContent}>
-              <Text style={styles.guestText}>You&apos;re listening as a guest</Text>
-              <Text style={styles.guestSubtext}>Sign up to unlock unlimited music</Text>
-            </View>
-            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
-              <Text style={styles.guestBtnText}>Sign Up</Text>
-            </TouchableOpacity>
+            <LinearGradient
+              colors={['rgba(255, 0, 128, 0.15)', 'rgba(139, 92, 246, 0.15)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.guestBannerGradient}
+            >
+              <View style={styles.guestBannerIconContainer}>
+                <Sparkles size={24} color="#FF0080" />
+              </View>
+              <View style={styles.guestBannerContent}>
+                <Text style={styles.guestText}>You&apos;re listening as a guest</Text>
+                <Text style={styles.guestSubtext}>Sign up to unlock unlimited music & features</Text>
+              </View>
+              <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
+                <LinearGradient
+                  colors={['#FF0080', '#8B5CF6']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.guestBtnGradient}
+                >
+                  <Text style={styles.guestBtnText}>Sign Up</Text>
+                  <Zap size={16} color="#FFF" fill="#FFF" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         )}
 
         {renderQuickAccess()}
 
         {currentTrack && (
-          <View style={styles.nowPlayingBanner}>
+          <TouchableOpacity 
+            style={styles.nowPlayingBanner}
+            onPress={() => router.push('/player')}
+            activeOpacity={0.9}
+          >
             <LinearGradient
-              colors={['rgba(255, 0, 128, 0.2)', 'rgba(139, 92, 246, 0.2)']}
+              colors={['rgba(255, 0, 128, 0.25)', 'rgba(139, 92, 246, 0.25)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.nowPlayingGradient}
             >
-              <Sparkles size={20} color="#FF0080" />
+              <View style={styles.nowPlayingArtwork}>
+                <SafeImage uri={currentTrack.artwork} style={styles.nowPlayingArtworkImage} />
+                <View style={styles.nowPlayingPulse}>
+                  <Flame size={16} color="#FF0080" />
+                </View>
+              </View>
               <View style={styles.nowPlayingContent}>
-                <Text style={styles.nowPlayingLabel}>Now Playing</Text>
+                <View style={styles.nowPlayingLabelContainer}>
+                  <View style={styles.nowPlayingDot} />
+                  <Text style={styles.nowPlayingLabel}>NOW PLAYING</Text>
+                </View>
                 <Text style={styles.nowPlayingTitle} numberOfLines={1}>{currentTrack.title}</Text>
                 <Text style={styles.nowPlayingArtist} numberOfLines={1}>{currentTrack.artist}</Text>
               </View>
+              <View style={styles.nowPlayingAction}>
+                <ChevronRight size={20} color="#FF0080" />
+              </View>
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
         )}
 
         {personalizedSections.map((section, index) => (
@@ -1044,5 +1098,123 @@ const styles = StyleSheet.create({
     color: '#CCC',
     marginTop: 2,
   },
-
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatarBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#0B0A14',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarBadgeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#00FF88',
+  },
+  quickAccessContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  quickAccessIcon: {
+    opacity: 0.8,
+  },
+  cardGradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  artistFollowersContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  guestBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+    borderRadius: 16,
+  },
+  guestBannerIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255, 0, 128, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guestBtnGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    gap: 6,
+  },
+  nowPlayingArtwork: {
+    position: 'relative',
+    width: 56,
+    height: 56,
+  },
+  nowPlayingArtworkImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+  },
+  nowPlayingPulse: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 0, 128, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  nowPlayingLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  nowPlayingDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FF0080',
+  },
+  nowPlayingAction: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
