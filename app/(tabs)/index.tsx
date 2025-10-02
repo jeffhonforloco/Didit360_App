@@ -399,9 +399,10 @@ export default function HomeScreen() {
   }
 
   return (
-    <View style={styles.container}>
-      {renderHeader()}
-      <Animated.ScrollView 
+    <View style={styles.outerContainer}>
+      <View style={styles.container}>
+        {renderHeader()}
+        <Animated.ScrollView 
         showsVerticalScrollIndicator={false} 
         testID="home-scroll"
         onScroll={Animated.event(
@@ -572,14 +573,18 @@ export default function HomeScreen() {
           />
         </View>
       </Animated.ScrollView>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  outerContainer: {
     flex: 1,
     backgroundColor: "#0B0A14",
+  },
+  container: {
+    flex: 1,
   },
   header: {
     position: 'absolute',
