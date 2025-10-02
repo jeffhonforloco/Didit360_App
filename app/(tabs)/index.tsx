@@ -1,20 +1,20 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
   TouchableOpacity,
   FlatList,
   useWindowDimensions,
+  Animated,
 } from "react-native";
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, mostViewedVideos, recentlyAddedContent, trendingVideos } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
@@ -24,24 +24,32 @@ import { useUser } from "@/contexts/UserContext";
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const CARD_WIDTH = width * 0.4;
-  const SMALL_CARD = width * 0.32;
+  const CARD_WIDTH = width * 0.42;
+  const SMALL_CARD = width * 0.35;
   const { playTrack } = usePlayer();
   const { profile, isLoading } = useUser();
+  const [scrollY] = useState(new Animated.Value(0));
 
-  // All hooks must be called before any early returns
-  const favoriteArtists = useMemo(() => {
-    const byArtist: Record<string, Track> = {};
-    [...featuredContent, ...topCharts, ...newReleases].forEach((t) => {
-      if (!byArtist[t.artist]) byArtist[t.artist] = t;
-    });
-    return Object.values(byArtist).slice(0, 8);
-  }, []);
+  const quickAccessItems = useMemo(() => [
+    { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
+    { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/categories/top-mix' },
+    { id: '3', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
+    { id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' },
+  ], []);
 
 
+
+  const headerOpacity = scrollY.interpolate({
+    inputRange: [0, 100],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
 
   const renderHeader = useCallback(() => (
-    <View style={[styles.header, { paddingTop: 20 + insets.top }]}> 
+    <Animated.View style={[styles.header, { paddingTop: 12 + insets.top, backgroundColor: headerOpacity.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.95)']
+    }) }]}> 
       <View style={styles.headerLeft}>
         {profile && (
           <SafeImage
@@ -55,29 +63,28 @@ export default function HomeScreen() {
         </View>
       </View>
       <View style={styles.headerRight}>
-        <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => router.push('/search')}> 
-          <Search color="#FFF" size={20} />
+        <TouchableOpacity testID="search-button" accessibilityRole="button" onPress={() => router.push('/search')} style={styles.headerIcon}> 
+          <Search color="#FFF" size={22} />
         </TouchableOpacity>
         {profile ? (
           <>
-            <TouchableOpacity style={styles.iconSpacer} testID="bell-button" accessibilityRole="button" onPress={() => router.push('/notifications')}> 
-              <Bell color="#FFF" size={20} />
+            <TouchableOpacity testID="bell-button" accessibilityRole="button" onPress={() => router.push('/notifications')} style={styles.headerIcon}> 
+              <Bell color="#FFF" size={22} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconSpacer} testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')}> 
-              <SettingsIcon color="#FFF" size={20} />
+            <TouchableOpacity testID="settings-button" accessibilityRole="button" accessibilityLabel="Open settings" onPress={() => router.push('/settings')} style={styles.headerIcon}> 
+              <SettingsIcon color="#FFF" size={22} />
             </TouchableOpacity>
           </>
         ) : null}
       </View>
-    </View>
-  ), [insets.top, profile]);
+    </Animated.View>
+  ), [insets.top, profile, headerOpacity]);
 
-  const renderSectionHeader = useCallback((title: string, testID: string, route?: string) => {
+  const renderSectionHeader = useCallback((title: string, subtitle: string, testID: string, route?: string, icon?: React.ReactNode) => {
     const handleSeeAll = () => {
       if (route) {
         router.push(route as any);
       } else {
-        // Handle specific cases for the new screens
         switch (title) {
           case "Trending Now":
             router.push("/trending-now");
@@ -99,60 +106,98 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.sectionHeaderLeft}>
+          {icon && <View style={styles.sectionIcon}><Text>{icon}</Text></View>}
+          <View>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
+          </View>
+        </View>
         <TouchableOpacity 
           style={styles.seeAll} 
           onPress={handleSeeAll}
           testID={`${testID}-see-all`}
         >
           <Text style={styles.seeAllText}>See All</Text>
-          <ChevronRight color="#B3B3B3" size={16} />
+          <ChevronRight color="#FF0080" size={18} />
         </TouchableOpacity>
       </View>
     );
   }, []);
 
-  const renderFeaturedItem = useCallback(({ item }: { item: Track }) => (
+  const renderHeroItem = useCallback(({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
-      style={[styles.featuredCard, { width: width - 40 }]}
+      style={[styles.heroCard, { width: width - 32 }]}
       onPress={() => playTrack(item)}
-      activeOpacity={0.8}
-      testID={`featured-${item.id}`}
+      activeOpacity={0.9}
+      testID={`hero-${item.id}`}
     >
+      <SafeImage uri={item.artwork} style={styles.heroImage} />
       <LinearGradient
-        colors={["#FF0080", "#8B5CF6"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.featuredGradient}
+        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
+        style={styles.heroGradient}
       >
-        <SafeImage uri={item.artwork} style={styles.featuredImage} />
-        <View style={styles.featuredOverlay}>
-          <Text style={styles.featuredTitle} numberOfLines={1}>
+        <View style={styles.heroContent}>
+          <View style={styles.heroTag}>
+            <Sparkles size={14} color="#FFD700" />
+            <Text style={styles.heroTagText}>Featured</Text>
+          </View>
+          <Text style={styles.heroTitle} numberOfLines={2}>
             {item.title}
           </Text>
-          <Text style={styles.featuredArtist} numberOfLines={1}>
+          <Text style={styles.heroArtist} numberOfLines={1}>
             {item.artist}
           </Text>
-          <TouchableOpacity style={styles.playButton} onPress={() => playTrack(item)} testID={`featured-play-${item.id}`}>
-            <Play size={20} color="#000" fill="#FFF" />
+          <TouchableOpacity style={styles.heroPlayButton} onPress={() => playTrack(item)} testID={`hero-play-${item.id}`}>
+            <Play size={24} color="#000" fill="#FFF" />
+            <Text style={styles.heroPlayText}>Play Now</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
     </TouchableOpacity>
   ), [playTrack, width]);
 
+  const renderQuickAccess = useCallback(() => (
+    <View style={styles.quickAccessContainer}>
+      {quickAccessItems.map((item, index) => (
+        <TouchableOpacity
+          key={item.id}
+          style={styles.quickAccessItem}
+          onPress={() => router.push(item.route as any)}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={item.gradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.quickAccessGradient}
+          >
+            <Text style={styles.quickAccessTitle} numberOfLines={1}>{item.title}</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      ))}
+    </View>
+  ), [quickAccessItems]);
+
   const renderCard = useCallback(({ item }: { item: Track }) => (
     <TouchableOpacity
       style={[styles.card, { width: CARD_WIDTH }]}
       onPress={() => playTrack(item)}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       testID={`card-${item.id}`}
     >
-      <SafeImage 
-        uri={item.artwork} 
-        style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
-      />
-      <Text style={styles.cardTitle} numberOfLines={1}>
+      <View style={styles.cardImageContainer}>
+        <SafeImage 
+          uri={item.artwork} 
+          style={[styles.cardImage, { width: CARD_WIDTH, height: CARD_WIDTH }]} 
+        />
+        <View style={styles.cardPlayOverlay}>
+          <View style={styles.cardPlayButton}>
+            <Play size={20} color="#000" fill="#FFF" />
+          </View>
+        </View>
+      </View>
+      <Text style={styles.cardTitle} numberOfLines={2}>
         {item.title}
       </Text>
       <Text style={styles.cardArtist} numberOfLines={1}>
@@ -272,12 +317,24 @@ export default function HomeScreen() {
     </TouchableOpacity>
   ), [playTrack]);
 
-  const renderFavoriteArtist = useCallback(({ item }: { item: Track }) => (
-    <TouchableOpacity style={styles.artistCard} onPress={() => playTrack(item)} activeOpacity={0.9} testID={`artist-${item.artist}`}>
-      <SafeImage uri={item.artwork} style={styles.artistImage} />
-      <Text style={styles.artistName} numberOfLines={1}>{item.artist}</Text>
+  const renderArtist = useCallback(({ item }: { item: typeof popularArtists[0] }) => (
+    <TouchableOpacity 
+      style={styles.artistCard} 
+      onPress={() => router.push(`/artist/${item.id}` as any)} 
+      activeOpacity={0.85} 
+      testID={`artist-${item.id}`}
+    >
+      <View style={styles.artistImageContainer}>
+        <SafeImage uri={item.image} style={styles.artistImage} />
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.6)']}
+          style={styles.artistGradient}
+        />
+      </View>
+      <Text style={styles.artistName} numberOfLines={1}>{item.name}</Text>
+      <Text style={styles.artistFollowers} numberOfLines={1}>{item.followers} followers</Text>
     </TouchableOpacity>
-  ), [playTrack]);
+  ), []);
 
   const renderCategory = useCallback(({ item }: { item: CategoryItem }) => {
     const handleCategoryPress = () => {
@@ -343,32 +400,49 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} testID="home-scroll">
-        {renderHeader()}
+      {renderHeader()}
+      <Animated.ScrollView 
+        showsVerticalScrollIndicator={false} 
+        testID="home-scroll"
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: false }
+        )}
+        scrollEventThrottle={16}
+      >
         {!profile && (
           <View style={styles.guestBanner}>
-            <Text style={styles.guestText}>You are listening as a guest. Enjoy a few minutes, then create an account to continue.</Text>
+            <Sparkles size={20} color="#FF0080" />
+            <View style={styles.guestBannerContent}>
+              <Text style={styles.guestText}>You&apos;re listening as a guest</Text>
+              <Text style={styles.guestSubtext}>Sign up to unlock unlimited music</Text>
+            </View>
             <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
-              <Text style={styles.guestBtnText}>Sign up free</Text>
+              <Text style={styles.guestBtnText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        <View style={styles.section}>
+        <View style={styles.heroSection}>
           <FlatList
-            data={featuredContent}
-            renderItem={renderFeaturedItem}
-            keyExtractor={(item) => item.id}
+            data={featuredContent.slice(0, 5)}
+            renderItem={renderHeroItem}
+            keyExtractor={(item) => `hero-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
+            snapToInterval={width - 32 + 16}
+            decelerationRate="fast"
+            contentContainerStyle={styles.heroList}
+            pagingEnabled={false}
           />
         </View>
 
+        {renderQuickAccess()}
+
         <View style={styles.section}>
-          {renderSectionHeader("Trending Now", "trending-now")}
+          {renderSectionHeader("Trending Now", "What&apos;s hot right now", "trending-now", "/trending-now", <TrendingUp size={20} color="#FF0080" />)}
           <FlatList
-            data={trendingNow.slice(0, 6)}
+            data={trendingNow.slice(0, 8)}
             renderItem={renderSmartCard}
             keyExtractor={(item) => `trending-${item.id}`}
             horizontal
@@ -378,11 +452,11 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Popular Artists", "popular-artists")}
+          {renderSectionHeader("Popular Artists", "Top artists you&apos;ll love", "popular-artists", "/popular-artists", <Mic2 size={20} color="#8B5CF6" />)}
           <FlatList
-            data={favoriteArtists}
-            renderItem={renderFavoriteArtist}
-            keyExtractor={(item) => `fav-${item.id}`}
+            data={popularArtists.slice(0, 8)}
+            renderItem={renderArtist}
+            keyExtractor={(item) => `artist-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -390,7 +464,7 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Browse Categories", "browse-categories")}
+          {renderSectionHeader("Browse All", "Explore by category", "browse-categories", "/browse-categories")}
           <FlatList
             data={browseCategories.slice(0, 6)}
             renderItem={renderCategory}
@@ -403,10 +477,34 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Live Performance", "live-performance", "/categories/live-performance")}
+          {renderSectionHeader("New Releases", "Fresh tracks for you", "new-releases", "/categories/recently-added", <Music2 size={20} color="#00C6FF" />)}
+          <FlatList
+            data={newReleases.slice(0, 8)}
+            renderItem={renderCard}
+            keyExtractor={(item) => `new-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Top Charts", "Most played this week", "top-charts", "/categories/top-mix")}
+          <FlatList
+            data={topCharts.slice(0, 8)}
+            renderItem={renderCard}
+            keyExtractor={(item) => `chart-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Live Performances", "Experience the energy", "live-performance", "/categories/live-performance")}
           <FlatList
             data={livePerformanceVideos.slice(0, 6)}
-            renderItem={renderSmallCard}
+            renderItem={renderVideoCard}
             keyExtractor={(item) => `live-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -415,33 +513,9 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Your Top Mix", "top-mix", "/categories/top-mix")}
+          {renderSectionHeader("Trending Videos", "Most watched music videos", "trending-videos", "/categories/trending-videos")}
           <FlatList
-            data={newReleases.filter(item => item.type === 'song')}
-            renderItem={renderCard}
-            keyExtractor={(item) => `mix-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Recently Added", "recently-added", "/categories/recently-added")}
-          <FlatList
-            data={recentlyAddedContent.slice(0, 8)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `recently-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Trending Videos", "trending-videos", "/categories/trending-videos")}
-          <FlatList
-            data={trendingVideos.slice(0, 6)}
+            data={trendingVideos.slice(0, 8)}
             renderItem={renderVideoCard}
             keyExtractor={(item) => `trending-video-${item.id}`}
             horizontal
@@ -451,33 +525,9 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("Most Viewed", "most-viewed", "/categories/most-viewed")}
+          {renderSectionHeader("Podcasts", "Listen to your favorite shows", "podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
           <FlatList
-            data={mostViewedVideos.slice(0, 6)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `most-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Browse Genres", "browse-genres", "/categories/genres")}
-          <FlatList
-            data={genres}
-            renderItem={renderGenre}
-            keyExtractor={(item) => `genre-${item}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={[styles.horizontalList, styles.genreList]}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Recent Podcast", "recent-podcast", "/categories/podcasts")}
-          <FlatList
-            data={podcasts}
+            data={podcasts.slice(0, 8)}
             renderItem={renderCard}
             keyExtractor={(item) => `pod-${item.id}`}
             horizontal
@@ -486,10 +536,10 @@ export default function HomeScreen() {
           />
         </View>
 
-        <View style={[styles.section, { marginBottom: 120 }]}> 
-          {renderSectionHeader("Auralora (Audiobooks)", "latest-books", "/categories/audiobooks")}
+        <View style={styles.section}>
+          {renderSectionHeader("Audiobooks", "Immerse in great stories", "audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
           <FlatList
-            data={audiobooks}
+            data={audiobooks.slice(0, 8)}
             renderItem={renderCard}
             keyExtractor={(item) => `ab-${item.id}`}
             horizontal
@@ -497,7 +547,31 @@ export default function HomeScreen() {
             contentContainerStyle={styles.horizontalList}
           />
         </View>
-      </ScrollView>
+
+        <View style={styles.section}>
+          {renderSectionHeader("Genres", "Find your sound", "genres", "/categories/genres")}
+          <FlatList
+            data={genres.slice(0, 12)}
+            renderItem={renderGenre}
+            keyExtractor={(item) => `genre-${item}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={[styles.horizontalList, styles.genreList]}
+          />
+        </View>
+
+        <View style={[styles.section, { marginBottom: 120 }]}> 
+          {renderSectionHeader("Recently Played", "Pick up where you left off", "recent")}
+          <FlatList
+            data={recentlyPlayed.slice(0, 8)}
+            renderItem={renderCard}
+            keyExtractor={(item) => `recent-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -508,8 +582,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#0B0A14",
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -522,15 +601,22 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 12,
   },
-  iconSpacer: {
-    marginLeft: 16,
+  headerIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    marginRight: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: '#FF0080',
   },
   subtleText: {
     fontSize: 12,
@@ -538,10 +624,107 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   headerName: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#FFFFFF",
     maxWidth: 200,
+  },
+  heroSection: {
+    marginTop: 80,
+    marginBottom: 8,
+  },
+  heroList: {
+    paddingHorizontal: 16,
+    gap: 16,
+  },
+  heroCard: {
+    height: 280,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginRight: 16,
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroGradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: '70%',
+    justifyContent: 'flex-end',
+    padding: 20,
+  },
+  heroContent: {
+    gap: 8,
+  },
+  heroTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  heroTagText: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#FFF',
+    marginTop: 4,
+  },
+  heroArtist: {
+    fontSize: 16,
+    color: '#E0E0E0',
+    fontWeight: '600',
+  },
+  heroPlayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFF',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 30,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  heroPlayText: {
+    color: '#000',
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  quickAccessContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  quickAccessItem: {
+    flex: 1,
+    minWidth: '47%',
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  quickAccessGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  quickAccessTitle: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   logoImage: {
     width: 40,
@@ -550,28 +733,48 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   section: {
-    marginTop: 24,
+    marginTop: 32,
   },
   sectionHeader: {
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 12,
+    marginBottom: 16,
+  },
+  sectionHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  sectionIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 22,
+    fontWeight: "800",
     color: "#FFF",
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#999',
+    marginTop: 2,
   },
   seeAll: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
   },
   seeAllText: {
-    fontSize: 13,
-    color: "#B3B3B3",
-    marginRight: 6,
+    fontSize: 14,
+    color: "#FF0080",
+    fontWeight: '700',
   },
   horizontalList: {
     paddingHorizontal: 20,
@@ -623,19 +826,43 @@ const styles = StyleSheet.create({
   card: {
     marginRight: 16,
   },
+  cardImageContainer: {
+    position: 'relative',
+    marginBottom: 10,
+  },
   cardImage: {
-    borderRadius: 12,
-    marginBottom: 8,
+    borderRadius: 14,
+  },
+  cardPlayOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0,
+  },
+  cardPlayButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardTitle: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
     color: "#FFF",
     marginBottom: 4,
   },
   cardArtist: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#999",
+    fontWeight: '500',
   },
   recentItem: {
     flexDirection: "row",
@@ -666,19 +893,41 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   artistCard: {
-    width: 140,
+    width: 150,
     marginRight: 16,
   },
+  artistImageContainer: {
+    position: 'relative',
+    marginBottom: 10,
+  },
   artistImage: {
-    width: 140,
-    height: 140,
-    borderRadius: 12,
-    marginBottom: 8,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  artistGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    borderBottomLeftRadius: 75,
+    borderBottomRightRadius: 75,
   },
   artistName: {
     color: "#FFF",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: 'center',
+  },
+  artistFollowers: {
+    color: '#999',
+    fontSize: 12,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 2,
   },
   categoriesContainer: {
     paddingHorizontal: 16,
@@ -691,11 +940,11 @@ const styles = StyleSheet.create({
   categoryTile: {
     flex: 1,
     marginHorizontal: 4,
-    height: 140,
+    height: 120,
   },
   categoryGradient: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: "hidden",
     position: "relative",
   },
@@ -714,8 +963,8 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     color: "#FFF",
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 17,
+    fontWeight: "800",
     marginBottom: 4,
   },
   categoryDescription: {
@@ -727,21 +976,56 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   genrePill: {
-    backgroundColor: "#17162A",
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
+    backgroundColor: "#1A1A2E",
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 24,
     marginRight: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   genreText: {
     color: "#FFFFFF",
-    fontSize: 13,
-    fontWeight: "600",
+    fontSize: 14,
+    fontWeight: "700",
   },
-  guestBanner: { marginHorizontal: 20, backgroundColor: "#111113", borderRadius: 12, borderWidth: 1, borderColor: "#1F2937", padding: 12, marginTop: 8 },
-  guestText: { color: "#E5E7EB", fontSize: 12, marginBottom: 8 },
-  guestBtn: { backgroundColor: "#FF0080", height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 14 },
-  guestBtnText: { color: "#0B0B0C", fontWeight: "800" },
+  guestBanner: {
+    marginHorizontal: 16,
+    marginTop: 80,
+    marginBottom: 8,
+    backgroundColor: 'rgba(255, 0, 128, 0.1)',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 128, 0.3)',
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  guestBannerContent: {
+    flex: 1,
+  },
+  guestText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  guestSubtext: {
+    color: '#CCC',
+    fontSize: 12,
+    marginTop: 2,
+  },
+  guestBtn: {
+    backgroundColor: '#FF0080',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+  },
+  guestBtnText: {
+    color: '#FFF',
+    fontWeight: '800',
+    fontSize: 14,
+  },
   videoIndicator: {
     position: "absolute",
     top: 8,
