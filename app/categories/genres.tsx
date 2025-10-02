@@ -10,33 +10,32 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
 import { router } from "expo-router";
-import { genres } from "@/data/mockData";
+import { allGenres, genresData } from "@/data/genresData";
 
-const genreColors = [
-  "#FF0080",
-  "#8B5CF6", 
-  "#3B82F6",
-  "#10B981",
-  "#F59E0B",
-  "#EF4444",
-  "#EC4899",
-  "#6366F1",
-];
+
 
 export default function GenresScreen() {
-  const renderGenre = ({ item, index }: { item: string; index: number }) => (
-    <TouchableOpacity
-      style={[
-        styles.genreCard,
-        { backgroundColor: genreColors[index % genreColors.length] },
-      ]}
-      activeOpacity={0.8}
-      testID={`genre-${item}`}
-      onPress={() => router.push(`/genre/${encodeURIComponent(item)}` as any)}
-    >
-      <Text style={styles.genreText}>{item}</Text>
-    </TouchableOpacity>
-  );
+  const renderGenre = ({ item }: { item: string }) => {
+    const genreInfo = genresData[item];
+    return (
+      <TouchableOpacity
+        style={[
+          styles.genreCard,
+          { backgroundColor: genreInfo.color },
+        ]}
+        activeOpacity={0.8}
+        testID={`genre-${item}`}
+        onPress={() => router.push(`/genre/${encodeURIComponent(item)}` as any)}
+      >
+        <View style={styles.genreCardContent}>
+          <Text style={styles.genreText}>{genreInfo.name}</Text>
+          <Text style={styles.genreSubtext} numberOfLines={2}>
+            {genreInfo.description}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -53,8 +52,13 @@ export default function GenresScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.description}>
+          <Text style={styles.descriptionText}>
+            Explore music by genre. Discover new artists, tracks, and playlists across all your favorite styles.
+          </Text>
+        </View>
         <FlatList
-          data={genres}
+          data={allGenres}
           renderItem={renderGenre}
           keyExtractor={(item) => `genre-${item}`}
           numColumns={2}
@@ -103,17 +107,36 @@ const styles = StyleSheet.create({
   row: {
     justifyContent: "space-between",
   },
+  description: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  descriptionText: {
+    fontSize: 14,
+    color: "#B3B3B3",
+    lineHeight: 20,
+  },
   genreCard: {
     width: "48%",
-    height: 120,
+    minHeight: 140,
     borderRadius: 12,
-    padding: 16,
     marginBottom: 16,
+    overflow: "hidden",
+  },
+  genreCardContent: {
+    flex: 1,
+    padding: 16,
     justifyContent: "flex-end",
   },
   genreText: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "700",
     color: "#FFF",
+    marginBottom: 4,
+  },
+  genreSubtext: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.8)",
+    lineHeight: 14,
   },
 });

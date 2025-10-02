@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,71 +9,44 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Play, MoreVertical } from "lucide-react-native";
+import { ArrowLeft, Play, MoreVertical, Music2, Disc3, ListMusic } from "lucide-react-native";
 import { router, useLocalSearchParams } from "expo-router";
-import { allTracks } from "@/data/mockData";
+import { genresData } from "@/data/genresData";
 import type { Track } from "@/types";
 
-const genreColors: Record<string, string> = {
-  "Pop": "#FF0080",
-  "Rock": "#8B5CF6",
-  "Hip-Hop": "#3B82F6",
-  "Electronic": "#10B981",
-  "Jazz": "#F59E0B",
-  "Classical": "#EF4444",
-  "R&B": "#EC4899",
-  "Country": "#6366F1",
-  "Latin": "#F97316",
-  "Indie": "#06B6D4",
-  "Metal": "#DC2626",
-  "Reggae": "#16A34A",
-  "Afro Beat": "#EA580C",
-  "Afro Beats": "#D97706",
-  "High Life": "#CA8A04",
-};
 
-// Mock function to filter tracks by genre
-const getTracksByGenre = (genreName: string): Track[] => {
-  // For demo purposes, return a subset of tracks
-  // In a real app, tracks would have genre metadata
-  const genreTrackMap: Record<string, Track[]> = {
-    "Pop": allTracks.filter(track => 
-      track.artist?.includes("Ariana Grande") || 
-      track.artist?.includes("Katy Perry") ||
-      track.title?.includes("Firework") ||
-      track.title?.includes("7 rings")
-    ).slice(0, 10),
-    "Rock": allTracks.filter(track => 
-      track.title?.includes("Thunder") ||
-      track.title?.includes("Mountain") ||
-      track.artist?.includes("Lightning Strike")
-    ).slice(0, 8),
-    "Hip-Hop": allTracks.filter(track => 
-      track.title?.includes("Starboy") ||
-      track.artist?.includes("The Weeknd") ||
-      track.title?.includes("Blinding Lights")
-    ).slice(0, 12),
-    "Electronic": allTracks.filter(track => 
-      track.title?.includes("Electric") ||
-      track.title?.includes("Future Bass") ||
-      track.artist?.includes("Neon Waves")
-    ).slice(0, 9),
-    "Jazz": allTracks.filter(track => 
-      track.title?.includes("Jazz") ||
-      track.artist?.includes("Blue Note")
-    ).slice(0, 6),
-  };
-
-  return genreTrackMap[genreName] || allTracks.slice(0, 8);
-};
 
 export default function GenreScreen() {
   const { name } = useLocalSearchParams<{ name: string }>();
   const genreName = Array.isArray(name) ? name[0] : name || "";
   const decodedGenreName = decodeURIComponent(genreName);
+  const [activeTab, setActiveTab] = useState<"tracks" | "artists" | "playlists" | "albums">("tracks");
   
-  const tracks = getTracksByGenre(decodedGenreName);
-  const genreColor = genreColors[decodedGenreName] || "#8B5CF6";
+  const genreData = genresData[decodedGenreName];
+  
+  if (!genreData) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top"]}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+            testID="back-button"
+          >
+            <ArrowLeft size={24} color="#FFF" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Genre Not Found</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>This genre is not available.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  const tracks = genreData.tracks;
+  const genreColor = genreData.color;
 
   const formatDuration = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
@@ -134,9 +107,9 @@ export default function GenreScreen() {
         {/* Genre Header */}
         <View style={[styles.genreHeader, { backgroundColor: genreColor }]}>
           <View style={styles.genreHeaderContent}>
-            <Text style={styles.genreTitle}>{decodedGenreName}</Text>
-            <Text style={styles.genreSubtitle}>
-              {tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
+            <Text style={styles.genreTitle}>{genreData.name}</Text>
+            <Text style={styles.genreDescription}>
+              {genreData.description}
             </Text>
             
             <TouchableOpacity 
@@ -151,17 +124,130 @@ export default function GenreScreen() {
           </View>
         </View>
 
-        {/* Tracks List */}
-        <View style={styles.tracksSection}>
-          <Text style={styles.sectionTitle}>Popular in {decodedGenreName}</Text>
-          
-          <FlatList
-            data={tracks}
-            renderItem={renderTrack}
-            keyExtractor={(item) => item.id}
-            scrollEnabled={false}
-            contentContainerStyle={styles.tracksList}
-          />
+        {/* Subgenres */}
+        <View style={styles.subgenresSection}>
+          <Text style={styles.sectionTitle}>Subgenres</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.subgenresContainer}>
+              {genreData.subgenres.map((subgenre, index) => (
+                <View key={index} style={styles.subgenreChip}>
+                  <Text style={styles.subgenreText}>{subgenre}</Text>
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Top Artists */}
+        <View style={styles.artistsSection}>
+          <Text style={styles.sectionTitle}>Top Artists</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.artistsContainer}>
+              {genreData.topArtists.map((artist) => (
+                <TouchableOpacity
+                  key={artist.id}
+                  style={styles.artistCard}
+                  activeOpacity={0.7}
+                  onPress={() => console.log("Navigate to artist:", artist.name)}
+                >
+                  <Image source={{ uri: artist.image }} style={styles.artistImage} />
+                  <Text style={styles.artistName} numberOfLines={1}>{artist.name}</Text>
+                  <Text style={styles.artistFollowers}>{artist.followers}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "tracks" && styles.activeTab]}
+            onPress={() => setActiveTab("tracks")}
+          >
+            <Music2 size={18} color={activeTab === "tracks" ? genreColor : "#B3B3B3"} />
+            <Text style={[styles.tabText, activeTab === "tracks" && { color: genreColor }]}>
+              Tracks
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "playlists" && styles.activeTab]}
+            onPress={() => setActiveTab("playlists")}
+          >
+            <ListMusic size={18} color={activeTab === "playlists" ? genreColor : "#B3B3B3"} />
+            <Text style={[styles.tabText, activeTab === "playlists" && { color: genreColor }]}>
+              Playlists
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "albums" && styles.activeTab]}
+            onPress={() => setActiveTab("albums")}
+          >
+            <Disc3 size={18} color={activeTab === "albums" ? genreColor : "#B3B3B3"} />
+            <Text style={[styles.tabText, activeTab === "albums" && { color: genreColor }]}>
+              Albums
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Content based on active tab */}
+        <View style={styles.contentSection}>
+          {activeTab === "tracks" && (
+            <View>
+              <Text style={styles.contentTitle}>Popular Tracks</Text>
+              <FlatList
+                data={tracks}
+                renderItem={renderTrack}
+                keyExtractor={(item) => item.id}
+                scrollEnabled={false}
+                contentContainerStyle={styles.tracksList}
+              />
+            </View>
+          )}
+
+          {activeTab === "playlists" && (
+            <View>
+              <Text style={styles.contentTitle}>Featured Playlists</Text>
+              <View style={styles.playlistsGrid}>
+                {genreData.playlists.map((playlist) => (
+                  <TouchableOpacity
+                    key={playlist.id}
+                    style={styles.playlistCard}
+                    activeOpacity={0.7}
+                    onPress={() => console.log("Open playlist:", playlist.name)}
+                  >
+                    <Image source={{ uri: playlist.artwork }} style={styles.playlistArtwork} />
+                    <Text style={styles.playlistName} numberOfLines={2}>{playlist.name}</Text>
+                    <Text style={styles.playlistDescription} numberOfLines={2}>
+                      {playlist.description}
+                    </Text>
+                    <Text style={styles.playlistTrackCount}>{playlist.trackCount} tracks</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {activeTab === "albums" && (
+            <View>
+              <Text style={styles.contentTitle}>Popular Albums</Text>
+              <View style={styles.albumsGrid}>
+                {genreData.albums.map((album) => (
+                  <TouchableOpacity
+                    key={album.id}
+                    style={styles.albumCard}
+                    activeOpacity={0.7}
+                    onPress={() => console.log("Open album:", album.title)}
+                  >
+                    <Image source={{ uri: album.artwork }} style={styles.albumArtwork} />
+                    <Text style={styles.albumTitle} numberOfLines={2}>{album.title}</Text>
+                    <Text style={styles.albumArtist} numberOfLines={1}>{album.artist}</Text>
+                    <Text style={styles.albumYear}>{album.year}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -212,10 +298,11 @@ const styles = StyleSheet.create({
     color: "#FFF",
     marginBottom: 4,
   },
-  genreSubtitle: {
-    fontSize: 16,
-    color: "rgba(255, 255, 255, 0.8)",
+  genreDescription: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
     marginBottom: 20,
+    lineHeight: 20,
   },
   playAllButton: {
     flexDirection: "row",
@@ -232,15 +319,167 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 8,
   },
-  tracksSection: {
+  subgenresSection: {
+    marginBottom: 24,
+  },
+  subgenresContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  subgenreChip: {
+    backgroundColor: "#1A1A1A",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#333",
+  },
+  subgenreText: {
+    color: "#FFF",
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  artistsSection: {
+    marginBottom: 24,
+  },
+  artistsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  artistCard: {
+    width: 120,
+    alignItems: "center",
+  },
+  artistImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    marginBottom: 8,
+  },
+  artistName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFF",
+    textAlign: "center",
+    marginBottom: 4,
+  },
+  artistFollowers: {
+    fontSize: 12,
+    color: "#B3B3B3",
+    textAlign: "center",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    gap: 12,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "#1A1A1A",
+    borderRadius: 8,
+    gap: 8,
+  },
+  activeTab: {
+    backgroundColor: "#2A2A2A",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#B3B3B3",
+  },
+  contentSection: {
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
-  sectionTitle: {
-    fontSize: 22,
+  contentTitle: {
+    fontSize: 20,
     fontWeight: "700",
     color: "#FFF",
     marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#FFF",
+    marginBottom: 16,
+    paddingHorizontal: 20,
+  },
+  playlistsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+  },
+  playlistCard: {
+    width: "48%",
+  },
+  playlistArtwork: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  playlistName: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFF",
+    marginBottom: 4,
+  },
+  playlistDescription: {
+    fontSize: 12,
+    color: "#B3B3B3",
+    marginBottom: 4,
+  },
+  playlistTrackCount: {
+    fontSize: 12,
+    color: "#888",
+  },
+  albumsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+  },
+  albumCard: {
+    width: "48%",
+  },
+  albumArtwork: {
+    width: "100%",
+    aspectRatio: 1,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  albumTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFF",
+    marginBottom: 4,
+  },
+  albumArtist: {
+    fontSize: 12,
+    color: "#B3B3B3",
+    marginBottom: 2,
+  },
+  albumYear: {
+    fontSize: 12,
+    color: "#888",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 40,
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#B3B3B3",
+    textAlign: "center",
   },
   tracksList: {
     gap: 8,
