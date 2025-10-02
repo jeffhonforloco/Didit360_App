@@ -176,7 +176,10 @@ export async function moderateContent(text: string): Promise<{
     console.log('[OpenAI] Content moderation completed');
     return {
       flagged: result.flagged,
-      categories: result.categories as unknown as Record<string, boolean>,
+      categories: Object.entries(result.categories).reduce((acc, [key, value]) => {
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, boolean>),
     };
   } catch (error) {
     console.error('[OpenAI] Content moderation error:', error);
