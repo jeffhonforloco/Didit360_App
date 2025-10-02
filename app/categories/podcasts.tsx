@@ -659,7 +659,7 @@ export default function PodcastsScreen() {
                   style={[styles.toggleBtn, mediaKind === mk ? styles.toggleBtnActive : null]}
                   testID={`toggle-${mk}`}
                 >
-                  <Text style={styles.toggleText}>{mk.toUpperCase()}</Text>
+                  <Text style={[styles.toggleText, mediaKind === mk ? styles.toggleTextActive : null]}>{mk.toUpperCase()}</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -926,6 +926,9 @@ const styles = StyleSheet.create({
     color: "#FFF",
     fontWeight: "700",
     letterSpacing: 0.5,
+  },
+  toggleTextActive: {
+    color: "#0B0B0C",
   },
 
   sectionHeader: {
