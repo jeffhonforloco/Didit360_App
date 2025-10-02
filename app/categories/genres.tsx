@@ -22,7 +22,7 @@ export default function GenresScreen() {
     if (!searchQuery.trim()) {
       return allGenres;
     }
-    const query = searchQuery.toLowerCase();
+    const query = searchQuery.toLowerCase().trim();
     return allGenres.filter((genre) => {
       const genreInfo = genresData[genre];
       return (
