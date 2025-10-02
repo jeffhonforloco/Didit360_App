@@ -400,6 +400,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.outerContainer}>
+      <LinearGradient
+        colors={['#1A0B2E', '#16213E', '#0B0A14']}
+        locations={[0, 0.3, 1]}
+        style={styles.backgroundGradient}
+      />
       <View style={styles.container}>
         {renderHeader()}
         <Animated.ScrollView 
@@ -633,6 +638,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#FFFFFF",
     maxWidth: 200,
+  },
+  backgroundGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 400,
   },
   heroSection: {
     marginTop: 80,
