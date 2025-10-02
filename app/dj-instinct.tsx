@@ -109,7 +109,17 @@ export default function DJInstinctScreen() {
   const [bpm, setBpm] = useState(128);
   const [crowdEnergy, setCrowdEnergy] = useState(75);
   const [beatPulses, setBeatPulses] = useState<BeatPulse[]>([]);
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState(true);
+  const [crossfadeTime, setCrossfadeTime] = useState(8);
+  const [eqLow, setEqLow] = useState(50);
+  const [eqMid, setEqMid] = useState(50);
+  const [eqHigh, setEqHigh] = useState(50);
+  const [masterVolume, setMasterVolume] = useState(80);
+  const [showEQ, setShowEQ] = useState(false);
+  const [showMixer, setShowMixer] = useState(false);
+  const [autoGain, setAutoGain] = useState(true);
+  const [beatSync, setBeatSync] = useState(true);
+  const [harmonic, setHarmonic] = useState(true);
   
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const waveAnim = useRef(new Animated.Value(0)).current;
@@ -650,17 +660,185 @@ export default function DJInstinctScreen() {
               </View>
             )}
 
-            {features.liveDJ.enabled && (
-              <View style={styles.liveDJSection}>
-                <View style={styles.sectionHeader}>
-                  <Radio size={24} color="#FF6B35" />
-                  <Text style={styles.sectionTitle}>Live DJ Mode</Text>
-                  <View style={styles.proBadge}>
-                    <Star size={12} color="#FFD700" />
-                    <Text style={styles.proText}>PRO</Text>
-                  </View>
+            <View style={styles.professionalSection}>
+              <View style={styles.sectionHeader}>
+                <Radio size={24} color="#FF6B35" />
+                <Text style={styles.sectionTitle}>Professional DJ Controls</Text>
+                <View style={styles.proBadge}>
+                  <Star size={12} color="#FFD700" />
+                  <Text style={styles.proText}>PRO</Text>
                 </View>
-                
+              </View>
+
+              <View style={styles.mixerPanel}>
+                <View style={styles.mixerHeader}>
+                  <Sliders size={20} color="#FF0080" />
+                  <Text style={styles.mixerTitle}>Live Mixer</Text>
+                  <TouchableOpacity onPress={() => setShowMixer(!showMixer)}>
+                    <Text style={styles.toggleText}>{showMixer ? 'Hide' : 'Show'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {showMixer && (
+                  <View style={styles.mixerContent}>
+                    <View style={styles.crossfadeSection}>
+                      <Text style={styles.mixerLabel}>Crossfade Time</Text>
+                      <View style={styles.crossfadeDisplay}>
+                        <Text style={styles.crossfadeValue}>{crossfadeTime}s</Text>
+                      </View>
+                      <View style={styles.crossfadeButtons}>
+                        {[4, 8, 12, 16].map((time) => (
+                          <TouchableOpacity
+                            key={time}
+                            style={[
+                              styles.crossfadeButton,
+                              crossfadeTime === time && styles.crossfadeButtonActive,
+                            ]}
+                            onPress={() => setCrossfadeTime(time)}
+                          >
+                            <Text
+                              style={[
+                                styles.crossfadeButtonText,
+                                crossfadeTime === time && styles.crossfadeButtonTextActive,
+                              ]}
+                            >
+                              {time}s
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    </View>
+
+                    <View style={styles.masterVolumeSection}>
+                      <View style={styles.volumeHeader}>
+                        <Volume2 size={18} color="#FF0080" />
+                        <Text style={styles.mixerLabel}>Master Volume</Text>
+                        <Text style={styles.volumeValue}>{masterVolume}%</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.volumeSlider}
+                        onPress={(e) => {
+                          const { locationX } = e.nativeEvent;
+                          const containerWidth = width - 120;
+                          const newVolume = Math.round((locationX / containerWidth) * 100);
+                          setMasterVolume(Math.max(0, Math.min(100, newVolume)));
+                        }}
+                      >
+                        <View style={styles.volumeTrack}>
+                          <View
+                            style={[
+                              styles.volumeProgress,
+                              { width: `${masterVolume}%` },
+                            ]}
+                          />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.togglesSection}>
+                      <TouchableOpacity
+                        style={styles.toggleItem}
+                        onPress={() => setAutoGain(!autoGain)}
+                      >
+                        <Gauge size={18} color={autoGain ? "#00FF88" : "#666"} />
+                        <Text style={[styles.toggleLabel, autoGain && styles.toggleLabelActive]}>
+                          Auto Gain
+                        </Text>
+                        <View style={[styles.toggleSwitch, autoGain && styles.toggleSwitchActive]}>
+                          <View style={[styles.toggleKnob, autoGain && styles.toggleKnobActive]} />
+                        </View>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.toggleItem}
+                        onPress={() => setBeatSync(!beatSync)}
+                      >
+                        <Crosshair size={18} color={beatSync ? "#00FF88" : "#666"} />
+                        <Text style={[styles.toggleLabel, beatSync && styles.toggleLabelActive]}>
+                          Beat Sync
+                        </Text>
+                        <View style={[styles.toggleSwitch, beatSync && styles.toggleSwitchActive]}>
+                          <View style={[styles.toggleKnob, beatSync && styles.toggleKnobActive]} />
+                        </View>
+                      </TouchableOpacity>
+
+                      <TouchableOpacity
+                        style={styles.toggleItem}
+                        onPress={() => setHarmonic(!harmonic)}
+                      >
+                        <Music size={18} color={harmonic ? "#00FF88" : "#666"} />
+                        <Text style={[styles.toggleLabel, harmonic && styles.toggleLabelActive]}>
+                          Harmonic Mix
+                        </Text>
+                        <View style={[styles.toggleSwitch, harmonic && styles.toggleSwitchActive]}>
+                          <View style={[styles.toggleKnob, harmonic && styles.toggleKnobActive]} />
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.eqPanel}>
+                <View style={styles.eqHeader}>
+                  <BarChart3 size={20} color="#FF0080" />
+                  <Text style={styles.eqTitle}>3-Band EQ</Text>
+                  <TouchableOpacity onPress={() => setShowEQ(!showEQ)}>
+                    <Text style={styles.toggleText}>{showEQ ? 'Hide' : 'Show'}</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {showEQ && (
+                  <View style={styles.eqContent}>
+                    <View style={styles.eqBand}>
+                      <Text style={styles.eqLabel}>LOW</Text>
+                      <View style={styles.eqSliderContainer}>
+                        <View style={styles.eqSlider}>
+                          <View
+                            style={[
+                              styles.eqFill,
+                              { height: `${eqLow}%`, backgroundColor: '#FF0080' },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                      <Text style={styles.eqValue}>{eqLow}%</Text>
+                    </View>
+
+                    <View style={styles.eqBand}>
+                      <Text style={styles.eqLabel}>MID</Text>
+                      <View style={styles.eqSliderContainer}>
+                        <View style={styles.eqSlider}>
+                          <View
+                            style={[
+                              styles.eqFill,
+                              { height: `${eqMid}%`, backgroundColor: '#00FF88' },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                      <Text style={styles.eqValue}>{eqMid}%</Text>
+                    </View>
+
+                    <View style={styles.eqBand}>
+                      <Text style={styles.eqLabel}>HIGH</Text>
+                      <View style={styles.eqSliderContainer}>
+                        <View style={styles.eqSlider}>
+                          <View
+                            style={[
+                              styles.eqFill,
+                              { height: `${eqHigh}%`, backgroundColor: '#FFD700' },
+                            ]}
+                          />
+                        </View>
+                      </View>
+                      <Text style={styles.eqValue}>{eqHigh}%</Text>
+                    </View>
+                  </View>
+                )}
+              </View>
+
+              {features.liveDJ.enabled && (
                 <TouchableOpacity 
                   style={styles.liveDJCard}
                   onPress={() => router.push('/dj-instinct/live')}
@@ -690,63 +868,71 @@ export default function DJInstinctScreen() {
                       </View>
                       
                       <View style={styles.liveDJContent}>
-                        <Text style={styles.liveDJTitleLarge}>Professional Live DJ</Text>
+                        <Text style={styles.liveDJTitleLarge}>Start Live DJ Session</Text>
                         <Text style={styles.liveDJDescription}>
-                          Real-time mixing for parties, events & shows with advanced controls, crowd sync, and multi-device casting
+                          Professional real-time mixing for parties, events & shows. Multi-device casting, crowd sync, beat matching, and emergency controls.
                         </Text>
                       </View>
                       
                       <View style={styles.liveDJFeatureGrid}>
                         <View style={styles.featureItem}>
                           <Crosshair size={18} color="#00FF88" />
-                          <Text style={styles.featureLabel}>Beat Sync</Text>
+                          <Text style={styles.featureLabel}>Beat Match</Text>
                         </View>
                         <View style={styles.featureItem}>
                           <Layers size={18} color="#FFD700" />
-                          <Text style={styles.featureLabel}>Multi-Track</Text>
+                          <Text style={styles.featureLabel}>Multi-Deck</Text>
                         </View>
                         <View style={styles.featureItem}>
                           <Users size={18} color="#00D4FF" />
                           <Text style={styles.featureLabel}>Crowd Sync</Text>
                         </View>
                         <View style={styles.featureItem}>
-                          <Volume size={18} color="#FF6B35" />
-                          <Text style={styles.featureLabel}>Live Mix</Text>
+                          <AlertTriangle size={18} color="#FF6B35" />
+                          <Text style={styles.featureLabel}>Emergency</Text>
+                        </View>
+                        <View style={styles.featureItem}>
+                          <Cast size={18} color="#8B00FF" />
+                          <Text style={styles.featureLabel}>Multi-Cast</Text>
+                        </View>
+                        <View style={styles.featureItem}>
+                          <Wifi size={18} color="#00D4FF" />
+                          <Text style={styles.featureLabel}>Device Pair</Text>
                         </View>
                       </View>
                       
                       <View style={styles.liveDJAction}>
-                        <Text style={styles.liveDJActionText}>Start Live Session</Text>
+                        <Text style={styles.liveDJActionText}>Launch Live Mode</Text>
                         <Zap size={20} color="#FFF" fill="#FFF" />
                       </View>
                     </View>
                   </LinearGradient>
                 </TouchableOpacity>
+              )}
+
+              <View style={styles.quickFeatures}>
+                <TouchableOpacity style={styles.quickFeature}>
+                  <View style={styles.quickFeatureIcon}>
+                    <Wifi size={20} color="#00FF88" />
+                  </View>
+                  <Text style={styles.quickFeatureText}>Device Pairing</Text>
+                </TouchableOpacity>
                 
-                <View style={styles.quickFeatures}>
-                  <TouchableOpacity style={styles.quickFeature}>
-                    <View style={styles.quickFeatureIcon}>
-                      <Wifi size={20} color="#00FF88" />
-                    </View>
-                    <Text style={styles.quickFeatureText}>Device Pairing</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.quickFeature}>
-                    <View style={styles.quickFeatureIcon}>
-                      <AlertTriangle size={20} color="#FFD700" />
-                    </View>
-                    <Text style={styles.quickFeatureText}>Safety Mode</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.quickFeature}>
-                    <View style={styles.quickFeatureIcon}>
-                      <Repeat size={20} color="#00D4FF" />
-                    </View>
-                    <Text style={styles.quickFeatureText}>Auto-Transition</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity style={styles.quickFeature}>
+                  <View style={styles.quickFeatureIcon}>
+                    <AlertTriangle size={20} color="#FFD700" />
+                  </View>
+                  <Text style={styles.quickFeatureText}>Safety Mode</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.quickFeature}>
+                  <View style={styles.quickFeatureIcon}>
+                    <Repeat size={20} color="#00D4FF" />
+                  </View>
+                  <Text style={styles.quickFeatureText}>Auto-Transition</Text>
+                </TouchableOpacity>
               </View>
-            )}
+            </View>
 
             <View style={styles.actionBar}>
               <TouchableOpacity
@@ -1555,8 +1741,206 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#00FF88",
   },
-  liveDJSection: {
+  professionalSection: {
     marginBottom: 24,
+  },
+  mixerPanel: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 128, 0.2)',
+  },
+  mixerHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  mixerTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  toggleText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FF0080',
+  },
+  mixerContent: {
+    gap: 20,
+  },
+  crossfadeSection: {
+    gap: 12,
+  },
+  mixerLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#999',
+    textTransform: 'uppercase',
+  },
+  crossfadeDisplay: {
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  crossfadeValue: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: '#FF0080',
+  },
+  crossfadeButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  crossfadeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    backgroundColor: '#333',
+    borderRadius: 12,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  crossfadeButtonActive: {
+    backgroundColor: 'rgba(255, 0, 128, 0.2)',
+    borderColor: '#FF0080',
+  },
+  crossfadeButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#666',
+  },
+  crossfadeButtonTextActive: {
+    color: '#FFF',
+  },
+  masterVolumeSection: {
+    gap: 12,
+  },
+  volumeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  volumeValue: {
+    marginLeft: 'auto',
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FF0080',
+  },
+  volumeSlider: {
+    height: 40,
+    justifyContent: 'center',
+  },
+  volumeTrack: {
+    height: 8,
+    backgroundColor: '#333',
+    borderRadius: 4,
+  },
+  volumeProgress: {
+    height: '100%',
+    backgroundColor: '#FF0080',
+    borderRadius: 4,
+  },
+  togglesSection: {
+    gap: 12,
+  },
+  toggleItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#333',
+    borderRadius: 12,
+  },
+  toggleLabel: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  toggleLabelActive: {
+    color: '#FFF',
+  },
+  toggleSwitch: {
+    width: 44,
+    height: 24,
+    backgroundColor: '#222',
+    borderRadius: 12,
+    padding: 2,
+    justifyContent: 'center',
+  },
+  toggleSwitchActive: {
+    backgroundColor: '#00FF88',
+  },
+  toggleKnob: {
+    width: 20,
+    height: 20,
+    backgroundColor: '#666',
+    borderRadius: 10,
+  },
+  toggleKnobActive: {
+    backgroundColor: '#FFF',
+    alignSelf: 'flex-end',
+  },
+  eqPanel: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 0, 128, 0.2)',
+  },
+  eqHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  eqTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  eqContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    gap: 20,
+  },
+  eqBand: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 12,
+  },
+  eqLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#999',
+    textTransform: 'uppercase',
+  },
+  eqSliderContainer: {
+    height: 120,
+    justifyContent: 'flex-end',
+  },
+  eqSlider: {
+    width: 40,
+    height: 120,
+    backgroundColor: '#333',
+    borderRadius: 20,
+    overflow: 'hidden',
+    justifyContent: 'flex-end',
+  },
+  eqFill: {
+    width: '100%',
+    borderRadius: 20,
+  },
+  eqValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFF',
   },
   sectionHeader: {
     flexDirection: "row",
