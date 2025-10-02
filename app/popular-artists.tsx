@@ -30,7 +30,7 @@ export default function PopularArtistsScreen() {
   const renderArtistItem = ({ item }: { item: Artist }) => (
     <TouchableOpacity
       style={[styles.artistCard, { width: CARD_WIDTH }]}
-      onPress={() => console.log("Artist selected:", item.name)}
+      onPress={() => router.push(`/artist/${item.id}`)}
       activeOpacity={0.8}
       testID={`artist-${item.id}`}
     >
