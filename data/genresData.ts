@@ -2913,6 +2913,101 @@ export const genresData: Record<string, GenreData> = {
         year: "2018"
       }
     ]
+  },
+  "Makossa": {
+    name: "Makossa",
+    color: "#06B6D4",
+    description: "Cameroonian urban music genre featuring funky bass lines, prominent horns, and danceable rhythms.",
+    subgenres: ["Traditional Makossa", "Makossa-Soukous", "Modern Makossa"],
+    topArtists: [
+      {
+        id: "makossa-artist-1",
+        name: "Manu Dibango",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "makossa-artist-2",
+        name: "Sam Fan Thomas",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "0.9M"
+      },
+      {
+        id: "makossa-artist-3",
+        name: "Charlotte Mbango",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "0.7M"
+      },
+      {
+        id: "makossa-artist-4",
+        name: "Petit-Pays",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.1M"
+      }
+    ],
+    tracks: [
+      {
+        id: "makossa-1",
+        title: "Soul Makossa",
+        artist: "Manu Dibango",
+        album: "Soul Makossa",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "makossa-2",
+        title: "African Typic Collection",
+        artist: "Sam Fan Thomas",
+        album: "Makassi",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 312,
+        type: "song"
+      },
+      {
+        id: "makossa-3",
+        title: "Kolele",
+        artist: "Charlotte Mbango",
+        album: "Kolele",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "makossa-4",
+        title: "Ca Fait Mal",
+        artist: "Petit-Pays",
+        album: "Petit-Pays",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 289,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "makossa-pl-1",
+        name: "Makossa Classics",
+        description: "Essential Cameroonian makossa",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "makossa-pl-2",
+        name: "Modern Makossa",
+        description: "Contemporary makossa sounds",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "makossa-album-1",
+        title: "Soul Makossa",
+        artist: "Manu Dibango",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1972"
+      }
+    ]
   }
 };
 
