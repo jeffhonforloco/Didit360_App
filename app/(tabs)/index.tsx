@@ -543,7 +543,11 @@ export default function HomeScreen() {
         scrollEventThrottle={16}
       >
         {!profile && (
-          <View style={styles.guestBanner}>
+          <TouchableOpacity 
+            style={styles.guestBanner}
+            onPress={() => router.push('/auth')}
+            activeOpacity={0.9}
+          >
             <LinearGradient
               colors={['rgba(255, 0, 128, 0.15)', 'rgba(139, 92, 246, 0.15)']}
               start={{ x: 0, y: 0 }}
@@ -557,7 +561,7 @@ export default function HomeScreen() {
                 <Text style={styles.guestText}>You&apos;re listening as a guest</Text>
                 <Text style={styles.guestSubtext}>Sign up to unlock unlimited music & features</Text>
               </View>
-              <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
+              <View style={styles.guestBtnContainer}>
                 <LinearGradient
                   colors={['#FF0080', '#8B5CF6']}
                   start={{ x: 0, y: 0 }}
@@ -567,9 +571,9 @@ export default function HomeScreen() {
                   <Text style={styles.guestBtnText}>Sign Up</Text>
                   <Zap size={16} color="#FFF" fill="#FFF" />
                 </LinearGradient>
-              </TouchableOpacity>
+              </View>
             </LinearGradient>
-          </View>
+          </TouchableOpacity>
         )}
 
         {renderQuickAccess()}
@@ -1019,17 +1023,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 80,
     marginBottom: 8,
-    backgroundColor: 'rgba(255, 0, 128, 0.1)',
     borderRadius: 16,
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 0, 128, 0.3)',
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
   },
   guestBannerContent: {
     flex: 1,
+    minWidth: 0,
   },
   guestText: {
     color: '#FFF',
@@ -1041,11 +1042,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
   },
-  guestBtn: {
-    backgroundColor: '#FF0080',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+  guestBtnContainer: {
     borderRadius: 24,
+    overflow: 'hidden',
   },
   guestBtnText: {
     color: '#FFF',
@@ -1160,7 +1159,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     gap: 12,
-    borderRadius: 16,
   },
   guestBannerIconContainer: {
     width: 48,
