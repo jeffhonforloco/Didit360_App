@@ -100,7 +100,7 @@ interface DJInstinctState {
 
 export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctState>(() => {
   const trpcClient = trpc.useUtils().client;
-  const { currentTrack, queue } = usePlayer();
+  const { currentTrack, queue, playTrack } = usePlayer();
   const [active, setActive] = useState<boolean>(false);
   const [mode, setMode] = useState<DJInstinctMode>("automix");
   const [energy, setEnergy] = useState<number>(50);
@@ -347,6 +347,7 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
         artwork: t.artwork ?? 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800',
         duration: t.durationSec ?? 0,
         type: 'song',
+        audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
       }));
 
       const nowTrack: Track | null = data.nowPlaying
@@ -357,6 +358,7 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
             artwork: data.nowPlaying.artwork ?? 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800',
             duration: data.nowPlaying.durationSec ?? 0,
             type: 'song',
+            audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
           }
         : currentTrack ?? null;
 
@@ -368,12 +370,18 @@ export const [DJInstinctProvider, useDJInstinct] = createContextHook<DJInstinctS
         castStatus: data.castStatus ?? prev.castStatus,
         loading: false,
       }));
+      
       console.log('[DJInstinct] Live DJ started successfully with session:', data.sessionId);
+      
+      if (nowTrack && !currentTrack) {
+        console.log('[DJInstinct] Auto-playing track:', nowTrack.title);
+        playTrack(nowTrack);
+      }
     } catch (error) {
       console.error('[DJInstinct] Live DJ start error:', error);
       setLiveDJ(prev => ({ ...prev, loading: false, castStatus: "error" }));
     }
-  }, [liveDJ.promptConfig, apiBase, currentTrack]);
+  }, [liveDJ.promptConfig, apiBase, currentTrack, playTrack]);
   
   const updateLiveDJParams = useCallback(async () => {
     console.log('[DJInstinct] Updating Live DJ params:', liveDJ.params);

@@ -54,7 +54,7 @@ const EXPLICIT_OPTIONS: { value: ExplicitFilter; label: string }[] = [
 ];
 
 export default function LiveDJScreen() {
-  const { currentTrack, isPlaying, togglePlayPause } = usePlayer();
+  const { currentTrack, isPlaying, togglePlayPause, playTrack } = usePlayer();
   const {
     liveDJ,
     setLiveDJPromptConfig,
@@ -476,7 +476,20 @@ export default function LiveDJScreen() {
                     </View>
                     <TouchableOpacity
                       style={styles.playButton}
-                      onPress={togglePlayPause}
+                      onPress={() => {
+                        console.log('[LiveDJ] Play button pressed');
+                        console.log('[LiveDJ] Current track:', currentTrack?.title);
+                        console.log('[LiveDJ] Is playing:', isPlaying);
+                        
+                        const trackToPlay = liveDJ.nowPlaying || currentTrack;
+                        if (trackToPlay && !currentTrack) {
+                          console.log('[LiveDJ] No current track, playing:', trackToPlay.title);
+                          playTrack(trackToPlay);
+                        } else {
+                          console.log('[LiveDJ] Toggling play/pause');
+                          togglePlayPause();
+                        }
+                      }}
                     >
                       {isPlaying ? (
                         <Pause size={24} color="#FFF" fill="#FFF" />
