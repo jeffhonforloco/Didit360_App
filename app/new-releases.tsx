@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,25 +6,46 @@ import {
   TouchableOpacity,
   Image,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft, Play, Music2, Video } from "lucide-react-native";
+import { ArrowLeft, Play, Music2, Video, TrendingUp, Clock, Sparkles } from "lucide-react-native";
 import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
-import { newReleases } from "@/data/mockData";
+import { allTracks } from "@/data/mockData";
 import { usePlayer } from "@/contexts/PlayerContext";
 import type { Track } from "@/types";
 
+type FilterType = "all" | "songs" | "videos" | "podcasts" | "audiobooks";
+type SortType = "newest" | "popular" | "alphabetical";
+
 export default function NewReleasesScreen() {
   const { playTrack } = usePlayer();
-  const [filter, setFilter] = useState<"all" | "songs" | "videos">("all");
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [sortBy, setSortBy] = useState<SortType>("newest");
 
-  const filteredReleases = newReleases.filter((track) => {
-    if (filter === "all") return true;
-    if (filter === "songs") return track.type === "song";
-    if (filter === "videos") return track.type === "video" || track.isVideo;
-    return true;
-  });
+  const allNewReleases = useMemo(() => {
+    return allTracks.slice(0, 50);
+  }, []);
+
+  const filteredReleases = useMemo(() => {
+    let filtered = allNewReleases.filter((track) => {
+      if (filter === "all") return true;
+      if (filter === "songs") return track.type === "song";
+      if (filter === "videos") return track.type === "video" || track.isVideo;
+      if (filter === "podcasts") return track.type === "podcast";
+      if (filter === "audiobooks") return track.type === "audiobook";
+      return true;
+    });
+
+    if (sortBy === "alphabetical") {
+      filtered = [...filtered].sort((a, b) => a.title.localeCompare(b.title));
+    } else if (sortBy === "popular") {
+      filtered = [...filtered].reverse();
+    }
+
+    return filtered;
+  }, [allNewReleases, filter, sortBy]);
 
   const handleTrackPress = (track: Track) => {
     if (track.type === "video" || track.isVideo) {
@@ -76,6 +97,40 @@ export default function NewReleasesScreen() {
     );
   };
 
+  const renderFilterChip = (value: FilterType, label: string, icon?: React.ReactNode) => (
+    <TouchableOpacity
+      style={[styles.filterButton, filter === value && styles.filterButtonActive]}
+      onPress={() => setFilter(value)}
+    >
+      {icon ? <View>{icon}</View> : null}
+      <Text style={[styles.filterText, filter === value && styles.filterTextActive]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderSortChip = (value: SortType, label: string, icon?: React.ReactNode) => (
+    <TouchableOpacity
+      style={[styles.sortButton, sortBy === value && styles.sortButtonActive]}
+      onPress={() => setSortBy(value)}
+    >
+      {icon ? <View>{icon}</View> : null}
+      <Text style={[styles.sortText, sortBy === value && styles.sortTextActive]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const getStats = () => {
+    const songs = filteredReleases.filter(t => t.type === "song").length;
+    const videos = filteredReleases.filter(t => t.type === "video" || t.isVideo).length;
+    const podcasts = filteredReleases.filter(t => t.type === "podcast").length;
+    const audiobooks = filteredReleases.filter(t => t.type === "audiobook").length;
+    return { songs, videos, podcasts, audiobooks, total: filteredReleases.length };
+  };
+
+  const stats = getStats();
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <LinearGradient
@@ -97,41 +152,61 @@ export default function NewReleasesScreen() {
         </View>
 
         <View style={styles.description}>
+          <Sparkles size={20} color="#1DB954" />
           <Text style={styles.descriptionText}>
             Fresh tracks and videos just dropped. Be the first to discover what&apos;s new.
           </Text>
         </View>
 
-        <View style={styles.filterContainer}>
-          <TouchableOpacity
-            style={[styles.filterButton, filter === "all" && styles.filterButtonActive]}
-            onPress={() => setFilter("all")}
-          >
-            <Text style={[styles.filterText, filter === "all" && styles.filterTextActive]}>
-              All
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, filter === "songs" && styles.filterButtonActive]}
-            onPress={() => setFilter("songs")}
-          >
-            <Music2 size={16} color={filter === "songs" ? "#FFF" : "#B3B3B3"} />
-            <Text style={[styles.filterText, filter === "songs" && styles.filterTextActive]}>
-              Songs
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, filter === "videos" && styles.filterButtonActive]}
-            onPress={() => setFilter("videos")}
-          >
-            <Video size={16} color={filter === "videos" ? "#FFF" : "#B3B3B3"} />
-            <Text style={[styles.filterText, filter === "videos" && styles.filterTextActive]}>
-              Videos
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.total}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.songs}</Text>
+            <Text style={styles.statLabel}>Songs</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.videos}</Text>
+            <Text style={styles.statLabel}>Videos</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{stats.podcasts}</Text>
+            <Text style={styles.statLabel}>Podcasts</Text>
+          </View>
         </View>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Filter by Type</Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContainer}
+        >
+          {renderFilterChip("all", "All")}
+          {renderFilterChip("songs", "Songs", <Music2 size={16} color={filter === "songs" ? "#FFF" : "#B3B3B3"} />)}
+          {renderFilterChip("videos", "Videos", <Video size={16} color={filter === "videos" ? "#FFF" : "#B3B3B3"} />)}
+          {renderFilterChip("podcasts", "Podcasts")}
+          {renderFilterChip("audiobooks", "Audiobooks")}
+        </ScrollView>
+
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Sort by</Text>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.sortContainer}
+        >
+          {renderSortChip("newest", "Newest", <Clock size={14} color={sortBy === "newest" ? "#FFF" : "#999"} />)}
+          {renderSortChip("popular", "Popular", <TrendingUp size={14} color={sortBy === "popular" ? "#FFF" : "#999"} />)}
+          {renderSortChip("alphabetical", "A-Z")}
+        </ScrollView>
       </LinearGradient>
 
       <FlatList
@@ -140,6 +215,12 @@ export default function NewReleasesScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No releases found</Text>
+            <Text style={styles.emptySubtext}>Try adjusting your filters</Text>
+          </View>
+        }
       />
     </SafeAreaView>
   );
@@ -151,7 +232,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#0B0A14",
   },
   gradient: {
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: "row",
@@ -178,44 +259,136 @@ const styles = StyleSheet.create({
     width: 40,
   },
   description: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
+    gap: 8,
   },
   descriptionText: {
-    fontSize: 15,
+    flex: 1,
+    fontSize: 14,
     color: "#E0E0E0",
-    lineHeight: 22,
-    textAlign: "center",
+    lineHeight: 20,
+  },
+  statsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+  },
+  statItem: {
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#1DB954",
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: "#B3B3B3",
+    fontWeight: "600",
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#FFF",
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   filterContainer: {
-    flexDirection: "row",
     paddingHorizontal: 20,
-    gap: 12,
+    paddingBottom: 12,
+    gap: 10,
+  },
+  sortContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    gap: 10,
   },
   filterButton: {
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
     gap: 6,
   },
   filterButtonActive: {
     backgroundColor: "#1DB954",
+    borderColor: "#1DB954",
   },
   filterText: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: "#B3B3B3",
   },
   filterTextActive: {
     color: "#FFF",
   },
+  sortButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    gap: 6,
+  },
+  sortButtonActive: {
+    backgroundColor: "rgba(29, 185, 84, 0.2)",
+    borderColor: "#1DB954",
+  },
+  sortText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#999",
+  },
+  sortTextActive: {
+    color: "#1DB954",
+  },
   listContent: {
-    paddingTop: 20,
+    paddingTop: 16,
     paddingHorizontal: 20,
     paddingBottom: 120,
+  },
+  emptyContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 60,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#FFF",
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: "#999",
   },
   trackItem: {
     flexDirection: "row",
