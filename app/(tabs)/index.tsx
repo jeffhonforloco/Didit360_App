@@ -11,7 +11,7 @@ import {
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Heart, Compass, Music, Mic } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
 import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists } from "@/data/mockData";
@@ -21,13 +21,6 @@ import { useUser } from "@/contexts/UserContext";
 
 
 
-function getTimeGreeting() {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
-}
-
 export default function HomeScreen() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -36,7 +29,6 @@ export default function HomeScreen() {
   const { playTrack } = usePlayer();
   const { profile, isLoading } = useUser();
   const [scrollY] = useState(new Animated.Value(0));
-  const [headerBgColor] = useState(new Animated.Value(0));
 
   const quickAccessItems = useMemo(() => [
     { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
@@ -48,26 +40,16 @@ export default function HomeScreen() {
 
 
   const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 150],
+    inputRange: [0, 100],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
 
-  const headerScale = scrollY.interpolate({
-    inputRange: [0, 150],
-    outputRange: [1, 0.95],
-    extrapolate: 'clamp',
-  });
-
   const renderHeader = useCallback(() => (
-    <Animated.View style={[styles.header, { 
-      paddingTop: 12 + insets.top, 
-      backgroundColor: headerOpacity.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.98)']
-      }),
-      transform: [{ scale: headerScale }]
-    }]}> 
+    <Animated.View style={[styles.header, { paddingTop: 12 + insets.top, backgroundColor: headerOpacity.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.95)']
+    }) }]}> 
       <View style={styles.headerLeft}>
         {profile && (
           <SafeImage
@@ -96,7 +78,7 @@ export default function HomeScreen() {
         ) : null}
       </View>
     </Animated.View>
-  ), [insets.top, profile, headerOpacity, headerScale]);
+  ), [insets.top, profile, headerOpacity]);
 
   const renderSectionHeader = useCallback((title: string, subtitle: string, testID: string, route?: string, icon?: React.ReactNode) => {
     const handleSeeAll = () => {
@@ -418,6 +400,11 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.outerContainer}>
+      <LinearGradient
+        colors={['#1A0B2E', '#16213E', '#0B0A14']}
+        locations={[0, 0.3, 1]}
+        style={styles.backgroundGradient}
+      />
       <View style={styles.container}>
         {renderHeader()}
         <Animated.ScrollView 
@@ -429,51 +416,18 @@ export default function HomeScreen() {
         )}
         scrollEventThrottle={16}
       >
-        <View style={[styles.topSection, { paddingTop: insets.top }]}>
-          <LinearGradient
-            colors={['#FF0080', '#7928CA', '#1A0B2E']}
-            locations={[0, 0.5, 1]}
-            style={styles.topGradient}
-          />
-          <View style={styles.topContent}>
-            <View style={styles.greetingSection}>
-              <Text style={styles.timeGreeting}>{getTimeGreeting()}</Text>
-              <Text style={styles.userName}>{profile ? (profile.displayName || profile.email.split('@')[0]) : "Guest"}</Text>
+        {!profile && (
+          <View style={styles.guestBanner}>
+            <Sparkles size={20} color="#FF0080" />
+            <View style={styles.guestBannerContent}>
+              <Text style={styles.guestText}>You&apos;re listening as a guest</Text>
+              <Text style={styles.guestSubtext}>Sign up to unlock unlimited music</Text>
             </View>
-            
-            {!profile && (
-              <View style={styles.guestBannerTop}>
-                <Sparkles size={18} color="#FFD700" />
-                <View style={styles.guestBannerContent}>
-                  <Text style={styles.guestTextTop}>Unlock unlimited music</Text>
-                </View>
-                <TouchableOpacity style={styles.guestBtnTop} onPress={() => router.push('/auth')}>
-                  <Text style={styles.guestBtnTextTop}>Sign Up</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <View style={styles.quickAccessTop}>
-              {quickAccessItems.slice(0, 4).map((item) => (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.quickAccessItemTop}
-                  onPress={() => router.push(item.route as any)}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.1)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={styles.quickAccessGradientTop}
-                  >
-                    <Text style={styles.quickAccessTitleTop} numberOfLines={1}>{item.title}</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-              ))}
-            </View>
+            <TouchableOpacity style={styles.guestBtn} onPress={() => router.push('/auth')}>
+              <Text style={styles.guestBtnText}>Sign Up</Text>
+            </TouchableOpacity>
           </View>
-        </View>
+        )}
 
         <View style={styles.heroSection}>
           <FlatList
@@ -488,6 +442,8 @@ export default function HomeScreen() {
             pagingEnabled={false}
           />
         </View>
+
+        {renderQuickAccess()}
 
         <View style={styles.section}>
           {renderSectionHeader("Trending Now", "What&apos;s hot right now", "trending-now", "/trending-now", <TrendingUp size={20} color="#FF0080" />)}
@@ -683,95 +639,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     maxWidth: 200,
   },
-  topSection: {
-    paddingTop: 80,
-    paddingBottom: 24,
-    position: 'relative',
-  },
-  topGradient: {
+  backgroundGradient: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-  },
-  topContent: {
-    paddingHorizontal: 20,
-    gap: 20,
-  },
-  greetingSection: {
-    marginTop: 12,
-  },
-  timeGreeting: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  guestBannerTop: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    padding: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  guestTextTop: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  guestBtnTop: {
-    backgroundColor: '#FFF',
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-  },
-  guestBtnTextTop: {
-    color: '#000',
-    fontWeight: '800',
-    fontSize: 13,
-  },
-  quickAccessTop: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  quickAccessItemTop: {
-    flex: 1,
-    minWidth: '47%',
-    height: 56,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  quickAccessGradientTop: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-  },
-  quickAccessTitleTop: {
-    color: '#FFF',
-    fontSize: 14,
-    fontWeight: '800',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
+    height: 400,
   },
   heroSection: {
-    marginTop: 24,
+    marginTop: 80,
     marginBottom: 8,
   },
   heroList: {
