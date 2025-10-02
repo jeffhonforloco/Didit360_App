@@ -6,6 +6,7 @@ import { allTracks } from "@/data/mockData";
 import { router } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
 import { audioEngine } from "@/lib/AudioEngine";
+import { trpcClient } from "@/lib/trpc";
 
 interface PlayerState {
   currentTrack: Track | null;
@@ -90,6 +91,12 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
 
   const playTrack = useCallback((track: Track) => {
     console.log("[Player] Playing track:", track.title, "Type:", track.type, "IsVideo:", track.isVideo);
+    
+    // Track stream for featured algorithm
+    trpcClient.catalog.trackStream.mutate({
+      id: track.id,
+      type: track.type as 'song' | 'video' | 'podcast' | 'audiobook',
+    }).catch((e: unknown) => console.log('[Player] Stream tracking error:', e));
     
     // Immediate UI updates for responsiveness
     setCurrentTrack(track);

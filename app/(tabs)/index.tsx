@@ -14,11 +14,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio, Clock } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
+import { recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
 import { useLibrary } from "@/contexts/LibraryContext";
+import { trpc } from "@/lib/trpc";
 
 
 
@@ -33,32 +34,32 @@ export default function HomeScreen() {
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
   const [featuredItems, setFeaturedItems] = useState<Track[]>([]);
-  const [featuredRotationIndex, setFeaturedRotationIndex] = useState(0);
+  
+  const featuredQuery = trpc.catalog.getFeatured.useQuery(
+    { limit: 10, type: 'all' },
+    { refetchInterval: 60000 }
+  );
 
   useEffect(() => {
-    const rotateFeaturedContent = () => {
-      const allFeaturedPools = [
-        [...featuredContent],
-        [...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5)],
-        [...newReleases.slice(0, 5)],
-        [...topCharts.slice(0, 5)],
-        [...allTracks.filter(t => t.type === 'video' || t.isVideo).slice(0, 5)],
-        [...allTracks.filter(t => t.type === 'song').slice(0, 5)],
-      ];
-
-      const currentTime = Date.now();
-      const rotationInterval = 30000;
-      const poolIndex = Math.floor(currentTime / rotationInterval) % allFeaturedPools.length;
+    if (featuredQuery.data?.items) {
+      const featuredIds = featuredQuery.data.items.map((item: { id: string }) => item.id);
+      const featuredTracks = allTracks.filter(track => featuredIds.includes(track.id));
       
-      setFeaturedRotationIndex(poolIndex);
-      setFeaturedItems(allFeaturedPools[poolIndex]);
-    };
-
-    rotateFeaturedContent();
-    const interval = setInterval(rotateFeaturedContent, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
+      const sortedByScore = featuredTracks.sort((a, b) => {
+        const scoreA = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === a.id)?.score || 0;
+        const scoreB = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === b.id)?.score || 0;
+        return scoreB - scoreA;
+      });
+      
+      setFeaturedItems(sortedByScore.slice(0, 8));
+    } else {
+      const defaultFeatured = [
+        ...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5),
+        ...newReleases.slice(0, 3),
+      ];
+      setFeaturedItems(defaultFeatured);
+    }
+  }, [featuredQuery.data]);
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
@@ -283,7 +284,10 @@ export default function HomeScreen() {
     );
   }, []);
 
-  const renderHeroItem = useCallback(({ item, index }: { item: Track; index: number }) => (
+  const renderHeroItem = useCallback(({ item, index }: { item: Track; index: number }) => {
+    const itemScore = featuredQuery.data?.items.find((i: { id: string; score: number }) => i.id === item.id)?.score;
+    
+    return (
     <TouchableOpacity
       style={[styles.heroCard, { width: width - 32 }]}
       onPress={() => playTrack(item)}
@@ -310,10 +314,17 @@ export default function HomeScreen() {
             <Play size={24} color="#000" fill="#FFF" />
             <Text style={styles.heroPlayText}>Play Now</Text>
           </TouchableOpacity>
+          {itemScore !== undefined && (
+            <View style={styles.heroScoreBadge}>
+              <TrendingUp size={12} color="#FFD700" />
+              <Text style={styles.heroScoreText}>{(itemScore * 100).toFixed(0)}% Hot</Text>
+            </View>
+          )}
         </View>
       </LinearGradient>
     </TouchableOpacity>
-  ), [playTrack, width]);
+    );
+  }, [playTrack, width, featuredQuery.data]);
 
   const renderQuickAccess = useCallback(() => (
     <View style={styles.quickAccessContainer}>
@@ -595,13 +606,13 @@ export default function HomeScreen() {
             </View>
             <View style={styles.featuredRotationIndicator}>
               <Clock size={14} color="#999" />
-              <Text style={styles.featuredRotationText}>Updates every 30s</Text>
+              <Text style={styles.featuredRotationText}>Algorithm-based</Text>
             </View>
           </View>
           <FlatList
             data={featuredItems}
             renderItem={renderHeroItem}
-            keyExtractor={(item) => `hero-${item.id}-${featuredRotationIndex}`}
+            keyExtractor={(item) => `hero-${item.id}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             snapToInterval={width - 32 + 16}
@@ -1225,5 +1236,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#CCC',
     marginTop: 2,
+  },
+  heroScoreBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255, 215, 0, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 215, 0, 0.4)',
+  },
+  heroScoreText: {
+    color: '#FFD700',
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

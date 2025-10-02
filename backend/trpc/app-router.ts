@@ -9,6 +9,7 @@ import { getTrackProcedure } from "./routes/catalog/get-track/route";
 import { searchProcedure } from "./routes/catalog/search/route";
 import { getVideoProcedure } from "./routes/catalog/get-video/route";
 import { isStreamableProcedure } from "./routes/catalog/rights/is-streamable/route";
+import { getFeaturedProcedure, trackStreamProcedure, getMetricsProcedure } from "./routes/catalog/featured/route";
 
 // Ingest
 import { ingestJsonProcedure } from "./routes/ingest/json/route";
@@ -63,6 +64,9 @@ export const appRouter = createTRPCRouter({
     getTrack: getTrackProcedure,
     getVideo: getVideoProcedure,
     search: searchProcedure,
+    getFeatured: getFeaturedProcedure,
+    trackStream: trackStreamProcedure,
+    getMetrics: getMetricsProcedure,
     rights: createTRPCRouter({
       isStreamable: isStreamableProcedure,
     }),
