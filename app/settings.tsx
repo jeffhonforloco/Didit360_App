@@ -493,19 +493,6 @@ export default function SettingsScreen() {
           <ChevronRight size={20} color="#666" />
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={styles.settingsItem}
-          onPress={() => router.push('/admin')}
-          activeOpacity={0.8}
-        >
-          <View>
-            <Text style={styles.settingsItemText}>Admin Panel</Text>
-            <Text style={styles.settingsItemSubtext}>Access admin dashboard and management tools</Text>
-          </View>
-          <ChevronRight size={20} color="#666" />
-        </TouchableOpacity>
-        
-
         <Text style={styles.sectionTitle}>Sign Out</Text>
         
         <TouchableOpacity 
