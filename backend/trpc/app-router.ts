@@ -56,6 +56,11 @@ import { approveGenreProcedure } from "./routes/genres/approve-genre/route";
 import { updateGenreProcedure } from "./routes/genres/update-genre/route";
 import { getPendingGenresProcedure } from "./routes/genres/get-pending-genres/route";
 
+// AI
+import { transcribeProcedure } from "./routes/ai/transcribe/route";
+import { recommendationsProcedure } from "./routes/ai/recommendations/route";
+import { generatePlaylistProcedure } from "./routes/ai/generate-playlist/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -142,6 +147,11 @@ export const appRouter = createTRPCRouter({
     approveGenre: approveGenreProcedure,
     updateGenre: updateGenreProcedure,
     getPendingGenres: getPendingGenresProcedure,
+  }),
+  ai: createTRPCRouter({
+    transcribe: transcribeProcedure,
+    recommendations: recommendationsProcedure,
+    generatePlaylist: generatePlaylistProcedure,
   }),
 });
 

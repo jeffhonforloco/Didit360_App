@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
+import { generateJSON } from "@/backend/services/openai";
 
 const liveStartSchema = z.object({
   vibe: z.string(),
@@ -22,45 +23,65 @@ export const liveStartProcedure = publicProcedure
     console.log('[Live DJ] Starting live session with config:', input);
     
     try {
-      // Generate session ID
       const sessionId = `live_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // In a real implementation, this would:
-      // 1. Initialize the AI DJ engine with the prompt config
-      // 2. Start the real-time mixing service
-      // 3. Set up WebRTC broadcasting for casting
-      // 4. Begin track selection based on catalog and filters
+      const systemPrompt = `You are DJ Instinct, a professional AI DJ with deep knowledge of music theory, mixing techniques, and crowd energy management. You create seamless live DJ sets with perfect transitions, harmonic mixing, and energy flow.`;
       
-      // Simulate processing time
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const userPrompt = `Create a live DJ set with these parameters:
+Vibe: ${input.vibe}
+Genres: ${input.genres.join(', ')}
+${input.decades && input.decades.length > 0 ? `Decades: ${input.decades.join(', ')}` : ''}
+${input.regions && input.regions.length > 0 ? `Regions: ${input.regions.join(', ')}` : ''}
+Mood: ${input.mood}
+Energy Level: ${input.energy}%
+Tempo Range: ${input.tempoRangeBPM[0]}-${input.tempoRangeBPM[1]} BPM
+Transition Style: ${input.transitionStyle}
+Key Lock: ${input.keyLock ? 'Yes' : 'No'}
+${input.doNotPlay.length > 0 ? `Avoid: ${input.doNotPlay.join(', ')}` : ''}
+Explicit Filter: ${input.explicitFilter}
+Duration: ${input.durationMinutes} minutes
+
+Generate the first 5 tracks for this live set. Return JSON:
+{
+  "nowPlaying": {
+    "id": "track_id",
+    "title": "Track Name",
+    "artist": "Artist Name",
+    "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
+    "durationSec": 240,
+    "bpm": 128,
+    "key": "Am",
+    "energy": 75
+  },
+  "nextUp": [
+    {
+      "id": "track_id",
+      "title": "Track Name",
+      "artist": "Artist Name",
+      "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
+      "durationSec": 240,
+      "bpm": 128,
+      "key": "Am",
+      "energy": 75
+    }
+  ]
+}`;
       
-      // Mock response with generated tracks
-      const mockTracks = [
-        {
-          id: `track_${Date.now()}_1`,
-          title: "Afrobeats Anthem",
-          artist: "DJ Instinct Mix",
-          duration: "4:12",
-          bpm: 128,
-          key: "Am",
-          energy: input.energy,
-        },
-        {
-          id: `track_${Date.now()}_2`,
-          title: "Sunset Groove",
-          artist: "AI Generated",
-          duration: "3:45",
-          bpm: 124,
-          key: "Dm",
-          energy: input.energy - 10,
-        },
-      ];
+      const result = await generateJSON<{
+        nowPlaying?: any;
+        nextUp?: any[];
+      }>([
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ]);
       
       return {
         success: true,
         sessionId,
         message: "Live DJ session started successfully",
-        nextTracks: mockTracks,
+        nowPlaying: result.nowPlaying || null,
+        nextUp: result.nextUp || [],
+        castStatus: 'idle',
         estimatedDuration: input.durationMinutes,
       };
     } catch (error) {

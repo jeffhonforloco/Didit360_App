@@ -46,6 +46,7 @@
     "hono": "^4.9.8",
     "lucide-react-native": "^0.475.0",
     "nativewind": "^4.1.23",
+    "openai": "^6.1.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "react-native": "0.79.1",
