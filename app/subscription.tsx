@@ -33,14 +33,16 @@ const PLANS = [
     icon: Star,
     gradient: ["#667eea", "#764ba2"] as const,
     features: [
-      "Ad-free listening",
-      "Unlimited skips",
-      "High quality audio",
-      "Offline downloads (100 tracks)",
-      "Custom playlists",
-      "Personalized recommendations",
+      "✨ Ad-free listening",
+      "⏭️ Unlimited skips",
+      "🎵 High quality audio",
+      "📥 Unlimited offline downloads",
+      "🎨 Full personalization",
+      "🎯 Custom playlists",
+      "🤖 AI recommendations",
+      "🎧 DJ Instinct access",
     ],
-    popular: false,
+    popular: true,
   },
   {
     id: "pro",
@@ -50,14 +52,16 @@ const PLANS = [
     icon: Crown,
     gradient: ["#FF0080", "#8B5CF6"] as const,
     features: [
-      "Everything in Premium",
-      "DJ Instinct AI mixing",
-      "Unlimited offline downloads",
-      "Early access to new features",
-      "Priority support",
-      "Advanced audio controls",
+      "✨ Everything in Premium",
+      "🎛️ Advanced DJ controls",
+      "🔊 Professional audio tools",
+      "⚡ Early access to features",
+      "👑 Priority support",
+      "🎚️ Advanced EQ & effects",
+      "📊 Detailed analytics",
+      "🌟 Exclusive content",
     ],
-    popular: true,
+    popular: false,
   },
 ];
 
@@ -205,15 +209,51 @@ export default function SubscriptionScreen() {
               })}
             </View>
 
+            <View style={styles.comparisonSection}>
+              <Text style={styles.comparisonTitle}>Free vs Premium</Text>
+              <View style={styles.comparisonTable}>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>Ads</Text>
+                  <Text style={styles.comparisonFree}>❌ With Ads</Text>
+                  <Text style={styles.comparisonPaid}>✅ Ad-Free</Text>
+                </View>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>Skips</Text>
+                  <Text style={styles.comparisonFree}>⚠️ 6 per hour</Text>
+                  <Text style={styles.comparisonPaid}>✅ Unlimited</Text>
+                </View>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>Downloads</Text>
+                  <Text style={styles.comparisonFree}>❌ None</Text>
+                  <Text style={styles.comparisonPaid}>✅ Unlimited</Text>
+                </View>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>Audio Quality</Text>
+                  <Text style={styles.comparisonFree}>⚠️ Standard</Text>
+                  <Text style={styles.comparisonPaid}>✅ High Quality</Text>
+                </View>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>DJ Instinct</Text>
+                  <Text style={styles.comparisonFree}>❌ Locked</Text>
+                  <Text style={styles.comparisonPaid}>✅ Full Access</Text>
+                </View>
+                <View style={styles.comparisonRow}>
+                  <Text style={styles.comparisonFeature}>Personalization</Text>
+                  <Text style={styles.comparisonFree}>❌ Limited</Text>
+                  <Text style={styles.comparisonPaid}>✅ Full Control</Text>
+                </View>
+              </View>
+            </View>
+
             <View style={styles.benefitsSection}>
-              <Text style={styles.benefitsTitle}>Why Upgrade?</Text>
+              <Text style={styles.benefitsTitle}>Premium Benefits</Text>
               <View style={styles.benefitsList}>
                 <View style={styles.benefitItem}>
                   <Music size={24} color="#FF0080" />
                   <View style={styles.benefitContent}>
-                    <Text style={styles.benefitTitle}>Ad-Free Experience</Text>
+                    <Text style={styles.benefitTitle}>Zero Interruptions</Text>
                     <Text style={styles.benefitDescription}>
-                      Enjoy uninterrupted music without any ads
+                      No ads ever. Pure, uninterrupted music experience
                     </Text>
                   </View>
                 </View>
@@ -221,9 +261,9 @@ export default function SubscriptionScreen() {
                 <View style={styles.benefitItem}>
                   <Download size={24} color="#8B5CF6" />
                   <View style={styles.benefitContent}>
-                    <Text style={styles.benefitTitle}>Offline Listening</Text>
+                    <Text style={styles.benefitTitle}>Unlimited Downloads</Text>
                     <Text style={styles.benefitDescription}>
-                      Download your favorite tracks and listen anywhere
+                      Download as many tracks as you want for offline listening
                     </Text>
                   </View>
                 </View>
@@ -231,9 +271,9 @@ export default function SubscriptionScreen() {
                 <View style={styles.benefitItem}>
                   <Sparkles size={24} color="#FFD700" />
                   <View style={styles.benefitContent}>
-                    <Text style={styles.benefitTitle}>AI-Powered Features</Text>
+                    <Text style={styles.benefitTitle}>Full Personalization</Text>
                     <Text style={styles.benefitDescription}>
-                      Access DJ Instinct and personalized recommendations
+                      Customize everything - playlists, themes, recommendations
                     </Text>
                   </View>
                 </View>
@@ -241,9 +281,9 @@ export default function SubscriptionScreen() {
                 <View style={styles.benefitItem}>
                   <Headphones size={24} color="#00D4AA" />
                   <View style={styles.benefitContent}>
-                    <Text style={styles.benefitTitle}>Premium Audio</Text>
+                    <Text style={styles.benefitTitle}>DJ Instinct AI</Text>
                     <Text style={styles.benefitDescription}>
-                      Stream in high quality for the best sound
+                      Professional AI mixing, live sessions, and party mode
                     </Text>
                   </View>
                 </View>
@@ -512,6 +552,46 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     lineHeight: 20,
+  },
+  comparisonSection: {
+    paddingHorizontal: 20,
+    marginBottom: 32,
+  },
+  comparisonTitle: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#FFF",
+    marginBottom: 20,
+  },
+  comparisonTable: {
+    backgroundColor: "#1A1A1A",
+    borderRadius: 16,
+    padding: 16,
+    gap: 16,
+  },
+  comparisonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  comparisonFeature: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#FFF",
+  },
+  comparisonFree: {
+    flex: 1,
+    fontSize: 13,
+    color: "#999",
+    textAlign: "center",
+  },
+  comparisonPaid: {
+    flex: 1,
+    fontSize: 13,
+    color: "#00FF88",
+    fontWeight: "600",
+    textAlign: "center",
   },
   footer: {
     paddingHorizontal: 20,
