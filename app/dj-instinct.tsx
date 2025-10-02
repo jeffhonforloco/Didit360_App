@@ -115,8 +115,8 @@ export default function DJInstinctScreen() {
   const [eqMid, setEqMid] = useState(50);
   const [eqHigh, setEqHigh] = useState(50);
   const [masterVolume, setMasterVolume] = useState(80);
-  const [showEQ, setShowEQ] = useState(false);
-  const [showMixer, setShowMixer] = useState(false);
+  const [showEQ, setShowEQ] = useState(true);
+  const [showMixer, setShowMixer] = useState(true);
   const [autoGain, setAutoGain] = useState(true);
   const [beatSync, setBeatSync] = useState(true);
   const [harmonic, setHarmonic] = useState(true);
@@ -663,23 +663,20 @@ export default function DJInstinctScreen() {
             <View style={styles.professionalSection}>
               <View style={styles.sectionHeader}>
                 <Radio size={24} color="#FF6B35" />
-                <Text style={styles.sectionTitle}>Professional DJ Controls</Text>
-                <View style={styles.proBadge}>
-                  <Star size={12} color="#FFD700" />
-                  <Text style={styles.proText}>PRO</Text>
+                <Text style={styles.sectionTitle}>Live Mixing Console</Text>
+                <View style={styles.liveBadge}>
+                  <View style={styles.livePulse} />
+                  <Text style={styles.liveTextSmall}>LIVE</Text>
                 </View>
               </View>
 
               <View style={styles.mixerPanel}>
                 <View style={styles.mixerHeader}>
                   <Sliders size={20} color="#FF0080" />
-                  <Text style={styles.mixerTitle}>Live Mixer</Text>
-                  <TouchableOpacity onPress={() => setShowMixer(!showMixer)}>
-                    <Text style={styles.toggleText}>{showMixer ? 'Hide' : 'Show'}</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.mixerTitle}>Crossfade & Volume Control</Text>
                 </View>
 
-                {showMixer && (
+                <View style={styles.mixerContent}>
                   <View style={styles.mixerContent}>
                     <View style={styles.crossfadeSection}>
                       <Text style={styles.mixerLabel}>Crossfade Time</Text>
@@ -776,19 +773,16 @@ export default function DJInstinctScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                )}
+                </View>
               </View>
 
               <View style={styles.eqPanel}>
                 <View style={styles.eqHeader}>
                   <BarChart3 size={20} color="#FF0080" />
-                  <Text style={styles.eqTitle}>3-Band EQ</Text>
-                  <TouchableOpacity onPress={() => setShowEQ(!showEQ)}>
-                    <Text style={styles.toggleText}>{showEQ ? 'Hide' : 'Show'}</Text>
-                  </TouchableOpacity>
+                  <Text style={styles.eqTitle}>3-Band Equalizer</Text>
                 </View>
 
-                {showEQ && (
+                <View style={styles.eqContent}>
                   <View style={styles.eqContent}>
                     <View style={styles.eqBand}>
                       <Text style={styles.eqLabel}>LOW</Text>
@@ -835,7 +829,54 @@ export default function DJInstinctScreen() {
                       <Text style={styles.eqValue}>{eqHigh}%</Text>
                     </View>
                   </View>
-                )}
+                </View>
+              </View>
+
+              <View style={styles.beatMatchPanel}>
+                <View style={styles.beatMatchHeader}>
+                  <Crosshair size={20} color="#00FF88" />
+                  <Text style={styles.beatMatchTitle}>Beat Matching & Sync</Text>
+                </View>
+                <View style={styles.beatMatchContent}>
+                  <View style={styles.bpmDisplay}>
+                    <Text style={styles.bpmLabel}>Current BPM</Text>
+                    <Text style={styles.bpmValue}>{bpm}</Text>
+                    <View style={styles.bpmControls}>
+                      <TouchableOpacity 
+                        style={styles.bpmButton}
+                        onPress={() => setBpm(prev => Math.max(60, prev - 1))}
+                      >
+                        <Text style={styles.bpmButtonText}>-</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.bpmButton}
+                        onPress={() => setBpm(prev => Math.min(200, prev + 1))}
+                      >
+                        <Text style={styles.bpmButtonText}>+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.syncControls}>
+                    <TouchableOpacity 
+                      style={[styles.syncButton, beatSync && styles.syncButtonActive]}
+                      onPress={() => setBeatSync(!beatSync)}
+                    >
+                      <Crosshair size={18} color={beatSync ? "#FFF" : "#666"} />
+                      <Text style={[styles.syncButtonText, beatSync && styles.syncButtonTextActive]}>
+                        Auto Sync
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={[styles.syncButton, harmonic && styles.syncButtonActive]}
+                      onPress={() => setHarmonic(!harmonic)}
+                    >
+                      <Music size={18} color={harmonic ? "#FFF" : "#666"} />
+                      <Text style={[styles.syncButtonText, harmonic && styles.syncButtonTextActive]}>
+                        Harmonic Mix
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
               </View>
 
               {features.liveDJ.enabled && (
@@ -1969,6 +2010,91 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     color: "#FFD700",
+  },
+  beatMatchPanel: {
+    backgroundColor: '#1A1A1A',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 255, 136, 0.2)',
+  },
+  beatMatchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+  },
+  beatMatchTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
+  },
+  beatMatchContent: {
+    gap: 16,
+  },
+  bpmDisplay: {
+    alignItems: 'center',
+    gap: 8,
+  },
+  bpmLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#999',
+    textTransform: 'uppercase',
+  },
+  bpmValue: {
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#00FF88',
+  },
+  bpmControls: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  bpmButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#333',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#00FF88',
+  },
+  bpmButtonText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#00FF88',
+  },
+  syncControls: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  syncButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: '#333',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'transparent',
+  },
+  syncButtonActive: {
+    backgroundColor: 'rgba(0, 255, 136, 0.2)',
+    borderColor: '#00FF88',
+  },
+  syncButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#666',
+  },
+  syncButtonTextActive: {
+    color: '#FFF',
   },
   liveDJCard: {
     borderRadius: 24,
