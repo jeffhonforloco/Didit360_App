@@ -1488,6 +1488,861 @@ export const genresData: Record<string, GenreData> = {
         year: "1824"
       }
     ]
+  },
+  "Dancehall": {
+    name: "Dancehall",
+    color: "#FACC15",
+    description: "Jamaican dance music with electronic beats, rapid-fire vocals, and infectious rhythms.",
+    subgenres: ["Digital Dancehall", "Ragga", "Bashment", "Dancehall Pop"],
+    topArtists: [
+      {
+        id: "dancehall-artist-1",
+        name: "Sean Paul",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "15.8M"
+      },
+      {
+        id: "dancehall-artist-2",
+        name: "Shaggy",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "12.3M"
+      },
+      {
+        id: "dancehall-artist-3",
+        name: "Vybz Kartel",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "8.5M"
+      },
+      {
+        id: "dancehall-artist-4",
+        name: "Popcaan",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "6.2M"
+      }
+    ],
+    tracks: [
+      {
+        id: "dancehall-1",
+        title: "Temperature",
+        artist: "Sean Paul",
+        album: "The Trinity",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 215,
+        type: "song"
+      },
+      {
+        id: "dancehall-2",
+        title: "It Wasn't Me",
+        artist: "Shaggy ft. RikRok",
+        album: "Hot Shot",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 227,
+        type: "song"
+      },
+      {
+        id: "dancehall-3",
+        title: "Fever",
+        artist: "Vybz Kartel",
+        album: "King of the Dancehall",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      },
+      {
+        id: "dancehall-4",
+        title: "Family",
+        artist: "Popcaan",
+        album: "Forever",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 203,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "dancehall-pl-1",
+        name: "Dancehall Hits",
+        description: "The biggest dancehall anthems",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 70
+      },
+      {
+        id: "dancehall-pl-2",
+        name: "Bashment Party",
+        description: "High-energy dancehall for the dance floor",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 55
+      }
+    ],
+    albums: [
+      {
+        id: "dancehall-album-1",
+        title: "The Trinity",
+        artist: "Sean Paul",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2005"
+      }
+    ]
+  },
+  "Highlife": {
+    name: "Highlife",
+    color: "#FB923C",
+    description: "West African music genre blending traditional Akan melodies with Western instruments, jazz, and swing.",
+    subgenres: ["Guitar Band Highlife", "Brass Band Highlife", "Burger Highlife", "Gospel Highlife"],
+    topArtists: [
+      {
+        id: "highlife-artist-1",
+        name: "E.T. Mensah",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "highlife-artist-2",
+        name: "Osibisa",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.5M"
+      },
+      {
+        id: "highlife-artist-3",
+        name: "Ebo Taylor",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "highlife-artist-4",
+        name: "Flavour",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "4.3M"
+      }
+    ],
+    tracks: [
+      {
+        id: "highlife-1",
+        title: "All For You",
+        artist: "E.T. Mensah",
+        album: "King of Highlife",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 245,
+        type: "song"
+      },
+      {
+        id: "highlife-2",
+        title: "Sunshine Day",
+        artist: "Osibisa",
+        album: "Osibisa",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 312,
+        type: "song"
+      },
+      {
+        id: "highlife-3",
+        title: "Love and Death",
+        artist: "Ebo Taylor",
+        album: "Love and Death",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 278,
+        type: "song"
+      },
+      {
+        id: "highlife-4",
+        title: "Ada Ada",
+        artist: "Flavour",
+        album: "Blessed",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "highlife-pl-1",
+        name: "Highlife Classics",
+        description: "Golden era of West African highlife",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 60
+      },
+      {
+        id: "highlife-pl-2",
+        name: "Modern Highlife",
+        description: "Contemporary highlife sounds",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 45
+      }
+    ],
+    albums: [
+      {
+        id: "highlife-album-1",
+        title: "Love and Death",
+        artist: "Ebo Taylor",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2010"
+      }
+    ]
+  },
+  "Juju": {
+    name: "Juju",
+    color: "#A855F7",
+    description: "Nigerian music style featuring talking drums, guitars, and Yoruba percussion with Islamic and Christian influences.",
+    subgenres: ["Traditional Juju", "Gospel Juju", "Modern Juju"],
+    topArtists: [
+      {
+        id: "juju-artist-1",
+        name: "King Sunny Adé",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.8M"
+      },
+      {
+        id: "juju-artist-2",
+        name: "Ebenezer Obey",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "1.9M"
+      },
+      {
+        id: "juju-artist-3",
+        name: "Shina Peters",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      },
+      {
+        id: "juju-artist-4",
+        name: "I.K. Dairo",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      }
+    ],
+    tracks: [
+      {
+        id: "juju-1",
+        title: "Synchro System",
+        artist: "King Sunny Adé",
+        album: "Synchro System",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 456,
+        type: "song"
+      },
+      {
+        id: "juju-2",
+        title: "Board Members",
+        artist: "Ebenezer Obey",
+        album: "Board Members",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 523,
+        type: "song"
+      },
+      {
+        id: "juju-3",
+        title: "Ace",
+        artist: "Shina Peters",
+        album: "Ace (Afro-Juju Series 1)",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 398,
+        type: "song"
+      },
+      {
+        id: "juju-4",
+        title: "Mo Ti Lo",
+        artist: "I.K. Dairo",
+        album: "Juju Master",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 312,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "juju-pl-1",
+        name: "Juju Legends",
+        description: "Classic juju music from Nigeria",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "juju-pl-2",
+        name: "Afro-Juju",
+        description: "Modern fusion of juju and contemporary sounds",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "juju-album-1",
+        title: "Synchro System",
+        artist: "King Sunny Adé",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1983"
+      }
+    ]
+  },
+  "Fuji": {
+    name: "Fuji",
+    color: "#14B8A6",
+    description: "Nigerian percussion-based music derived from Islamic Ajisari tradition, featuring talking drums and call-and-response vocals.",
+    subgenres: ["Traditional Fuji", "Modern Fuji", "Fuji Pop"],
+    topArtists: [
+      {
+        id: "fuji-artist-1",
+        name: "Wasiu Ayinde Marshall (K1)",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.5M"
+      },
+      {
+        id: "fuji-artist-2",
+        name: "Kollington Ayinla",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "fuji-artist-3",
+        name: "Obesere",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.3M"
+      },
+      {
+        id: "fuji-artist-4",
+        name: "Saheed Osupa",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.6M"
+      }
+    ],
+    tracks: [
+      {
+        id: "fuji-1",
+        title: "Fuji Vibration",
+        artist: "Wasiu Ayinde Marshall (K1)",
+        album: "Fuji the Ultimate",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 612,
+        type: "song"
+      },
+      {
+        id: "fuji-2",
+        title: "Ijo Fuji",
+        artist: "Kollington Ayinla",
+        album: "Fuji Garbage",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 534,
+        type: "song"
+      },
+      {
+        id: "fuji-3",
+        title: "Asakasa",
+        artist: "Obesere",
+        album: "Asakasa",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 478,
+        type: "song"
+      },
+      {
+        id: "fuji-4",
+        title: "Testimony",
+        artist: "Saheed Osupa",
+        album: "Testimony",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 445,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "fuji-pl-1",
+        name: "Fuji Classics",
+        description: "Traditional fuji music from Nigeria",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 45
+      },
+      {
+        id: "fuji-pl-2",
+        name: "Modern Fuji",
+        description: "Contemporary fuji sounds",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 35
+      }
+    ],
+    albums: [
+      {
+        id: "fuji-album-1",
+        title: "Fuji the Ultimate",
+        artist: "Wasiu Ayinde Marshall (K1)",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1998"
+      }
+    ]
+  },
+  "Apala": {
+    name: "Apala",
+    color: "#84CC16",
+    description: "Yoruba percussion music from Nigeria featuring talking drums, with roots in Islamic wake-up music.",
+    subgenres: ["Traditional Apala", "Modern Apala"],
+    topArtists: [
+      {
+        id: "apala-artist-1",
+        name: "Haruna Ishola",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.1M"
+      },
+      {
+        id: "apala-artist-2",
+        name: "Ayinla Omowura",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      },
+      {
+        id: "apala-artist-3",
+        name: "Ligali Mukaiba",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "0.8M"
+      },
+      {
+        id: "apala-artist-4",
+        name: "Kasumu Adio",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "0.6M"
+      }
+    ],
+    tracks: [
+      {
+        id: "apala-1",
+        title: "Oroki Social Club",
+        artist: "Haruna Ishola",
+        album: "Apala Master",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 423,
+        type: "song"
+      },
+      {
+        id: "apala-2",
+        title: "Emi Mimo",
+        artist: "Ayinla Omowura",
+        album: "Late Ayinla Omowura",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 389,
+        type: "song"
+      },
+      {
+        id: "apala-3",
+        title: "Apala Disco",
+        artist: "Ligali Mukaiba",
+        album: "Apala Disco",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 356,
+        type: "song"
+      },
+      {
+        id: "apala-4",
+        title: "Ise Oluwa",
+        artist: "Kasumu Adio",
+        album: "Apala Tradition",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 412,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "apala-pl-1",
+        name: "Apala Legends",
+        description: "Classic apala music from Nigeria",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 40
+      },
+      {
+        id: "apala-pl-2",
+        name: "Apala Essentials",
+        description: "Essential apala tracks",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 30
+      }
+    ],
+    albums: [
+      {
+        id: "apala-album-1",
+        title: "Apala Master",
+        artist: "Haruna Ishola",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1970"
+      }
+    ]
+  },
+  "Fado": {
+    name: "Fado",
+    color: "#6366F1",
+    description: "Portuguese melancholic music expressing longing, fate, and nostalgia, typically featuring acoustic guitar and vocals.",
+    subgenres: ["Fado de Coimbra", "Fado de Lisboa", "Modern Fado"],
+    topArtists: [
+      {
+        id: "fado-artist-1",
+        name: "Amália Rodrigues",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "fado-artist-2",
+        name: "Mariza",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.3M"
+      },
+      {
+        id: "fado-artist-3",
+        name: "Carlos do Carmo",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "fado-artist-4",
+        name: "Carminho",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      }
+    ],
+    tracks: [
+      {
+        id: "fado-1",
+        title: "Estranha Forma de Vida",
+        artist: "Amália Rodrigues",
+        album: "Amália Rodrigues",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      },
+      {
+        id: "fado-2",
+        title: "Ó Gente da Minha Terra",
+        artist: "Mariza",
+        album: "Fado em Mim",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "fado-3",
+        title: "Lisboa Menina e Moça",
+        artist: "Carlos do Carmo",
+        album: "Um Homem na Cidade",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "fado-4",
+        title: "Bom Dia Amor",
+        artist: "Carminho",
+        album: "Carminho",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 189,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "fado-pl-1",
+        name: "Fado Classics",
+        description: "Traditional Portuguese fado",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "fado-pl-2",
+        name: "Modern Fado",
+        description: "Contemporary fado artists",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "fado-album-1",
+        title: "Fado em Mim",
+        artist: "Mariza",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2001"
+      }
+    ]
+  },
+  "Flamenco": {
+    name: "Flamenco",
+    color: "#DC2626",
+    description: "Passionate Spanish music and dance from Andalusia featuring intricate guitar work, hand clapping, and emotional vocals.",
+    subgenres: ["Flamenco Puro", "Flamenco Fusion", "Nuevo Flamenco"],
+    topArtists: [
+      {
+        id: "flamenco-artist-1",
+        name: "Paco de Lucía",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.1M"
+      },
+      {
+        id: "flamenco-artist-2",
+        name: "Camarón de la Isla",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "1.9M"
+      },
+      {
+        id: "flamenco-artist-3",
+        name: "Rosalía",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "15.8M"
+      },
+      {
+        id: "flamenco-artist-4",
+        name: "Tomatito",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.3M"
+      }
+    ],
+    tracks: [
+      {
+        id: "flamenco-1",
+        title: "Entre Dos Aguas",
+        artist: "Paco de Lucía",
+        album: "Fuente y Caudal",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 345,
+        type: "song"
+      },
+      {
+        id: "flamenco-2",
+        title: "La Leyenda del Tiempo",
+        artist: "Camarón de la Isla",
+        album: "La Leyenda del Tiempo",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 298,
+        type: "song"
+      },
+      {
+        id: "flamenco-3",
+        title: "Malamente",
+        artist: "Rosalía",
+        album: "El Mal Querer",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 162,
+        type: "song"
+      },
+      {
+        id: "flamenco-4",
+        title: "Aguadulce",
+        artist: "Tomatito",
+        album: "Rosas del Amor",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "flamenco-pl-1",
+        name: "Flamenco Classics",
+        description: "Traditional flamenco masters",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 55
+      },
+      {
+        id: "flamenco-pl-2",
+        name: "Nuevo Flamenco",
+        description: "Modern flamenco fusion",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 45
+      }
+    ],
+    albums: [
+      {
+        id: "flamenco-album-1",
+        title: "El Mal Querer",
+        artist: "Rosalía",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2018"
+      }
+    ]
+  },
+  "Bossa Nova": {
+    name: "Bossa Nova",
+    color: "#0EA5E9",
+    description: "Brazilian music blending samba rhythms with jazz harmonies, featuring soft vocals and acoustic guitar.",
+    subgenres: ["Traditional Bossa Nova", "Bossa Jazz", "Modern Bossa"],
+    topArtists: [
+      {
+        id: "bossa-artist-1",
+        name: "João Gilberto",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.5M"
+      },
+      {
+        id: "bossa-artist-2",
+        name: "Antônio Carlos Jobim",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "3.2M"
+      },
+      {
+        id: "bossa-artist-3",
+        name: "Astrud Gilberto",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "bossa-artist-4",
+        name: "Stan Getz",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.1M"
+      }
+    ],
+    tracks: [
+      {
+        id: "bossa-1",
+        title: "The Girl from Ipanema",
+        artist: "Stan Getz & Astrud Gilberto",
+        album: "Getz/Gilberto",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 318,
+        type: "song"
+      },
+      {
+        id: "bossa-2",
+        title: "Desafinado",
+        artist: "João Gilberto",
+        album: "Chega de Saudade",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 245,
+        type: "song"
+      },
+      {
+        id: "bossa-3",
+        title: "Corcovado",
+        artist: "Antônio Carlos Jobim",
+        album: "The Composer of Desafinado",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "bossa-4",
+        title: "Chega de Saudade",
+        artist: "João Gilberto",
+        album: "Chega de Saudade",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "bossa-pl-1",
+        name: "Bossa Nova Classics",
+        description: "Essential bossa nova from Brazil",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 60
+      },
+      {
+        id: "bossa-pl-2",
+        name: "Bossa Jazz",
+        description: "Bossa nova meets jazz",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 50
+      }
+    ],
+    albums: [
+      {
+        id: "bossa-album-1",
+        title: "Getz/Gilberto",
+        artist: "Stan Getz & João Gilberto",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1964"
+      }
+    ]
+  },
+  "Tango": {
+    name: "Tango",
+    color: "#BE123C",
+    description: "Passionate Argentine music and dance featuring bandoneón, violin, and dramatic rhythms.",
+    subgenres: ["Traditional Tango", "Tango Nuevo", "Electrotango"],
+    topArtists: [
+      {
+        id: "tango-artist-1",
+        name: "Carlos Gardel",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      },
+      {
+        id: "tango-artist-2",
+        name: "Astor Piazzolla",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.8M"
+      },
+      {
+        id: "tango-artist-3",
+        name: "Gotan Project",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "tango-artist-4",
+        name: "Aníbal Troilo",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "0.9M"
+      }
+    ],
+    tracks: [
+      {
+        id: "tango-1",
+        title: "Por Una Cabeza",
+        artist: "Carlos Gardel",
+        album: "Carlos Gardel",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 189,
+        type: "song"
+      },
+      {
+        id: "tango-2",
+        title: "Libertango",
+        artist: "Astor Piazzolla",
+        album: "Libertango",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 298,
+        type: "song"
+      },
+      {
+        id: "tango-3",
+        title: "Santa María (del Buen Ayre)",
+        artist: "Gotan Project",
+        album: "La Revancha del Tango",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 345,
+        type: "song"
+      },
+      {
+        id: "tango-4",
+        title: "La Cumparsita",
+        artist: "Aníbal Troilo",
+        album: "Tango Argentino",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "tango-pl-1",
+        name: "Tango Classics",
+        description: "Traditional Argentine tango",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "tango-pl-2",
+        name: "Electrotango",
+        description: "Modern electronic tango fusion",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "tango-album-1",
+        title: "La Revancha del Tango",
+        artist: "Gotan Project",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2001"
+      }
+    ]
   }
 };
 
