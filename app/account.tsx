@@ -160,12 +160,28 @@ export default function AccountScreen() {
     setSaving(true);
     try {
       console.log('[Account] Saving profile with avatarUrl:', avatarUrl);
-      await updateProfile({ displayName: n, email: e, avatarUrl: avatarUrl || null });
+      const updatedProfile = { 
+        displayName: n, 
+        email: e, 
+        avatarUrl: avatarUrl || null 
+      };
+      console.log('[Account] Updated profile object:', updatedProfile);
+      
+      await updateProfile(updatedProfile);
+      
       if (newPw) {
         await changePassword(currentPw, newPw);
       }
+      
+      console.log('[Account] Profile saved successfully');
       if (Platform.OS === "web") console.log("Profile saved");
       else Alert.alert("Saved", "Your account has been updated");
+      
+      // Clear password fields after successful save
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+      
       // @ts-ignore
       if (typeof nav?.goBack === "function") nav.goBack();
     } catch (err) {
@@ -176,24 +192,15 @@ export default function AccountScreen() {
     }
   }, [name, email, avatarUrl, updateProfile, nav, currentPw, newPw, confirmPw, changePassword]);
 
-  // Update local state when profile changes - but don't override if user is actively editing
+  // Update local state when profile changes
   useEffect(() => {
     if (profile && !saving) {
-      // Only update if the local state is empty or significantly different
-      // This prevents overriding user's unsaved changes
-      if (!name || name !== profile.displayName) {
-        setName(profile.displayName);
-      }
-      if (!email || email !== profile.email) {
-        setEmail(profile.email);
-      }
-      // Only update avatar URL if local state is empty AND profile has an avatar
-      // Don't update if user has made local changes (like picking a new image)
-      if (!avatarUrl && profile.avatarUrl) {
-        setAvatarUrl(profile.avatarUrl);
-      }
+      console.log('[Account] Syncing profile to local state:', profile);
+      setName(profile.displayName);
+      setEmail(profile.email);
+      setAvatarUrl(profile.avatarUrl || '');
     }
-  }, [profile?.displayName, profile?.email, profile?.avatarUrl, saving]); // Use specific profile properties to prevent loops
+  }, [profile, saving]);
 
   // Redirect to auth if user is not signed in
   useEffect(() => {

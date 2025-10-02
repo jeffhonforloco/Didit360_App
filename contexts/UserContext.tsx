@@ -94,17 +94,27 @@ export const useSignOut = () => {
       // Small delay to ensure state updates are processed
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Navigate to home screen (tabs) instead of auth modal
+      // Navigate to home screen
       console.log('[useSignOut] Navigating to home screen');
-      router.dismissAll(); // Dismiss any modals first
-      router.replace('/(tabs)'); // Replace current screen with home
+      router.dismissAll();
+      
+      // Use push to home tab instead of replace
+      if (router.canGoBack()) {
+        router.back();
+      }
+      
+      // Force navigate to home tab
+      setTimeout(() => {
+        router.push('/' as any);
+      }, 100);
       
     } catch (error) {
       console.error('[useSignOut] Sign out error:', error);
       // Even if there's an error, try to navigate away
       router.dismissAll();
-      router.replace('/(tabs)');
-      // Don't throw error - we want the navigation to happen regardless
+      setTimeout(() => {
+        router.push('/' as any);
+      }, 100);
     }
   }, [signOut]);
   
