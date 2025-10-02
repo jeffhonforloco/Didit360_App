@@ -8,7 +8,7 @@ import { router } from "expo-router";
 type AuthMode = 'signup' | 'signin';
 
 export default function AuthModal() {
-  const { updateProfile, profile, isLoading } = useUser();
+  const { signUp, signIn, profile, isLoading } = useUser();
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState<string>("");
   const [name, setName] = useState<string>("");
@@ -43,14 +43,16 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
-      await updateProfile({ email: e, displayName: n });
+      await signUp(e, p, n);
       router.dismissAll();
     } catch (err) {
       console.error("[Auth] sign up error", err);
+      if (Platform.OS === "web") console.log("Sign up failed. Please try again.");
+      else Alert.alert("Error", "Sign up failed. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [email, name, password, updateProfile]);
+  }, [email, name, password, signUp]);
 
   const onSignIn = useCallback(async () => {
     const e = email.trim();
@@ -67,16 +69,16 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
-      // For demo purposes, we'll just sign them in with the email
-      // In a real app, you'd validate credentials against your backend
-      await updateProfile({ email: e, displayName: e.split('@')[0] });
+      await signIn(e, p);
       router.dismissAll();
     } catch (err) {
       console.error("[Auth] sign in error", err);
+      if (Platform.OS === "web") console.log("Sign in failed. Please check your credentials.");
+      else Alert.alert("Error", "Sign in failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
-  }, [email, password, updateProfile]);
+  }, [email, password, signIn]);
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(16, insets.bottom) }]}
