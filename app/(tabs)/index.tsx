@@ -42,7 +42,7 @@ export default function HomeScreen() {
         sections.push(
           { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: trendingNow.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
           { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: popularArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
-          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" /> },
+          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
         );
         return sections;
       }
