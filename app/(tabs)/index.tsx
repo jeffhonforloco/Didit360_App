@@ -37,29 +37,42 @@ export default function HomeScreen() {
   
   const featuredQuery = trpc.catalog.getFeatured.useQuery(
     { limit: 10, type: 'all' },
-    { refetchInterval: 60000 }
+    { 
+      refetchInterval: 60000,
+      retry: false,
+      enabled: true
+    }
   );
+  
+  useEffect(() => {
+    if (featuredQuery.error) {
+      console.log('[HomeScreen] Featured query error (using fallback):', featuredQuery.error.message);
+    }
+  }, [featuredQuery.error]);
 
   useEffect(() => {
-    if (featuredQuery.data?.items) {
+    if (featuredQuery.data?.items && featuredQuery.data.items.length > 0) {
       const featuredIds = featuredQuery.data.items.map((item: { id: string }) => item.id);
       const featuredTracks = allTracks.filter(track => featuredIds.includes(track.id));
       
-      const sortedByScore = featuredTracks.sort((a, b) => {
-        const scoreA = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === a.id)?.score || 0;
-        const scoreB = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === b.id)?.score || 0;
-        return scoreB - scoreA;
-      });
-      
-      setFeaturedItems(sortedByScore.slice(0, 8));
-    } else {
-      const defaultFeatured = [
-        ...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5),
-        ...newReleases.slice(0, 3),
-      ];
-      setFeaturedItems(defaultFeatured);
+      if (featuredTracks.length > 0) {
+        const sortedByScore = featuredTracks.sort((a, b) => {
+          const scoreA = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === a.id)?.score || 0;
+          const scoreB = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === b.id)?.score || 0;
+          return scoreB - scoreA;
+        });
+        
+        setFeaturedItems(sortedByScore.slice(0, 8));
+        return;
+      }
     }
-  }, [featuredQuery.data]);
+    
+    const defaultFeatured = [
+      ...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5),
+      ...newReleases.slice(0, 3),
+    ];
+    setFeaturedItems(defaultFeatured);
+  }, [featuredQuery.data, featuredQuery.error]);
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
