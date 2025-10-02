@@ -89,7 +89,7 @@ export const recentlyPlayed: Track[] = [
   },
   // Add music video to recently played
   {
-    id: "v4",
+    id: "v4-recent",
     title: "Firework (Official Music Video)",
     artist: "Katy Perry",
     album: "Teenage Dream",
@@ -551,7 +551,7 @@ export const newReleases: Track[] = [
   },
   // Add music video to new releases
   {
-    id: "v3",
+    id: "v3-newrelease",
     title: "7 rings (Official Video)",
     artist: "Ariana Grande",
     album: "Thank U, Next",
@@ -1793,7 +1793,7 @@ export const videoTracks: Track[] = [
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
   },
   {
-    id: "v3",
+    id: "v3-video",
     title: "7 rings (Official Video)",
     artist: "Ariana Grande",
     album: "Thank U, Next",
@@ -1804,7 +1804,7 @@ export const videoTracks: Track[] = [
     videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
   },
   {
-    id: "v4",
+    id: "v4-video",
     title: "Firework (Official Music Video)",
     artist: "Katy Perry",
     album: "Teenage Dream",
