@@ -23,13 +23,29 @@ export default function GenresScreen() {
       return allGenres;
     }
     const query = searchQuery.toLowerCase().trim();
-    return allGenres.filter((genre) => {
+    
+    const matches = allGenres.filter((genre) => {
       const genreInfo = genresData[genre];
+      const genreName = genreInfo.name.toLowerCase();
+      const genreDescription = genreInfo.description.toLowerCase();
+      
       return (
-        genreInfo.name.toLowerCase().includes(query) ||
-        genreInfo.description.toLowerCase().includes(query) ||
+        genreName.includes(query) ||
+        genreDescription.includes(query) ||
         genreInfo.subgenres.some((sub) => sub.toLowerCase().includes(query))
       );
+    });
+    
+    return matches.sort((a, b) => {
+      const aName = genresData[a].name.toLowerCase();
+      const bName = genresData[b].name.toLowerCase();
+      const aStartsWith = aName.startsWith(query);
+      const bStartsWith = bName.startsWith(query);
+      
+      if (aStartsWith && !bStartsWith) return -1;
+      if (!aStartsWith && bStartsWith) return 1;
+      
+      return aName.localeCompare(bName);
     });
   }, [searchQuery]);
 
