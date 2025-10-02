@@ -507,7 +507,7 @@ export default function HomeScreen() {
         locations={[0, 0.3, 1]}
         style={styles.backgroundGradient}
       />
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: insets.top + 80 }]}>
         {renderHeader()}
         <Animated.ScrollView 
         showsVerticalScrollIndicator={false} 
