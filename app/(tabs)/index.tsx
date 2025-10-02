@@ -33,46 +33,6 @@ export default function HomeScreen() {
   const { recentlyPlayed: userRecentlyPlayed } = useLibrary();
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
-  const [featuredItems, setFeaturedItems] = useState<Track[]>([]);
-  
-  const featuredQuery = trpc.catalog.getFeatured.useQuery(
-    { limit: 10, type: 'all' },
-    { 
-      refetchInterval: 60000,
-      retry: false,
-      enabled: true
-    }
-  );
-  
-  useEffect(() => {
-    if (featuredQuery.error) {
-      console.log('[HomeScreen] Featured query error (using fallback):', featuredQuery.error.message);
-    }
-  }, [featuredQuery.error]);
-
-  useEffect(() => {
-    if (featuredQuery.data?.items && featuredQuery.data.items.length > 0) {
-      const featuredIds = featuredQuery.data.items.map((item: { id: string }) => item.id);
-      const featuredTracks = allTracks.filter(track => featuredIds.includes(track.id));
-      
-      if (featuredTracks.length > 0) {
-        const sortedByScore = featuredTracks.sort((a, b) => {
-          const scoreA = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === a.id)?.score || 0;
-          const scoreB = featuredQuery.data?.items.find((item: { id: string; score: number }) => item.id === b.id)?.score || 0;
-          return scoreB - scoreA;
-        });
-        
-        setFeaturedItems(sortedByScore.slice(0, 8));
-        return;
-      }
-    }
-    
-    const defaultFeatured = [
-      ...trendingNow.filter(t => t.type === 'song' || t.type === 'video').slice(0, 5),
-      ...newReleases.slice(0, 3),
-    ];
-    setFeaturedItems(defaultFeatured);
-  }, [featuredQuery.data, featuredQuery.error]);
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
@@ -297,47 +257,7 @@ export default function HomeScreen() {
     );
   }, []);
 
-  const renderHeroItem = useCallback(({ item, index }: { item: Track; index: number }) => {
-    const itemScore = featuredQuery.data?.items.find((i: { id: string; score: number }) => i.id === item.id)?.score;
-    
-    return (
-    <TouchableOpacity
-      style={[styles.heroCard, { width: width - 32 }]}
-      onPress={() => playTrack(item)}
-      activeOpacity={0.9}
-      testID={`hero-${item.id}`}
-    >
-      <SafeImage uri={item.artwork} style={styles.heroImage} />
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.4)', 'rgba(0,0,0,0.9)']}
-        style={styles.heroGradient}
-      >
-        <View style={styles.heroContent}>
-          <View style={styles.heroTag}>
-            <Sparkles size={14} color="#FFD700" />
-            <Text style={styles.heroTagText}>Featured</Text>
-          </View>
-          <Text style={styles.heroTitle} numberOfLines={2}>
-            {item.title}
-          </Text>
-          <Text style={styles.heroArtist} numberOfLines={1}>
-            {item.artist}
-          </Text>
-          <TouchableOpacity style={styles.heroPlayButton} onPress={() => playTrack(item)} testID={`hero-play-${item.id}`}>
-            <Play size={24} color="#000" fill="#FFF" />
-            <Text style={styles.heroPlayText}>Play Now</Text>
-          </TouchableOpacity>
-          {itemScore !== undefined && (
-            <View style={styles.heroScoreBadge}>
-              <TrendingUp size={12} color="#FFD700" />
-              <Text style={styles.heroScoreText}>{(itemScore * 100).toFixed(0)}% Hot</Text>
-            </View>
-          )}
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
-    );
-  }, [playTrack, width, featuredQuery.data]);
+
 
   const renderQuickAccess = useCallback(() => (
     <View style={styles.quickAccessContainer}>
@@ -611,26 +531,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={styles.heroSection}>
-          <View style={styles.featuredHeader}>
-            <View style={styles.featuredHeaderLeft}>
-              <Sparkles size={20} color="#FFD700" />
-              <Text style={styles.featuredHeaderText}>Featured</Text>
-            </View>
-          </View>
-          <FlatList
-            data={featuredItems}
-            renderItem={renderHeroItem}
-            keyExtractor={(item) => `hero-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={width - 32 + 16}
-            decelerationRate="fast"
-            contentContainerStyle={styles.heroList}
-            pagingEnabled={false}
-          />
-        </View>
-
         {renderQuickAccess()}
 
         {currentTrack && (
@@ -770,96 +670,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: 400,
   },
-  heroSection: {
-    marginTop: 80,
-    marginBottom: 8,
-  },
-  featuredHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  featuredHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  featuredHeaderText: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: '#FFF',
-  },
 
-  heroList: {
-    paddingHorizontal: 16,
-    gap: 16,
-  },
-  heroCard: {
-    height: 280,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginRight: 16,
-  },
-  heroImage: {
-    width: '100%',
-    height: '100%',
-  },
-  heroGradient: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: '70%',
-    justifyContent: 'flex-end',
-    padding: 20,
-  },
-  heroContent: {
-    gap: 8,
-  },
-  heroTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  heroTagText: {
-    color: '#FFD700',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '900',
-    color: '#FFF',
-    marginTop: 4,
-  },
-  heroArtist: {
-    fontSize: 16,
-    color: '#E0E0E0',
-    fontWeight: '600',
-  },
-  heroPlayButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#FFF',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 30,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-  },
-  heroPlayText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '800',
-  },
   quickAccessContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1233,22 +1044,5 @@ const styles = StyleSheet.create({
     color: '#CCC',
     marginTop: 2,
   },
-  heroScoreBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 215, 0, 0.2)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 16,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 215, 0, 0.4)',
-  },
-  heroScoreText: {
-    color: '#FFD700',
-    fontSize: 11,
-    fontWeight: '700',
-  },
+
 });
