@@ -86,9 +86,7 @@ const queryClient = new QueryClient({
 
 function RootLayoutNav() {
   return (
-    <Stack screenOptions={{ headerBackTitle: "Back" }} initialRouteName="splash">
-      <Stack.Screen name="splash" options={{ headerShown: false }} />
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerBackTitle: "Back" }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="account" options={{ title: "Account" }} />
       <Stack.Screen name="settings" options={{ title: "Settings" }} />
@@ -178,22 +176,20 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (isReady) {
-      try {
-        const t0 = Date.now();
-        SplashScreen.hideAsync().finally(() => {
-          try {
-            const ms = Date.now() - t0;
-            logPerf('splash_hide', ms);
-          } catch (e) {
-            console.log('[RootLayout] splash perf error', e);
-          }
-        });
-      } catch (e) {
-        console.log('[RootLayout] splash hide error', e);
-      }
+    try {
+      const t0 = Date.now();
+      SplashScreen.hideAsync().finally(() => {
+        try {
+          const ms = Date.now() - t0;
+          logPerf('splash_hide', ms);
+        } catch (e) {
+          console.log('[RootLayout] splash perf error', e);
+        }
+      });
+    } catch (e) {
+      console.log('[RootLayout] splash hide error', e);
     }
-  }, [isReady]);
+  }, []);
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
