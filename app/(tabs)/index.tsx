@@ -43,6 +43,8 @@ export default function HomeScreen() {
           { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: trendingNow.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
           { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: popularArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
           { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
+          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
+          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
         return sections;
       }
@@ -86,7 +88,7 @@ export default function HomeScreen() {
 
         sections.push(
           { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
-          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8) },
+          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
       } else if (trackType === 'video' || currentTrack.isVideo) {
         const moreVideos = allTracks.filter(t => 
