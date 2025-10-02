@@ -198,7 +198,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
         email,
         password,
         displayName,
-        ...(avatarUrl ? { avatarUrl } : {}),
+        avatarUrl: avatarUrl || null,
       });
 
       console.log('[UserContext] signUp successful:', result.user.id);
