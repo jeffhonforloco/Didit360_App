@@ -824,6 +824,7 @@ export default function PodcastsScreen() {
           </View>
 
           <FlatList
+            key={`${viewMode}-${listCols}`}
             data={filteredData}
             renderItem={renderCard}
             keyExtractor={keyExtractor}

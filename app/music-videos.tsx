@@ -10,7 +10,7 @@ import {
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, ArrowLeft, Filter, Grid, List } from "lucide-react-native";
+import { Play, ArrowLeft, Grid, List } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
 import { trendingVideos, mostViewedVideos, livePerformanceVideos } from "@/data/mockData";
@@ -156,6 +156,7 @@ export default function MusicVideosScreen() {
 
         {viewMode === "grid" ? (
           <FlatList
+            key="grid"
             data={currentData}
             renderItem={renderVideoCard}
             keyExtractor={(item) => item.id}
@@ -166,6 +167,7 @@ export default function MusicVideosScreen() {
           />
         ) : (
           <FlatList
+            key="list"
             data={currentData}
             renderItem={renderVideoListItem}
             keyExtractor={(item) => item.id}
