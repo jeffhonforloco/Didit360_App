@@ -6,13 +6,13 @@ const signupInputSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   displayName: z.string().min(1),
-  avatarUrl: z.string().optional(),
+  avatarUrl: z.string().nullable().optional(),
 });
 
 const signupOutputSchema = z.object({
   user: z.object({
     id: z.string(),
-    email: z.string(),
+    email: z.string().email(),
     displayName: z.string(),
     avatarUrl: z.string().nullable(),
     createdAt: z.string(),

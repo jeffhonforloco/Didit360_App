@@ -11,7 +11,7 @@ const updateProfileInputSchema = z.object({
 const updateProfileOutputSchema = z.object({
   user: z.object({
     id: z.string(),
-    email: z.string(),
+    email: z.string().email(),
     displayName: z.string(),
     avatarUrl: z.string().nullable(),
     updatedAt: z.string(),
