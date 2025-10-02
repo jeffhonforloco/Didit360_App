@@ -489,8 +489,6 @@ export default function HomeScreen() {
           />
         </View>
 
-        {renderQuickAccess()}
-
         <View style={styles.section}>
           {renderSectionHeader("Trending Now", "What&apos;s hot right now", "trending-now", "/trending-now", <TrendingUp size={20} color="#FF0080" />)}
           <FlatList
