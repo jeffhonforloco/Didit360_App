@@ -47,6 +47,14 @@ import {
   Wind,
   Target,
   Shuffle,
+  Cast,
+  Wifi,
+  AlertTriangle,
+  CheckCircle,
+  Layers,
+  Crosshair,
+  Volume,
+  Repeat,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { features } from "@/constants/features";
@@ -643,42 +651,101 @@ export default function DJInstinctScreen() {
             )}
 
             {features.liveDJ.enabled && (
-              <TouchableOpacity 
-                style={styles.liveDJEntry}
-                onPress={() => router.push('/dj-instinct/live')}
-              >
-                <LinearGradient
-                  colors={['rgba(255, 107, 53, 0.2)', 'rgba(255, 107, 53, 0.05)']}
-                  style={styles.liveDJGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <View style={styles.liveDJIcon}>
-                    <Radio size={28} color="#FF6B35" />
+              <View style={styles.liveDJSection}>
+                <View style={styles.sectionHeader}>
+                  <Radio size={24} color="#FF6B35" />
+                  <Text style={styles.sectionTitle}>Live DJ Mode</Text>
+                  <View style={styles.proBadge}>
+                    <Star size={12} color="#FFD700" />
+                    <Text style={styles.proText}>PRO</Text>
                   </View>
-                  <View style={styles.liveDJContent}>
-                    <Text style={styles.liveDJTitle}>Live DJ Mode</Text>
-                    <Text style={styles.liveDJSubtitle}>Professional event mixing with advanced controls</Text>
-                    <View style={styles.liveDJFeatures}>
-                      <View style={styles.featureTag}>
-                        <Star size={10} color="#FFD700" />
-                        <Text style={styles.featureText}>Pro</Text>
+                </View>
+                
+                <TouchableOpacity 
+                  style={styles.liveDJCard}
+                  onPress={() => router.push('/dj-instinct/live')}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#FF6B35', '#FF0080', '#8B00FF']}
+                    style={styles.liveDJGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                  >
+                    <View style={styles.liveDJOverlay}>
+                      <View style={styles.liveDJTop}>
+                        <View style={styles.liveDJIconLarge}>
+                          <Radio size={40} color="#FFF" />
+                        </View>
+                        <View style={styles.liveDJBadges}>
+                          <View style={styles.liveBadge}>
+                            <View style={styles.livePulse} />
+                            <Text style={styles.liveTextSmall}>LIVE</Text>
+                          </View>
+                          <View style={styles.castBadge}>
+                            <Cast size={14} color="#FFF" />
+                            <Text style={styles.castText}>Cast Ready</Text>
+                          </View>
+                        </View>
                       </View>
-                      <View style={styles.featureTag}>
-                        <Zap size={10} color="#00FF88" />
-                        <Text style={styles.featureText}>Live</Text>
+                      
+                      <View style={styles.liveDJContent}>
+                        <Text style={styles.liveDJTitleLarge}>Professional Live DJ</Text>
+                        <Text style={styles.liveDJDescription}>
+                          Real-time mixing for parties, events & shows with advanced controls, crowd sync, and multi-device casting
+                        </Text>
                       </View>
-                      <View style={styles.featureTag}>
-                        <Heart size={10} color="#FF0080" />
-                        <Text style={styles.featureText}>Premium</Text>
+                      
+                      <View style={styles.liveDJFeatureGrid}>
+                        <View style={styles.featureItem}>
+                          <Crosshair size={18} color="#00FF88" />
+                          <Text style={styles.featureLabel}>Beat Sync</Text>
+                        </View>
+                        <View style={styles.featureItem}>
+                          <Layers size={18} color="#FFD700" />
+                          <Text style={styles.featureLabel}>Multi-Track</Text>
+                        </View>
+                        <View style={styles.featureItem}>
+                          <Users size={18} color="#00D4FF" />
+                          <Text style={styles.featureLabel}>Crowd Sync</Text>
+                        </View>
+                        <View style={styles.featureItem}>
+                          <Volume size={18} color="#FF6B35" />
+                          <Text style={styles.featureLabel}>Live Mix</Text>
+                        </View>
+                      </View>
+                      
+                      <View style={styles.liveDJAction}>
+                        <Text style={styles.liveDJActionText}>Start Live Session</Text>
+                        <Zap size={20} color="#FFF" fill="#FFF" />
                       </View>
                     </View>
-                  </View>
-                  <View style={styles.liveDJArrow}>
-                    <Text style={styles.arrowText}>→</Text>
-                  </View>
-                </LinearGradient>
-              </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+                
+                <View style={styles.quickFeatures}>
+                  <TouchableOpacity style={styles.quickFeature}>
+                    <View style={styles.quickFeatureIcon}>
+                      <Wifi size={20} color="#00FF88" />
+                    </View>
+                    <Text style={styles.quickFeatureText}>Device Pairing</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.quickFeature}>
+                    <View style={styles.quickFeatureIcon}>
+                      <AlertTriangle size={20} color="#FFD700" />
+                    </View>
+                    <Text style={styles.quickFeatureText}>Safety Mode</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.quickFeature}>
+                    <View style={styles.quickFeatureIcon}>
+                      <Repeat size={20} color="#00D4FF" />
+                    </View>
+                    <Text style={styles.quickFeatureText}>Auto-Transition</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             )}
 
             <View style={styles.actionBar}>
@@ -1488,71 +1555,191 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#00FF88",
   },
-  liveDJEntry: {
-    marginBottom: 20,
-    borderRadius: 20,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255, 107, 53, 0.3)",
+  liveDJSection: {
+    marginBottom: 24,
   },
-  liveDJGradient: {
+  sectionHeader: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    gap: 16,
+    gap: 12,
+    marginBottom: 16,
   },
-  liveDJIcon: {
-    width: 60,
-    height: 60,
-    backgroundColor: "rgba(255, 107, 53, 0.2)",
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  liveDJContent: {
+  sectionTitle: {
     flex: 1,
-  },
-  liveDJTitle: {
-    fontSize: 18,
-    fontWeight: "700",
+    fontSize: 20,
+    fontWeight: "800",
     color: "#FFF",
-    marginBottom: 4,
   },
-  liveDJSubtitle: {
-    fontSize: 13,
-    color: "#999",
-    marginBottom: 8,
-  },
-  liveDJFeatures: {
-    flexDirection: "row",
-    gap: 6,
-  },
-  featureTag: {
+  proBadge: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 4,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 215, 0, 0.2)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 215, 0, 0.3)",
+  },
+  proText: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFD700",
+  },
+  liveDJCard: {
+    borderRadius: 24,
+    overflow: "hidden",
+    marginBottom: 16,
+    shadowColor: "#FF6B35",
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 16,
+  },
+  liveDJGradient: {
+    padding: 2,
+  },
+  liveDJOverlay: {
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    borderRadius: 22,
+    padding: 24,
+  },
+  liveDJTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 20,
+  },
+  liveDJIconLarge: {
+    width: 80,
+    height: 80,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  liveDJBadges: {
+    gap: 8,
+  },
+  liveBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255, 0, 0, 0.3)",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 0, 0, 0.5)",
+  },
+  livePulse: {
+    width: 8,
+    height: 8,
+    backgroundColor: "#FF0000",
+    borderRadius: 4,
+  },
+  liveTextSmall: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFF",
+  },
+  castBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 12,
   },
-  featureText: {
-    fontSize: 10,
+  castText: {
+    fontSize: 11,
     fontWeight: "700",
     color: "#FFF",
   },
-  liveDJArrow: {
-    width: 32,
-    height: 32,
-    backgroundColor: "rgba(255, 107, 53, 0.2)",
+  liveDJContent: {
+    marginBottom: 24,
+  },
+  liveDJTitleLarge: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#FFF",
+    marginBottom: 12,
+    letterSpacing: 0.5,
+  },
+  liveDJDescription: {
+    fontSize: 15,
+    color: "rgba(255, 255, 255, 0.8)",
+    lineHeight: 22,
+  },
+  liveDJFeatureGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginBottom: 24,
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  featureLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFF",
+  },
+  liveDJAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    paddingVertical: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+  },
+  liveDJActionText: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#FFF",
+    letterSpacing: 0.5,
+  },
+  quickFeatures: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  quickFeature: {
+    flex: 1,
+    alignItems: "center",
+    gap: 10,
+    paddingVertical: 16,
+    backgroundColor: "#1A1A1A",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 107, 53, 0.2)",
+  },
+  quickFeatureIcon: {
+    width: 44,
+    height: 44,
+    backgroundColor: "rgba(255, 107, 53, 0.1)",
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
   },
-  arrowText: {
-    fontSize: 20,
-    color: "#FF6B35",
+  quickFeatureText: {
+    fontSize: 11,
     fontWeight: "700",
+    color: "#999",
+    textAlign: "center",
   },
   actionBar: {
     gap: 16,
