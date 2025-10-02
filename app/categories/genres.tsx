@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,15 +6,33 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ArrowLeft } from "lucide-react-native";
+import { ArrowLeft, Search, X } from "lucide-react-native";
 import { router } from "expo-router";
 import { allGenres, genresData } from "@/data/genresData";
 
 
 
 export default function GenresScreen() {
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
+  const filteredGenres = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return allGenres;
+    }
+    const query = searchQuery.toLowerCase();
+    return allGenres.filter((genre) => {
+      const genreInfo = genresData[genre];
+      return (
+        genreInfo.name.toLowerCase().includes(query) ||
+        genreInfo.description.toLowerCase().includes(query) ||
+        genreInfo.subgenres.some((sub) => sub.toLowerCase().includes(query))
+      );
+    });
+  }, [searchQuery]);
+
   const renderGenre = ({ item }: { item: string }) => {
     const genreInfo = genresData[item];
     return (
@@ -57,15 +75,47 @@ export default function GenresScreen() {
             Explore music by genre. Discover new artists, tracks, and playlists across all your favorite styles.
           </Text>
         </View>
-        <FlatList
-          data={allGenres}
-          renderItem={renderGenre}
-          keyExtractor={(item) => `genre-${item}`}
-          numColumns={2}
-          columnWrapperStyle={styles.row}
-          scrollEnabled={false}
-          contentContainerStyle={styles.grid}
-        />
+
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper}>
+            <Search size={20} color="#888" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search genres..."
+              placeholderTextColor="#888"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              testID="genre-search-input"
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                style={styles.clearButton}
+                testID="clear-search-button"
+              >
+                <X size={18} color="#888" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
+        {filteredGenres.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>
+              No genres found matching &quot;{searchQuery}&quot;
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            data={filteredGenres}
+            renderItem={renderGenre}
+            keyExtractor={(item) => `genre-${item}`}
+            numColumns={2}
+            columnWrapperStyle={styles.row}
+            scrollEnabled={false}
+            contentContainerStyle={styles.grid}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -109,12 +159,47 @@ const styles = StyleSheet.create({
   },
   description: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 16,
   },
   descriptionText: {
     fontSize: 14,
     color: "#B3B3B3",
     lineHeight: 20,
+  },
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  searchInputWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#1A1A1A",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    height: 48,
+  },
+  searchIcon: {
+    marginRight: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#FFF",
+    paddingVertical: 0,
+  },
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
+  },
+  emptyState: {
+    paddingHorizontal: 20,
+    paddingVertical: 40,
+    alignItems: "center",
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: "#888",
+    textAlign: "center",
   },
   genreCard: {
     width: "48%",
