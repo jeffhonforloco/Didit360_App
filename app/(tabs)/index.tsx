@@ -239,6 +239,12 @@ export default function HomeScreen() {
           case "Browse Categories":
             router.push("/browse-categories");
             break;
+          case "Music Videos":
+            router.push("/music-videos");
+            break;
+          case "Top Charts":
+            router.push("/top-charts");
+            break;
           default:
             console.log("See all:", title);
         }
