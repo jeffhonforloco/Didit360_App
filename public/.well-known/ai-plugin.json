@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Didit360 Music",
+  "name_for_model": "didit360",
+  "description_for_human": "Stream millions of songs, discover new artists, and create personalized playlists with Didit360.",
+  "description_for_model": "Didit360 is a comprehensive music streaming platform that allows users to stream songs, discover artists, create playlists, listen to podcasts and audiobooks, and get AI-powered music recommendations. The platform features an AI DJ that creates personalized mixes based on user preferences.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://rork.com/openapi.json"
+  },
+  "logo_url": "https://rork.com/icon.png",
+  "contact_email": "support@didit360.com",
+  "legal_info_url": "https://rork.com/legal"
+}

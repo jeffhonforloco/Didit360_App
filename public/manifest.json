@@ -1,0 +1,63 @@
+{
+  "name": "Didit360 - Music Streaming",
+  "short_name": "Didit360",
+  "description": "Stream millions of songs, discover new artists, create playlists, and enjoy personalized music recommendations with Didit360.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0A14",
+  "theme_color": "#FF0080",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/adaptive-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["music", "entertainment", "audio"],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Search Music",
+      "short_name": "Search",
+      "description": "Search for songs, artists, and albums",
+      "url": "/search",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Library",
+      "short_name": "Library",
+      "description": "Access your music library",
+      "url": "/library",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "AI DJ",
+      "short_name": "AI DJ",
+      "description": "Let AI create your perfect mix",
+      "url": "/ai-dj",
+      "icons": [{ "src": "/icon.png", "sizes": "192x192" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}

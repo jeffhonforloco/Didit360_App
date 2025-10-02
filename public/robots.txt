@@ -1,0 +1,40 @@
+# Didit360 Robots.txt
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /debug-backend
+
+# AI Search Bots
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# Crawl-delay
+Crawl-delay: 1
+
+Sitemap: https://rork.com/sitemap.xml

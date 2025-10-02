@@ -44,6 +44,10 @@ import { livePairingStartProcedure } from "./routes/dj-instinct/live/pair/start/
 import { liveSafetyProcedure } from "./routes/dj-instinct/live/safety/route";
 import { liveEmergencyFadeProcedure } from "./routes/dj-instinct/live/emergency/fade/route";
 
+// SEO
+import { detectBotProcedure } from "./routes/seo/detect-bot/route";
+import { generateMetaProcedure } from "./routes/seo/generate-meta/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -116,6 +120,10 @@ export const appRouter = createTRPCRouter({
         fade: liveEmergencyFadeProcedure,
       }),
     }),
+  }),
+  seo: createTRPCRouter({
+    detectBot: detectBotProcedure,
+    generateMeta: generateMetaProcedure,
   }),
 });
 

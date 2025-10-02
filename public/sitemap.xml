@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <url>
+    <loc>https://rork.com/</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/search</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/library</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/ai-dj</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/news</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/profile</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/trending-now</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/popular-artists</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/podcasts-full</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/artists</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/genres</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/podcasts</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/audiobooks</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/live-performance</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/categories/trending-videos</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <url>
+    <loc>https://rork.com/browse-categories</loc>
+    <lastmod>2025-10-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+</urlset>

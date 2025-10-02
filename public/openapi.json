@@ -1,0 +1,122 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Didit360 Music API",
+    "description": "API for Didit360 music streaming platform",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Didit360 Support",
+      "email": "support@didit360.com",
+      "url": "https://rork.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://rork.com/api",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/trpc/catalog.search": {
+      "get": {
+        "summary": "Search for music",
+        "description": "Search for songs, artists, albums, playlists, podcasts, and more",
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string",
+                  "description": "Search query"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["all", "song", "artist", "album", "playlist", "podcast"],
+                  "description": "Type of content to search for"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trpc/catalog.getTrack": {
+      "get": {
+        "summary": "Get track details",
+        "description": "Get detailed information about a specific track",
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Track ID"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Track details"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Track": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "artist": {
+            "type": "string"
+          },
+          "album": {
+            "type": "string"
+          },
+          "duration": {
+            "type": "number"
+          },
+          "coverUrl": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
