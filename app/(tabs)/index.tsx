@@ -620,12 +620,12 @@ export default function HomeScreen() {
         )}
 
         {personalizedSections.map((section, index) => (
-          <View key={`section-${index}`} style={styles.section}>
+          <View key={`section-${section.type}-${index}`} style={styles.section}>
             {renderSectionHeader(section.title, section.subtitle, `section-${index}`, section.route, section.icon)}
             <FlatList
               data={section.data}
               renderItem={section.type === 'artists' ? renderArtist as any : (section.type === 'videos' || section.type === 'live' || section.type === 'trending-videos') ? renderVideoCard : renderSmartCard}
-              keyExtractor={(item: any) => `${section.type}-${item.id}`}
+              keyExtractor={(item: any, idx: number) => `${section.type}-${item.id || idx}-${index}`}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalList}
@@ -638,7 +638,7 @@ export default function HomeScreen() {
           <FlatList
             data={browseCategories.slice(0, 6)}
             renderItem={renderCategory}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, idx) => `category-${item.id || idx}`}
             numColumns={2}
             columnWrapperStyle={styles.categoryRow}
             scrollEnabled={false}
@@ -651,7 +651,7 @@ export default function HomeScreen() {
           <FlatList
             data={genres.slice(0, 12)}
             renderItem={renderGenre}
-            keyExtractor={(item) => `genre-${item}`}
+            keyExtractor={(item, idx) => `genre-${item}-${idx}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={[styles.horizontalList, styles.genreList]}
@@ -663,7 +663,7 @@ export default function HomeScreen() {
           <FlatList
             data={recentlyPlayed.slice(0, 8)}
             renderItem={renderCard}
-            keyExtractor={(item) => `recent-${item.id}`}
+            keyExtractor={(item, idx) => `recent-${item.id || idx}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}

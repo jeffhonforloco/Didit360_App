@@ -194,7 +194,7 @@ export default function TopChartsScreen() {
         <FlatList
           data={chartsData}
           renderItem={renderChartItem}
-          keyExtractor={(item, index) => `${item.id}-${index}`}
+          keyExtractor={(item, index) => `chart-${item.id || ''}-${index}`}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View style={styles.topSection}>
@@ -205,7 +205,7 @@ export default function TopChartsScreen() {
               <FlatList
                 data={chartsData.slice(0, 3)}
                 renderItem={renderTopCard}
-                keyExtractor={(item, index) => `top-card-${item.id}-${index}`}
+                keyExtractor={(item, index) => `charts-top-card-${item.id || ''}-${index}`}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.topCardsContainer}
