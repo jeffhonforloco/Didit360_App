@@ -25,17 +25,19 @@ function calculateFeaturedScore(metrics: StreamingMetrics, now: number): number 
 
 export const getFeaturedProcedure = publicProcedure
   .input(z.object({
-    limit: z.number().optional().default(10),
-    type: z.enum(['song', 'video', 'podcast', 'audiobook', 'all']).optional().default('all'),
-  }))
+    limit: z.number().optional(),
+    type: z.enum(['song', 'video', 'podcast', 'audiobook', 'all']).optional(),
+  }).optional())
   .query(async ({ input }) => {
+    const limit = input?.limit ?? 10;
+    const type = input?.type ?? 'all';
     const now = Date.now();
     
     const allMetrics = Array.from(metricsStore.values());
     
-    const filteredMetrics = input.type === 'all' 
+    const filteredMetrics = type === 'all' 
       ? allMetrics 
-      : allMetrics.filter(m => m.type === input.type);
+      : allMetrics.filter(m => m.type === type);
     
     const scoredItems = filteredMetrics.map(metrics => ({
       ...metrics,
@@ -44,7 +46,7 @@ export const getFeaturedProcedure = publicProcedure
     
     scoredItems.sort((a, b) => b.score - a.score);
     
-    const topItems = scoredItems.slice(0, input.limit);
+    const topItems = scoredItems.slice(0, limit);
     
     return {
       items: topItems.map(item => ({
