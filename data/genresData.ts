@@ -1491,4 +1491,4 @@ export const genresData: Record<string, GenreData> = {
   }
 };
 
-export const allGenres = Object.keys(genresData);
+export const allGenres = Object.keys(genresData).sort();
