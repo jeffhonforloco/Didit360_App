@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -11,13 +11,14 @@ import {
 import SafeImage from "@/components/SafeImage";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen } from "lucide-react-native";
+import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists } from "@/data/mockData";
+import { featuredContent, recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
+import { useLibrary } from "@/contexts/LibraryContext";
 
 
 
@@ -26,16 +27,146 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const CARD_WIDTH = width * 0.42;
   const SMALL_CARD = width * 0.35;
-  const { playTrack } = usePlayer();
+  const { playTrack, currentTrack } = usePlayer();
   const { profile, isLoading } = useUser();
+  const { recentlyPlayed: userRecentlyPlayed } = useLibrary();
   const [scrollY] = useState(new Animated.Value(0));
+  const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
 
-  const quickAccessItems = useMemo(() => [
-    { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
-    { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/categories/top-mix' },
-    { id: '3', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
-    { id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' },
-  ], []);
+  useEffect(() => {
+    const generatePersonalizedContent = () => {
+      const sections: any[] = [];
+      
+      if (!currentTrack) {
+        sections.push(
+          { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: trendingNow.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
+          { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: popularArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
+          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" /> },
+        );
+        return sections;
+      }
+
+      const trackType = currentTrack.type;
+      const trackGenre = currentTrack.album || '';
+      const trackArtist = currentTrack.artist || '';
+
+      if (trackType === 'song') {
+        const similarSongs = allTracks.filter(t => 
+          t.type === 'song' && 
+          t.id !== currentTrack.id &&
+          (t.artist === trackArtist || t.album === trackGenre)
+        ).slice(0, 8);
+        
+        if (similarSongs.length > 0) {
+          sections.push({
+            type: 'similar',
+            title: `More like ${currentTrack.title}`,
+            subtitle: `Similar songs you might enjoy`,
+            data: similarSongs,
+            icon: <Music2 size={20} color="#FF0080" />
+          });
+        }
+
+        const sameArtist = allTracks.filter(t => 
+          t.type === 'song' && 
+          t.artist === trackArtist && 
+          t.id !== currentTrack.id
+        ).slice(0, 8);
+        
+        if (sameArtist.length > 0) {
+          sections.push({
+            type: 'artist',
+            title: `More from ${trackArtist}`,
+            subtitle: 'Explore their discography',
+            data: sameArtist,
+            icon: <Mic2 size={20} color="#8B5CF6" />
+          });
+        }
+
+        sections.push(
+          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
+          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8) },
+        );
+      } else if (trackType === 'video' || currentTrack.isVideo) {
+        const moreVideos = allTracks.filter(t => 
+          (t.type === 'video' || t.isVideo) && 
+          t.id !== currentTrack.id
+        ).slice(0, 8);
+        
+        sections.push(
+          { type: 'videos', title: 'More Music Videos', subtitle: 'Keep watching', data: moreVideos, icon: <Video size={20} color="#FF0080" /> },
+          { type: 'live', title: 'Live Performances', subtitle: 'Experience the energy', data: livePerformanceVideos.slice(0, 6), icon: <Radio size={20} color="#F59E0B" /> },
+          { type: 'trending-videos', title: 'Trending Videos', subtitle: 'Most watched', data: trendingVideos.slice(0, 8), icon: <TrendingUp size={20} color="#8B5CF6" /> },
+        );
+
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Switch to audio', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
+      } else if (trackType === 'podcast') {
+        const morePodcasts = allTracks.filter(t => 
+          t.type === 'podcast' && 
+          t.id !== currentTrack.id
+        ).slice(0, 8);
+        
+        sections.push(
+          { type: 'podcasts', title: 'More Podcasts', subtitle: 'Continue listening', data: morePodcasts, icon: <Headphones size={20} color="#FF0080" /> },
+          { type: 'trending', title: 'Trending Episodes', subtitle: 'Popular right now', data: trendingNow.filter(t => t.type === 'podcast').slice(0, 8), icon: <TrendingUp size={20} color="#F7971E" /> },
+        );
+
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        sections.push({ type: 'music', title: 'Discover Music', subtitle: 'Take a break from podcasts', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
+      } else if (trackType === 'audiobook') {
+        const moreAudiobooks = allTracks.filter(t => 
+          t.type === 'audiobook' && 
+          t.id !== currentTrack.id
+        ).slice(0, 8);
+        
+        sections.push(
+          { type: 'audiobooks', title: 'More Audiobooks', subtitle: 'Continue your journey', data: moreAudiobooks, icon: <BookOpen size={20} color="#FF0080" /> },
+          { type: 'trending', title: 'Popular Stories', subtitle: 'Trending audiobooks', data: trendingNow.filter(t => t.type === 'audiobook').slice(0, 8), icon: <TrendingUp size={20} color="#6A85F1" /> },
+        );
+
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Take a music break', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
+      }
+
+      if (userRecentlyPlayed.length > 0) {
+        sections.push({
+          type: 'recent',
+          title: 'Recently Played',
+          subtitle: 'Pick up where you left off',
+          data: userRecentlyPlayed.slice(0, 8)
+        });
+      }
+
+      return sections;
+    };
+
+    setPersonalizedSections(generatePersonalizedContent());
+  }, [currentTrack, userRecentlyPlayed]);
+
+  const quickAccessItems = useMemo(() => {
+    const baseItems: Array<{ id: string; title: string; icon: string; gradient: readonly [string, string]; route: string }> = [
+      { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
+      { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/categories/top-mix' },
+      { id: '3', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
+    ];
+
+    if (currentTrack) {
+      if (currentTrack.type === 'song') {
+        baseItems.push({ id: '4', title: 'Music Videos', icon: 'video', gradient: ['#F59E0B', '#EF4444'] as const, route: '/categories/trending-videos' });
+      } else if (currentTrack.type === 'video' || currentTrack.isVideo) {
+        baseItems.push({ id: '4', title: 'Live Shows', icon: 'radio', gradient: ['#8B5CF6', '#EC4899'] as const, route: '/categories/live-performance' });
+      } else if (currentTrack.type === 'podcast') {
+        baseItems.push({ id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
+      } else if (currentTrack.type === 'audiobook') {
+        baseItems.push({ id: '4', title: 'Audiobooks', icon: 'book', gradient: ['#6A85F1', '#B892FF'] as const, route: '/categories/audiobooks' });
+      }
+    } else {
+      baseItems.push({ id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
+    }
+
+    return baseItems;
+  }, [currentTrack]);
 
 
 
@@ -445,29 +576,37 @@ export default function HomeScreen() {
 
         {renderQuickAccess()}
 
-        <View style={styles.section}>
-          {renderSectionHeader("Trending Now", "What&apos;s hot right now", "trending-now", "/trending-now", <TrendingUp size={20} color="#FF0080" />)}
-          <FlatList
-            data={trendingNow.slice(0, 8)}
-            renderItem={renderSmartCard}
-            keyExtractor={(item) => `trending-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
+        {currentTrack && (
+          <View style={styles.nowPlayingBanner}>
+            <LinearGradient
+              colors={['rgba(255, 0, 128, 0.2)', 'rgba(139, 92, 246, 0.2)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.nowPlayingGradient}
+            >
+              <Sparkles size={20} color="#FF0080" />
+              <View style={styles.nowPlayingContent}>
+                <Text style={styles.nowPlayingLabel}>Now Playing</Text>
+                <Text style={styles.nowPlayingTitle} numberOfLines={1}>{currentTrack.title}</Text>
+                <Text style={styles.nowPlayingArtist} numberOfLines={1}>{currentTrack.artist}</Text>
+              </View>
+            </LinearGradient>
+          </View>
+        )}
 
-        <View style={styles.section}>
-          {renderSectionHeader("Popular Artists", "Top artists you&apos;ll love", "popular-artists", "/popular-artists", <Mic2 size={20} color="#8B5CF6" />)}
-          <FlatList
-            data={popularArtists.slice(0, 8)}
-            renderItem={renderArtist}
-            keyExtractor={(item) => `artist-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
+        {personalizedSections.map((section, index) => (
+          <View key={`section-${index}`} style={styles.section}>
+            {renderSectionHeader(section.title, section.subtitle, `section-${index}`, section.route, section.icon)}
+            <FlatList
+              data={section.data}
+              renderItem={section.type === 'artists' ? renderArtist as any : (section.type === 'videos' || section.type === 'live' || section.type === 'trending-videos') ? renderVideoCard : renderSmartCard}
+              keyExtractor={(item: any) => `${section.type}-${item.id}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          </View>
+        ))}
 
         <View style={styles.section}>
           {renderSectionHeader("Browse All", "Explore by category", "browse-categories", "/browse-categories")}
@@ -479,78 +618,6 @@ export default function HomeScreen() {
             columnWrapperStyle={styles.categoryRow}
             scrollEnabled={false}
             contentContainerStyle={styles.categoriesContainer}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("New Releases", "Fresh tracks for you", "new-releases", "/categories/recently-added", <Music2 size={20} color="#00C6FF" />)}
-          <FlatList
-            data={newReleases.slice(0, 8)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `new-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Top Charts", "Most played this week", "top-charts", "/categories/top-mix")}
-          <FlatList
-            data={topCharts.slice(0, 8)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `chart-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Live Performances", "Experience the energy", "live-performance", "/categories/live-performance")}
-          <FlatList
-            data={livePerformanceVideos.slice(0, 6)}
-            renderItem={renderVideoCard}
-            keyExtractor={(item) => `live-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Trending Videos", "Most watched music videos", "trending-videos", "/categories/trending-videos")}
-          <FlatList
-            data={trendingVideos.slice(0, 8)}
-            renderItem={renderVideoCard}
-            keyExtractor={(item) => `trending-video-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Podcasts", "Listen to your favorite shows", "podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
-          <FlatList
-            data={podcasts.slice(0, 8)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `pod-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
-        </View>
-
-        <View style={styles.section}>
-          {renderSectionHeader("Audiobooks", "Immerse in great stories", "audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
-          <FlatList
-            data={audiobooks.slice(0, 8)}
-            renderItem={renderCard}
-            keyExtractor={(item) => `ab-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
           />
         </View>
 
@@ -1054,5 +1121,41 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
+  nowPlayingBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  nowPlayingGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+  },
+  nowPlayingContent: {
+    flex: 1,
+  },
+  nowPlayingLabel: {
+    fontSize: 11,
+    color: '#999',
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  nowPlayingTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFF',
+    marginTop: 4,
+  },
+  nowPlayingArtist: {
+    fontSize: 13,
+    color: '#CCC',
+    marginTop: 2,
+  },
 });
