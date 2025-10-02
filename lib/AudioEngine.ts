@@ -185,13 +185,20 @@ class WebAudioPlayer implements AudioPlayerLike {
           }
         }
         
+        // Try to load the audio if not loaded
+        if (this.audio.readyState === 0) {
+          console.log('[WebAudioPlayer] Audio not loaded, calling load()');
+          this.audio.load();
+        }
+        
         // Wait for audio to be ready if needed
         if (this.audio.readyState < 2) {
           console.log('[WebAudioPlayer] Waiting for audio to be ready...');
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => {
-              reject(new Error('Audio load timeout'));
-            }, 15000); // Increased timeout
+              console.log('[WebAudioPlayer] Audio load timeout, attempting to play anyway');
+              resolve(void 0);
+            }, 5000);
             
             const onCanPlay = () => {
               clearTimeout(timeout);
@@ -199,6 +206,7 @@ class WebAudioPlayer implements AudioPlayerLike {
               this.audio?.removeEventListener('canplaythrough', onCanPlay);
               this.audio?.removeEventListener('loadeddata', onCanPlay);
               this.audio?.removeEventListener('error', onError);
+              console.log('[WebAudioPlayer] Audio ready to play');
               resolve(void 0);
             };
             
@@ -208,6 +216,7 @@ class WebAudioPlayer implements AudioPlayerLike {
               this.audio?.removeEventListener('canplaythrough', onCanPlay);
               this.audio?.removeEventListener('loadeddata', onCanPlay);
               this.audio?.removeEventListener('error', onError);
+              console.log('[WebAudioPlayer] Audio load error:', e);
               reject(e);
             };
             
@@ -225,6 +234,7 @@ class WebAudioPlayer implements AudioPlayerLike {
         }
         
         // Direct play attempt with better error handling
+        console.log('[WebAudioPlayer] Calling audio.play()...');
         const playPromise = this.audio.play();
         if (playPromise !== undefined) {
           await playPromise;
@@ -235,6 +245,15 @@ class WebAudioPlayer implements AudioPlayerLike {
           volume: this.audio.volume,
           currentTime: this.audio.currentTime
         });
+        
+        // Verify playback started
+        setTimeout(() => {
+          if (this.audio && !this.audio.paused) {
+            console.log('[WebAudioPlayer] ✅ Playback confirmed, currentTime:', this.audio.currentTime);
+          } else {
+            console.log('[WebAudioPlayer] ⚠️ Playback may not have started, paused:', this.audio?.paused);
+          }
+        }, 500);
       } catch (e) {
         console.log('[WebAudioPlayer] Play failed:', e);
         console.log('[WebAudioPlayer] Audio state after error:', {
@@ -245,7 +264,7 @@ class WebAudioPlayer implements AudioPlayerLike {
         
         // If it's an autoplay policy error, try to handle it gracefully
         if (e instanceof Error && (e.name === 'NotAllowedError' || e.name === 'AbortError')) {
-          console.log('[WebAudioPlayer] Autoplay was prevented. Waiting for user interaction.');
+          console.log('[WebAudioPlayer] Autoplay was prevented. User needs to interact with the page first.');
           // Set up interaction detection if not already done
           if (!this.hasUserInteracted) {
             this.setupUserInteractionDetection();
@@ -864,6 +883,12 @@ export class AudioEngine {
           duration: active.sound.duration
         });
         
+        // Ensure volume is set before playing
+        if (active.sound.volume === 0) {
+          console.log('[AudioEngine] Volume is 0, setting to 1.0');
+          active.sound.volume = 1.0;
+        }
+        
         await active.sound.play();
         this.setState('playing');
         
@@ -873,6 +898,15 @@ export class AudioEngine {
           volume: active.sound.volume,
           currentTime: active.sound.currentTime
         });
+        
+        // Verify audio is actually playing after a short delay
+        setTimeout(() => {
+          if (active.sound && !active.sound.paused) {
+            console.log('[AudioEngine] ✅ Audio confirmed playing, currentTime:', active.sound.currentTime);
+          } else {
+            console.log('[AudioEngine] ⚠️ Audio may not be playing, paused:', active.sound?.paused);
+          }
+        }, 500);
       } catch (e) {
         console.log('[AudioEngine] ❌ play error', e);
         this.setState('error');
