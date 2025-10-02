@@ -1,61 +1,4 @@
 export const ddl = {
-  users: `
--- User authentication and profiles
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  display_name TEXT NOT NULL,
-  avatar_url TEXT,
-  role TEXT DEFAULT 'user',
-  status TEXT DEFAULT 'active',
-  email_verified BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now(),
-  last_login_at TIMESTAMPTZ
-);
-
-CREATE TABLE IF NOT EXISTS sessions (
-  id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  token TEXT UNIQUE NOT NULL,
-  refresh_token TEXT UNIQUE NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
-  refresh_expires_at TIMESTAMPTZ NOT NULL,
-  ip_address TEXT,
-  user_agent TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  last_used_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS user_preferences (
-  user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-  autoplay BOOLEAN DEFAULT TRUE,
-  notifications BOOLEAN DEFAULT TRUE,
-  high_quality_streaming BOOLEAN DEFAULT TRUE,
-  download_over_cellular BOOLEAN DEFAULT FALSE,
-  explicit_content BOOLEAN DEFAULT TRUE,
-  theme TEXT DEFAULT 'dark',
-  data_saver BOOLEAN DEFAULT FALSE,
-  stream_quality TEXT DEFAULT 'high',
-  download_quality TEXT DEFAULT 'high',
-  crossfade_seconds INT DEFAULT 6,
-  show_lyrics BOOLEAN DEFAULT TRUE,
-  language TEXT DEFAULT 'en',
-  analytics BOOLEAN DEFAULT TRUE,
-  gapless_playback BOOLEAN DEFAULT TRUE,
-  normalize_volume BOOLEAN DEFAULT TRUE,
-  accent_color TEXT DEFAULT '#FF0080',
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
-CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
-CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(token);
-CREATE INDEX IF NOT EXISTS idx_sessions_refresh ON sessions(refresh_token);
-CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);
-`,
   core: `
 -- Master catalog tables with versioning and deduplication
 -- Artists table
@@ -477,4 +420,4 @@ CREATE INDEX IF NOT EXISTS idx_audiobook_quality ON audiobook(quality_score);
 `,
 };
 
-export const fullDDL = `${ddl.users}\n${ddl.core}\n${ddl.ingest}\n${ddl.indexes}`;
+export const fullDDL = `${ddl.core}\n${ddl.ingest}\n${ddl.indexes}`;

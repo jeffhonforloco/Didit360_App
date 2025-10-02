@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createContextHook from "@nkzw/create-context-hook";
 import { router } from "expo-router";
-import { trpcClient } from "@/lib/trpc";
 
 export type StreamQuality = 'low' | 'normal' | 'high';
 export type DownloadQuality = 'normal' | 'high';
@@ -34,27 +33,22 @@ export type AppSettings = {
 };
 
 export type UserProfile = {
-  id: string;
   displayName: string;
   email: string;
   avatarUrl?: string | null;
-  createdAt: string;
 };
 
 interface UserState {
   profile: UserProfile | null;
   settings: AppSettings;
   isLoading: boolean;
-  token: string | null;
-  updateProfile: (patch: Partial<Omit<UserProfile, 'id' | 'createdAt'>>) => Promise<void>;
+  updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
   updateSetting: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => Promise<void>;
   resetSettings: () => Promise<void>;
   changePassword: (current: string, next: string) => Promise<void>;
   signOut: () => Promise<void>;
   clearStorage: () => Promise<void>;
   isSignedIn: boolean;
-  signUp: (email: string, password: string, displayName: string, avatarUrl?: string) => Promise<void>;
-  signIn: (email: string, password: string) => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -83,33 +77,40 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 const PROFILE_KEY = "user_profile";
 const SETTINGS_KEY = "user_settings";
-const TOKEN_KEY = "user_token";
-const REFRESH_TOKEN_KEY = "user_refresh_token";
+const PASSWORD_KEY = "user_password";
+const SIGNED_OUT_KEY = "user_signed_out";
 
+// Custom hook for sign out with navigation
 export const useSignOut = () => {
   const { signOut } = useUser();
   
   const signOutWithNavigation = useCallback(async () => {
     console.log('[useSignOut] Starting sign out process');
     try {
+      // First clear the user data
       await signOut();
-      console.log('[useSignOut] Sign out completed');
+      console.log('[useSignOut] Sign out completed, profile should be null now');
       
+      // Small delay to ensure state updates are processed
       await new Promise(resolve => setTimeout(resolve, 100));
       
+      // Navigate to home screen
       console.log('[useSignOut] Navigating to home screen');
       router.dismissAll();
       
+      // Use push to home tab instead of replace
       if (router.canGoBack()) {
         router.back();
       }
       
+      // Force navigate to home tab
       setTimeout(() => {
         router.push('/' as any);
       }, 100);
       
     } catch (error) {
       console.error('[useSignOut] Sign out error:', error);
+      // Even if there's an error, try to navigate away
       router.dismissAll();
       setTimeout(() => {
         router.push('/' as any);
@@ -123,30 +124,29 @@ export const useSignOut = () => {
 export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [settings, setSettings] = useState<AppSettings>(() => ({ ...DEFAULT_SETTINGS }));
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false); // Start with false to prevent blocking
 
   const load = useCallback(async () => {
     try {
       console.log('[UserContext] load - starting load process');
       setIsLoading(true);
       
-      const [p, s, t] = await Promise.all([
+      const [p, s, signedOut] = await Promise.all([
         AsyncStorage.getItem(PROFILE_KEY),
         AsyncStorage.getItem(SETTINGS_KEY),
-        AsyncStorage.getItem(TOKEN_KEY),
+        AsyncStorage.getItem(SIGNED_OUT_KEY),
       ]);
       
-      console.log('[UserContext] load - profile exists:', !!p, 'token exists:', !!t);
+      console.log('[UserContext] load - profile exists:', !!p);
+      console.log('[UserContext] load - signed out flag:', signedOut);
       
-      if (p && t) {
-        console.log('[UserContext] load - setting profile and token from storage');
+      // Only set profile if we have one and user hasn't explicitly signed out
+      if (p && signedOut !== 'true') {
+        console.log('[UserContext] load - setting profile from storage');
         setProfile(JSON.parse(p));
-        setToken(t);
       } else {
-        console.log('[UserContext] load - no profile or token, keeping null');
+        console.log('[UserContext] load - no profile or user signed out, keeping profile null');
         setProfile(null);
-        setToken(null);
       }
       
       if (s) {
@@ -160,8 +160,8 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] load - completed successfully');
     } catch (err) {
       console.error("[UserContext] load error", err);
+      // Set defaults on error
       setProfile(null);
-      setToken(null);
       setSettings({ ...DEFAULT_SETTINGS });
     } finally {
       console.log('[UserContext] load - setting isLoading to false');
@@ -173,10 +173,11 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     console.log('[UserContext] useEffect - starting load');
     void load();
     
+    // Fallback timeout to prevent infinite loading
     const timeout = setTimeout(() => {
       console.log('[UserContext] Load timeout - forcing isLoading to false');
       setIsLoading(false);
-    }, 5000);
+    }, 5000); // 5 second timeout
     
     return () => {
       clearTimeout(timeout);
@@ -191,88 +192,19 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     }
   };
 
-  const signUp = useCallback(async (email: string, password: string, displayName: string, avatarUrl?: string) => {
-    console.log('[UserContext] signUp called');
-    try {
-      const result = await trpcClient.auth.signup.mutate({
-        email,
-        password,
-        displayName,
-        avatarUrl: avatarUrl || null,
-      });
-
-      console.log('[UserContext] signUp successful:', result.user.id);
-      
-      setProfile(result.user);
-      setToken(result.token);
-      
-      await Promise.all([
-        persist(PROFILE_KEY, result.user),
-        persist(TOKEN_KEY, result.token),
-        persist(REFRESH_TOKEN_KEY, result.refreshToken),
-      ]);
-      
-      console.log('[UserContext] signUp - profile and tokens saved');
-    } catch (error) {
-      console.error('[UserContext] signUp error:', error);
-      throw error;
-    }
-  }, []);
-
-  const signIn = useCallback(async (email: string, password: string) => {
-    console.log('[UserContext] signIn called');
-    try {
-      const result = await trpcClient.auth.signin.mutate({
-        email,
-        password,
-      });
-
-      console.log('[UserContext] signIn successful:', result.user.id);
-      
-      setProfile(result.user);
-      setToken(result.token);
-      
-      await Promise.all([
-        persist(PROFILE_KEY, result.user),
-        persist(TOKEN_KEY, result.token),
-        persist(REFRESH_TOKEN_KEY, result.refreshToken),
-      ]);
-      
-      console.log('[UserContext] signIn - profile and tokens saved');
-    } catch (error) {
-      console.error('[UserContext] signIn error:', error);
-      throw error;
-    }
-  }, []);
-
-  const updateProfile = useCallback(async (patch: Partial<Omit<UserProfile, 'id' | 'createdAt'>>) => {
+  const updateProfile = useCallback(async (patch: Partial<UserProfile>) => {
     console.log('[UserContext] updateProfile called with patch:', patch);
+    // Clear the signed out flag when updating profile (user is signing in)
+    await AsyncStorage.removeItem(SIGNED_OUT_KEY);
     
-    if (!token) {
-      console.error('[UserContext] updateProfile - no token available');
-      throw new Error('Not authenticated');
-    }
-
-    try {
-      const result = await trpcClient.auth.updateProfile.mutate({
-        token,
-        displayName: patch.displayName,
-        avatarUrl: patch.avatarUrl,
-      });
-
-      console.log('[UserContext] updateProfile successful');
-      
-      setProfile(prev => {
-        if (!prev) return null;
-        const next = { ...prev, ...result.user };
-        void persist(PROFILE_KEY, next);
-        return next;
-      });
-    } catch (error) {
-      console.error('[UserContext] updateProfile error:', error);
-      throw error;
-    }
-  }, [token]);
+    setProfile(prev => {
+      const next = { ...(prev ?? { displayName: "", email: "", avatarUrl: null }), ...patch };
+      console.log('[UserContext] updateProfile - prev profile:', prev);
+      console.log('[UserContext] updateProfile - next profile:', next);
+      void persist(PROFILE_KEY, next);
+      return next;
+    });
+  }, []);
 
   const updateSetting = useCallback(async <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
     setSettings(prev => {
@@ -293,8 +225,11 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
 
   const changePassword = useCallback(async (current: string, next: string) => {
     try {
+      const stored = (await AsyncStorage.getItem(PASSWORD_KEY)) ?? '';
+      const ok = !stored || stored === current;
+      if (!ok) throw new Error('Current password is incorrect');
       if (!next || next.length < 6) throw new Error('Password must be at least 6 characters');
-      console.log('[UserContext] changePassword - password validation passed');
+      await AsyncStorage.setItem(PASSWORD_KEY, next);
     } catch (err) {
       throw err;
     }
@@ -303,47 +238,46 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   const signOut = useCallback(async () => {
     console.log('[UserContext] signOut called');
     try {
-      if (token) {
-        await trpcClient.auth.signout.mutate({ token });
-      }
+      console.log('[UserContext] Setting signed out flag and removing profile from AsyncStorage');
       
-      console.log('[UserContext] Setting profile and token to null');
+      // First set profile to null immediately for UI responsiveness
       setProfile(null);
-      setToken(null);
+      console.log('[UserContext] Profile set to null immediately');
       
+      // Then clear storage - clear everything to ensure clean state
       await Promise.all([
+        AsyncStorage.setItem(SIGNED_OUT_KEY, 'true'), // Mark as signed out
         AsyncStorage.removeItem(PROFILE_KEY),
-        AsyncStorage.removeItem(TOKEN_KEY),
-        AsyncStorage.removeItem(REFRESH_TOKEN_KEY),
+        AsyncStorage.removeItem(PASSWORD_KEY), // Also clear password
       ]);
-      
+      console.log('[UserContext] Profile and password removed from AsyncStorage');
       console.log('[UserContext] signOut completed successfully');
+      
     } catch (err) {
       console.error("[UserContext] signOut error", err);
+      // If storage operations fail, still keep profile as null since user intended to sign out
       setProfile(null);
-      setToken(null);
-      console.log('[UserContext] signOut completed despite error');
+      // Don't throw the error - we want sign out to succeed even if storage fails
+      console.log('[UserContext] signOut completed despite storage error');
     }
-  }, [token]);
+  }, []);
 
   const clearStorage = useCallback(async () => {
     try {
       await AsyncStorage.clear();
       setProfile(null);
-      setToken(null);
       setSettings(DEFAULT_SETTINGS);
     } catch (err) {
       console.error('[UserContext] clearStorage error', err);
     }
   }, []);
 
-  const isSignedIn = profile !== null && token !== null;
+  const isSignedIn = profile !== null;
 
   return {
     profile,
     settings,
     isLoading,
-    token,
     updateProfile,
     updateSetting,
     resetSettings,
@@ -351,7 +285,5 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
     signOut,
     clearStorage,
     isSignedIn,
-    signUp,
-    signIn,
   };
 });
