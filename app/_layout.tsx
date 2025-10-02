@@ -146,13 +146,11 @@ export default function RootLayout() {
     const initApp = async () => {
       try {
         console.log('[RootLayout] Initializing app...');
-        // Add a small delay to ensure everything is ready
-        await new Promise(resolve => setTimeout(resolve, 100));
         setIsReady(true);
         console.log('[RootLayout] App ready');
       } catch (error) {
         console.error('[RootLayout] Init error:', error);
-        setIsReady(true); // Still show the app even if there's an error
+        setIsReady(true);
       }
     };
     
@@ -195,24 +193,8 @@ export default function RootLayout() {
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
-  // Show loading screen while initializing
   if (!isReady) {
-    return (
-      <View style={[styles.container, styles.loading]}>
-        <View style={styles.loadingContent}>
-          <Image 
-            source={require('@/assets/images/icon.png')} 
-            style={styles.loadingIcon}
-            resizeMode="contain"
-          />
-          <View style={styles.loadingDots}>
-            <View style={[styles.dot, styles.dot1]} />
-            <View style={[styles.dot, styles.dot2]} />
-            <View style={[styles.dot, styles.dot3]} />
-          </View>
-        </View>
-      </View>
-    );
+    return null;
   }
 
   return (
