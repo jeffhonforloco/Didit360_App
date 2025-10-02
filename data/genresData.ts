@@ -2249,6 +2249,101 @@ export const genresData: Record<string, GenreData> = {
       }
     ]
   },
+  "Soca": {
+    name: "Soca",
+    color: "#F59E0B",
+    description: "High-energy Caribbean music from Trinidad and Tobago, blending calypso with Indian rhythms and modern dance beats.",
+    subgenres: ["Power Soca", "Groovy Soca", "Ragga Soca", "Chutney Soca"],
+    topArtists: [
+      {
+        id: "soca-artist-1",
+        name: "Machel Montano",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "3.5M"
+      },
+      {
+        id: "soca-artist-2",
+        name: "Bunji Garlin",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.1M"
+      },
+      {
+        id: "soca-artist-3",
+        name: "Destra Garcia",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "soca-artist-4",
+        name: "Kes the Band",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      }
+    ],
+    tracks: [
+      {
+        id: "soca-1",
+        title: "Like Ah Boss",
+        artist: "Machel Montano",
+        album: "Monk Monte",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "soca-2",
+        title: "Differentology",
+        artist: "Bunji Garlin",
+        album: "Differentology",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      },
+      {
+        id: "soca-3",
+        title: "It's Carnival",
+        artist: "Destra Garcia",
+        album: "Soca Queen",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 212,
+        type: "song"
+      },
+      {
+        id: "soca-4",
+        title: "Wotless",
+        artist: "Kes the Band",
+        album: "Kes the Band",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 189,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "soca-pl-1",
+        name: "Soca Carnival",
+        description: "High-energy soca for carnival season",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 75
+      },
+      {
+        id: "soca-pl-2",
+        name: "Groovy Soca",
+        description: "Smooth and melodic soca vibes",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 60
+      }
+    ],
+    albums: [
+      {
+        id: "soca-album-1",
+        title: "Monk Monte",
+        artist: "Machel Montano",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2016"
+      }
+    ]
+  },
   "Tango": {
     name: "Tango",
     color: "#BE123C",
@@ -2341,6 +2436,481 @@ export const genresData: Record<string, GenreData> = {
         artist: "Gotan Project",
         artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
         year: "2001"
+      }
+    ]
+  },
+  "Zouk": {
+    name: "Zouk",
+    color: "#EC4899",
+    description: "Caribbean music from the French Antilles blending African rhythms with electronic instrumentation and romantic lyrics.",
+    subgenres: ["Zouk Love", "Zouk Béton", "Kizomba"],
+    topArtists: [
+      {
+        id: "zouk-artist-1",
+        name: "Kassav'",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "zouk-artist-2",
+        name: "Edith Lefel",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "0.9M"
+      },
+      {
+        id: "zouk-artist-3",
+        name: "Jocelyne Béroard",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "zouk-artist-4",
+        name: "Franky Vincent",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "0.7M"
+      }
+    ],
+    tracks: [
+      {
+        id: "zouk-1",
+        title: "Zouk la sé sèl médikaman nou ni",
+        artist: "Kassav'",
+        album: "Love and Ka Dance",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "zouk-2",
+        title: "Mon Ange",
+        artist: "Edith Lefel",
+        album: "Si seulement",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "zouk-3",
+        title: "Kolé Séré",
+        artist: "Kassav'",
+        album: "Kassav' No. 5",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 298,
+        type: "song"
+      },
+      {
+        id: "zouk-4",
+        title: "Alice ça Glisse",
+        artist: "Franky Vincent",
+        album: "Franky Vincent",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 212,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "zouk-pl-1",
+        name: "Zouk Classics",
+        description: "Essential zouk from the Caribbean",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 55
+      },
+      {
+        id: "zouk-pl-2",
+        name: "Zouk Love",
+        description: "Romantic zouk ballads",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 45
+      }
+    ],
+    albums: [
+      {
+        id: "zouk-album-1",
+        title: "Love and Ka Dance",
+        artist: "Kassav'",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1989"
+      }
+    ]
+  },
+  "Mbalax": {
+    name: "Mbalax",
+    color: "#F97316",
+    description: "Senegalese music blending traditional Wolof percussion with Cuban, jazz, and soul influences.",
+    subgenres: ["Traditional Mbalax", "Modern Mbalax"],
+    topArtists: [
+      {
+        id: "mbalax-artist-1",
+        name: "Youssou N'Dour",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.8M"
+      },
+      {
+        id: "mbalax-artist-2",
+        name: "Baaba Maal",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      },
+      {
+        id: "mbalax-artist-3",
+        name: "Orchestra Baobab",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "mbalax-artist-4",
+        name: "Ismaël Lô",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "0.9M"
+      }
+    ],
+    tracks: [
+      {
+        id: "mbalax-1",
+        title: "7 Seconds",
+        artist: "Youssou N'Dour ft. Neneh Cherry",
+        album: "The Guide (Wommat)",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 245,
+        type: "song"
+      },
+      {
+        id: "mbalax-2",
+        title: "Yela",
+        artist: "Baaba Maal",
+        album: "Firin' in Fouta",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 312,
+        type: "song"
+      },
+      {
+        id: "mbalax-3",
+        title: "Utru Horas",
+        artist: "Orchestra Baobab",
+        album: "Specialist in All Styles",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 289,
+        type: "song"
+      },
+      {
+        id: "mbalax-4",
+        title: "Tajabone",
+        artist: "Ismaël Lô",
+        album: "Iso",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "mbalax-pl-1",
+        name: "Mbalax Masters",
+        description: "Essential Senegalese mbalax",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "mbalax-pl-2",
+        name: "Modern Mbalax",
+        description: "Contemporary mbalax sounds",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "mbalax-album-1",
+        title: "The Guide (Wommat)",
+        artist: "Youssou N'Dour",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1994"
+      }
+    ]
+  },
+  "Soukous": {
+    name: "Soukous",
+    color: "#10B981",
+    description: "Congolese dance music featuring intricate guitar work, rumba rhythms, and infectious grooves.",
+    subgenres: ["Rumba Congolaise", "Ndombolo", "Soukous Modern"],
+    topArtists: [
+      {
+        id: "soukous-artist-1",
+        name: "Papa Wemba",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "soukous-artist-2",
+        name: "Koffi Olomidé",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.5M"
+      },
+      {
+        id: "soukous-artist-3",
+        name: "Tabu Ley Rochereau",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "soukous-artist-4",
+        name: "Awilo Longomba",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      }
+    ],
+    tracks: [
+      {
+        id: "soukous-1",
+        title: "Show Me the Way",
+        artist: "Papa Wemba",
+        album: "Emotion",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 298,
+        type: "song"
+      },
+      {
+        id: "soukous-2",
+        title: "Loi",
+        artist: "Koffi Olomidé",
+        album: "Loi",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 345,
+        type: "song"
+      },
+      {
+        id: "soukous-3",
+        title: "Kaful Mayay",
+        artist: "Awilo Longomba",
+        album: "Karolina",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "soukous-4",
+        title: "Hafi Deo",
+        artist: "Tabu Ley Rochereau",
+        album: "Tabu Ley Rochereau",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 312,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "soukous-pl-1",
+        name: "Soukous Classics",
+        description: "Essential Congolese soukous",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 60
+      },
+      {
+        id: "soukous-pl-2",
+        name: "Ndombolo Party",
+        description: "High-energy ndombolo dance tracks",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 50
+      }
+    ],
+    albums: [
+      {
+        id: "soukous-album-1",
+        title: "Emotion",
+        artist: "Papa Wemba",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1995"
+      }
+    ]
+  },
+  "Kwaito": {
+    name: "Kwaito",
+    color: "#FACC15",
+    description: "South African house music variant with slowed-down beats, African samples, and township culture influences.",
+    subgenres: ["Classic Kwaito", "Kwaito House"],
+    topArtists: [
+      {
+        id: "kwaito-artist-1",
+        name: "Mandoza",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      },
+      {
+        id: "kwaito-artist-2",
+        name: "Mafikizolo",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.1M"
+      },
+      {
+        id: "kwaito-artist-3",
+        name: "Trompies",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "0.9M"
+      },
+      {
+        id: "kwaito-artist-4",
+        name: "Bongo Maffin",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.1M"
+      }
+    ],
+    tracks: [
+      {
+        id: "kwaito-1",
+        title: "Nkalakatha",
+        artist: "Mandoza",
+        album: "Nkalakatha",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "kwaito-2",
+        title: "Khona",
+        artist: "Mafikizolo",
+        album: "Reunited",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 267,
+        type: "song"
+      },
+      {
+        id: "kwaito-3",
+        title: "Magasman",
+        artist: "Trompies",
+        album: "Trompies",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      },
+      {
+        id: "kwaito-4",
+        title: "The Way Kungakhona",
+        artist: "Bongo Maffin",
+        album: "Bongo Maffin",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 245,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "kwaito-pl-1",
+        name: "Kwaito Classics",
+        description: "Essential South African kwaito",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 55
+      },
+      {
+        id: "kwaito-pl-2",
+        name: "Kwaito Party",
+        description: "Township party vibes",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 45
+      }
+    ],
+    albums: [
+      {
+        id: "kwaito-album-1",
+        title: "Nkalakatha",
+        artist: "Mandoza",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2000"
+      }
+    ]
+  },
+  "Gqom": {
+    name: "Gqom",
+    color: "#8B5CF6",
+    description: "South African electronic dance music from Durban featuring dark, minimal beats and heavy bass.",
+    subgenres: ["Durban Gqom", "Gqom Tech"],
+    topArtists: [
+      {
+        id: "gqom-artist-1",
+        name: "DJ Lag",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.5M"
+      },
+      {
+        id: "gqom-artist-2",
+        name: "Distruction Boyz",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "2.3M"
+      },
+      {
+        id: "gqom-artist-3",
+        name: "Babes Wodumo",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "gqom-artist-4",
+        name: "Moonchild Sanelly",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "1.2M"
+      }
+    ],
+    tracks: [
+      {
+        id: "gqom-1",
+        title: "Ice Drop",
+        artist: "DJ Lag",
+        album: "Meeting with the King",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 189,
+        type: "song"
+      },
+      {
+        id: "gqom-2",
+        title: "Omunye",
+        artist: "Distruction Boyz ft. Benny Maverick",
+        album: "Gqom Is The Future",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 234,
+        type: "song"
+      },
+      {
+        id: "gqom-3",
+        title: "Wololo",
+        artist: "Babes Wodumo",
+        album: "Gqom Queen",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 198,
+        type: "song"
+      },
+      {
+        id: "gqom-4",
+        title: "Bashiri",
+        artist: "Moonchild Sanelly",
+        album: "Nüdes",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 212,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "gqom-pl-1",
+        name: "Gqom Bangers",
+        description: "Hard-hitting gqom from Durban",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 50
+      },
+      {
+        id: "gqom-pl-2",
+        name: "Gqom Underground",
+        description: "Dark and minimal gqom beats",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 40
+      }
+    ],
+    albums: [
+      {
+        id: "gqom-album-1",
+        title: "Gqom Is The Future",
+        artist: "Distruction Boyz",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "2018"
       }
     ]
   }
