@@ -1,4 +1,4 @@
-import { publicProcedure } from "../../create-context";
+import { publicProcedure } from "../../../create-context";
 import { z } from "zod";
 
 interface StreamingMetrics {
@@ -28,7 +28,7 @@ export const getFeaturedProcedure = publicProcedure
     limit: z.number().optional().default(10),
     type: z.enum(['song', 'video', 'podcast', 'audiobook', 'all']).optional().default('all'),
   }))
-  .query(async ({ input, ctx }) => {
+  .query(async ({ input }: { input: { limit: number; type: 'song' | 'video' | 'podcast' | 'audiobook' | 'all' } }) => {
     const now = Date.now();
     
     const allMetrics = Array.from(metricsStore.values());
@@ -69,7 +69,7 @@ export const trackStreamProcedure = publicProcedure
     id: z.string(),
     type: z.enum(['song', 'video', 'podcast', 'audiobook']),
   }))
-  .mutation(async ({ input }) => {
+  .mutation(async ({ input }: { input: { id: string; type: 'song' | 'video' | 'podcast' | 'audiobook' } }) => {
     const now = Date.now();
     const existing = metricsStore.get(input.id);
     
@@ -106,7 +106,7 @@ export const getMetricsProcedure = publicProcedure
   .input(z.object({
     id: z.string(),
   }))
-  .query(async ({ input }) => {
+  .query(async ({ input }: { input: { id: string } }) => {
     const metrics = metricsStore.get(input.id);
     
     if (!metrics) {
