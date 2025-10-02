@@ -159,7 +159,7 @@ export default function MusicVideosScreen() {
             key="grid"
             data={currentData}
             renderItem={renderVideoCard}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${selectedTab}-grid-${item.id}-${index}`}
             numColumns={2}
             columnWrapperStyle={styles.row}
             showsVerticalScrollIndicator={false}
@@ -170,7 +170,7 @@ export default function MusicVideosScreen() {
             key="list"
             data={currentData}
             renderItem={renderVideoListItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item, index) => `${selectedTab}-list-${item.id}-${index}`}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={[styles.listContent, { paddingBottom: 120 }]}
           />

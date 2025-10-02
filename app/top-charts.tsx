@@ -31,18 +31,28 @@ export default function TopChartsScreen() {
   ];
 
   const getChartsData = () => {
+    let data: Track[] = [];
     switch (selectedPeriod) {
       case "today":
-        return topCharts.slice(0, 10);
+        data = topCharts.slice(0, 10);
+        break;
       case "week":
-        return [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 10)];
+        data = [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 10)];
+        break;
       case "month":
-        return [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 15)];
+        data = [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 15)];
+        break;
       case "all":
-        return [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 20)];
+        data = [...topCharts, ...allTracks.filter(t => t.type === "song").slice(0, 20)];
+        break;
       default:
-        return topCharts;
+        data = topCharts;
     }
+    
+    const uniqueData = data.filter((track, index, self) => 
+      index === self.findIndex((t) => t.id === track.id)
+    );
+    return uniqueData;
   };
 
   const chartsData = getChartsData();
@@ -195,7 +205,7 @@ export default function TopChartsScreen() {
               <FlatList
                 data={chartsData.slice(0, 3)}
                 renderItem={renderTopCard}
-                keyExtractor={(item) => `top-${item.id}`}
+                keyExtractor={(item, index) => `top-card-${item.id}-${index}`}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.topCardsContainer}
