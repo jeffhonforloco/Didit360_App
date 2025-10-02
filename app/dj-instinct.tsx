@@ -309,75 +309,300 @@ export default function DJInstinctScreen() {
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            <Text style={styles.subtitle}>AI-Powered Professional DJ Experience</Text>
+            <View style={styles.heroSection}>
+              <LinearGradient
+                colors={['rgba(255, 0, 128, 0.2)', 'rgba(255, 107, 53, 0.1)', 'transparent']}
+                style={styles.heroGradient}
+              >
+                <View style={styles.heroContent}>
+                  <View style={styles.heroIcon}>
+                    <Disc3 size={48} color="#FF0080" />
+                  </View>
+                  <Text style={styles.heroTitle}>Live DJ Console</Text>
+                  <Text style={styles.heroSubtitle}>Professional mixing powered by AI</Text>
+                  
+                  <View style={styles.liveStats}>
+                    <View style={styles.liveStat}>
+                      <Gauge size={24} color="#FF0080" />
+                      <Text style={styles.liveStatValue}>{bpm}</Text>
+                      <Text style={styles.liveStatLabel}>BPM</Text>
+                    </View>
+                    <View style={styles.liveStatDivider} />
+                    <View style={styles.liveStat}>
+                      <Activity size={24} color="#00FF88" />
+                      <Text style={styles.liveStatValue}>{energy}%</Text>
+                      <Text style={styles.liveStatLabel}>Energy</Text>
+                    </View>
+                    <View style={styles.liveStatDivider} />
+                    <View style={styles.liveStat}>
+                      <Users size={24} color="#FFD700" />
+                      <Text style={styles.liveStatValue}>{crowdEnergy}%</Text>
+                      <Text style={styles.liveStatLabel}>Crowd</Text>
+                    </View>
+                  </View>
+                </View>
+              </LinearGradient>
+            </View>
 
-            {showStats && (
-              <View style={styles.statsCard}>
-                <View style={styles.statRow}>
-                  <View style={styles.statItem}>
-                    <Gauge size={20} color="#FF0080" />
-                    <Text style={styles.statLabel}>BPM</Text>
-                    <Text style={styles.statValue}>{bpm}</Text>
+            {(nowPlaying || currentTrack) && (
+              <View style={styles.nowPlayingCard}>
+                <View style={styles.nowPlayingHeader}>
+                  <Disc3 size={20} color="#FF0080" />
+                  <Text style={styles.nowPlayingTitle}>Now Playing</Text>
+                  {isPlaying && (
+                    <View style={styles.playingIndicator}>
+                      <View style={[styles.playingBar, { height: 12 }]} />
+                      <View style={[styles.playingBar, { height: 18 }]} />
+                      <View style={[styles.playingBar, { height: 8 }]} />
+                      <View style={[styles.playingBar, { height: 15 }]} />
+                    </View>
+                  )}
+                </View>
+                <View style={styles.nowPlayingContent}>
+                  <Image
+                    source={{ uri: (nowPlaying || currentTrack)?.artwork }}
+                    style={styles.nowPlayingImage}
+                  />
+                  <View style={styles.nowPlayingInfo}>
+                    <Text style={styles.nowPlayingTrack}>
+                      {(nowPlaying || currentTrack)?.title}
+                    </Text>
+                    <Text style={styles.nowPlayingArtist}>
+                      {(nowPlaying || currentTrack)?.artist}
+                    </Text>
+                    <View style={styles.nowPlayingMeta}>
+                      <View style={styles.metaChip}>
+                        <Gauge size={12} color="#FF0080" />
+                        <Text style={styles.metaText}>{bpm} BPM</Text>
+                      </View>
+                      <View style={styles.metaChip}>
+                        <Music size={12} color="#00FF88" />
+                        <Text style={styles.metaText}>C♯ Major</Text>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.statItem}>
-                    <Activity size={20} color="#00FF88" />
-                    <Text style={styles.statLabel}>Energy</Text>
-                    <Text style={styles.statValue}>{energy}%</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Users size={20} color="#FFD700" />
-                    <Text style={styles.statLabel}>Crowd</Text>
-                    <Text style={styles.statValue}>{crowdEnergy}%</Text>
-                  </View>
-                  <View style={styles.statItem}>
-                    <Clock size={20} color="#00D4FF" />
-                    <Text style={styles.statLabel}>Tracks</Text>
-                    <Text style={styles.statValue}>{queuePreview.length}</Text>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={togglePlayPause}
+                  >
+                    {isPlaying ? (
+                      <Pause size={28} color="#FFF" fill="#FFF" />
+                    ) : (
+                      <Play size={28} color="#FFF" fill="#FFF" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+                
+                <View style={styles.waveform}>
+                  {Array.from({ length: 50 }).map((_, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.waveformBar,
+                        { 
+                          height: Math.random() * 40 + 10,
+                          opacity: isPlaying ? 0.8 : 0.3,
+                        },
+                      ]}
+                    />
+                  ))}
                 </View>
               </View>
             )}
 
-            <View style={styles.modeTabs}>
-              {[
-                { key: "automix", label: "AutoMix", icon: Sliders, desc: "AI-powered seamless mixing" },
-                { key: "livePrompt", label: "Live Prompt", icon: Mic, desc: "Voice-guided DJ sets" },
-                { key: "party", label: "Party Mode", icon: Users, desc: "Crowd-sourced vibes" },
-              ].map(({ key, label, icon: Icon, desc }) => (
-                <TouchableOpacity
-                  key={key}
-                  style={[
-                    styles.modeTab,
-                    mode === key && styles.modeTabActive,
-                  ]}
-                  onPress={() => handleModeChange(key as DJInstinctMode)}
-                >
-                  <Icon
-                    size={24}
-                    color={mode === key ? "#FFF" : "#666"}
-                  />
-                  <View style={styles.modeTabContent}>
-                    <Text
-                      style={[
-                        styles.modeTabText,
-                        mode === key && styles.modeTabTextActive,
-                      ]}
-                    >
-                      {label}
-                    </Text>
-                    <Text style={styles.modeTabDesc}>{desc}</Text>
+            <View style={styles.mixerPanel}>
+              <View style={styles.mixerHeader}>
+                <Sliders size={20} color="#FF0080" />
+                <Text style={styles.mixerTitle}>Live Mixer</Text>
+                <View style={styles.liveBadge}>
+                  <View style={styles.livePulse} />
+                  <Text style={styles.liveTextSmall}>LIVE</Text>
+                </View>
+              </View>
+
+              <View style={styles.mixerContent}>
+                <View style={styles.crossfadeSection}>
+                  <Text style={styles.mixerLabel}>Crossfade Time</Text>
+                  <View style={styles.crossfadeDisplay}>
+                    <Text style={styles.crossfadeValue}>{crossfadeTime}s</Text>
                   </View>
-                  {mode === key && (
-                    <View style={styles.modeTabIndicator} />
-                  )}
-                </TouchableOpacity>
-              ))}
+                  <View style={styles.crossfadeButtons}>
+                    {[4, 8, 12, 16].map((time) => (
+                      <TouchableOpacity
+                        key={time}
+                        style={[
+                          styles.crossfadeButton,
+                          crossfadeTime === time && styles.crossfadeButtonActive,
+                        ]}
+                        onPress={() => setCrossfadeTime(time)}
+                      >
+                        <Text
+                          style={[
+                            styles.crossfadeButtonText,
+                            crossfadeTime === time && styles.crossfadeButtonTextActive,
+                          ]}
+                        >
+                          {time}s
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.masterVolumeSection}>
+                  <View style={styles.volumeHeader}>
+                    <Volume2 size={18} color="#FF0080" />
+                    <Text style={styles.mixerLabel}>Master Volume</Text>
+                    <Text style={styles.volumeValue}>{masterVolume}%</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.volumeSlider}
+                    onPress={(e) => {
+                      const { locationX } = e.nativeEvent;
+                      const containerWidth = width - 120;
+                      const newVolume = Math.round((locationX / containerWidth) * 100);
+                      setMasterVolume(Math.max(0, Math.min(100, newVolume)));
+                    }}
+                  >
+                    <View style={styles.volumeTrack}>
+                      <View
+                        style={[
+                          styles.volumeProgress,
+                          { width: `${masterVolume}%` },
+                        ]}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.eqPanel}>
+              <View style={styles.eqHeader}>
+                <BarChart3 size={20} color="#FF0080" />
+                <Text style={styles.eqTitle}>3-Band Equalizer</Text>
+              </View>
+
+              <View style={styles.eqContent}>
+                <View style={styles.eqBand}>
+                  <Text style={styles.eqLabel}>LOW</Text>
+                  <TouchableOpacity
+                    style={styles.eqSliderContainer}
+                    onPress={(e) => {
+                      const { locationY } = e.nativeEvent;
+                      const newValue = Math.round(100 - (locationY / 120) * 100);
+                      setEqLow(Math.max(0, Math.min(100, newValue)));
+                    }}
+                  >
+                    <View style={styles.eqSlider}>
+                      <View
+                        style={[
+                          styles.eqFill,
+                          { height: `${eqLow}%`, backgroundColor: '#FF0080' },
+                        ]}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.eqValue}>{eqLow}%</Text>
+                </View>
+
+                <View style={styles.eqBand}>
+                  <Text style={styles.eqLabel}>MID</Text>
+                  <TouchableOpacity
+                    style={styles.eqSliderContainer}
+                    onPress={(e) => {
+                      const { locationY } = e.nativeEvent;
+                      const newValue = Math.round(100 - (locationY / 120) * 100);
+                      setEqMid(Math.max(0, Math.min(100, newValue)));
+                    }}
+                  >
+                    <View style={styles.eqSlider}>
+                      <View
+                        style={[
+                          styles.eqFill,
+                          { height: `${eqMid}%`, backgroundColor: '#00FF88' },
+                        ]}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.eqValue}>{eqMid}%</Text>
+                </View>
+
+                <View style={styles.eqBand}>
+                  <Text style={styles.eqLabel}>HIGH</Text>
+                  <TouchableOpacity
+                    style={styles.eqSliderContainer}
+                    onPress={(e) => {
+                      const { locationY } = e.nativeEvent;
+                      const newValue = Math.round(100 - (locationY / 120) * 100);
+                      setEqHigh(Math.max(0, Math.min(100, newValue)));
+                    }}
+                  >
+                    <View style={styles.eqSlider}>
+                      <View
+                        style={[
+                          styles.eqFill,
+                          { height: `${eqHigh}%`, backgroundColor: '#FFD700' },
+                        ]}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                  <Text style={styles.eqValue}>{eqHigh}%</Text>
+                </View>
+              </View>
+            </View>
+
+            <View style={styles.beatMatchPanel}>
+              <View style={styles.beatMatchHeader}>
+                <Crosshair size={20} color="#00FF88" />
+                <Text style={styles.beatMatchTitle}>Beat Matching & Sync</Text>
+              </View>
+              <View style={styles.beatMatchContent}>
+                <View style={styles.bpmDisplay}>
+                  <Text style={styles.bpmLabel}>Current BPM</Text>
+                  <Text style={styles.bpmValue}>{bpm}</Text>
+                  <View style={styles.bpmControls}>
+                    <TouchableOpacity 
+                      style={styles.bpmButton}
+                      onPress={() => setBpm(prev => Math.max(60, prev - 1))}
+                    >
+                      <Text style={styles.bpmButtonText}>-</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.bpmButton}
+                      onPress={() => setBpm(prev => Math.min(200, prev + 1))}
+                    >
+                      <Text style={styles.bpmButtonText}>+</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={styles.syncControls}>
+                  <TouchableOpacity 
+                    style={[styles.syncButton, beatSync && styles.syncButtonActive]}
+                    onPress={() => setBeatSync(!beatSync)}
+                  >
+                    <Crosshair size={18} color={beatSync ? "#FFF" : "#666"} />
+                    <Text style={[styles.syncButtonText, beatSync && styles.syncButtonTextActive]}>
+                      Auto Sync
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={[styles.syncButton, harmonic && styles.syncButtonActive]}
+                    onPress={() => setHarmonic(!harmonic)}
+                  >
+                    <Music size={18} color={harmonic ? "#FFF" : "#666"} />
+                    <Text style={[styles.syncButtonText, harmonic && styles.syncButtonTextActive]}>
+                      Harmonic Mix
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
 
             <View style={styles.controlPanel}>
               <View style={styles.controlHeader}>
                 <Sparkles size={20} color="#FF0080" />
-                <Text style={styles.controlTitle}>DJ Controls</Text>
+                <Text style={styles.controlTitle}>AI Controls</Text>
               </View>
 
               <View style={styles.energyControl}>
@@ -575,72 +800,6 @@ export default function DJInstinctScreen() {
               </View>
             )}
 
-            {(nowPlaying || currentTrack) && (
-              <View style={styles.nowPlayingCard}>
-                <View style={styles.nowPlayingHeader}>
-                  <Disc3 size={20} color="#FF0080" />
-                  <Text style={styles.nowPlayingTitle}>Now Playing</Text>
-                  {isPlaying && (
-                    <View style={styles.playingIndicator}>
-                      <View style={[styles.playingBar, { height: 12 }]} />
-                      <View style={[styles.playingBar, { height: 18 }]} />
-                      <View style={[styles.playingBar, { height: 8 }]} />
-                      <View style={[styles.playingBar, { height: 15 }]} />
-                    </View>
-                  )}
-                </View>
-                <View style={styles.nowPlayingContent}>
-                  <Image
-                    source={{ uri: (nowPlaying || currentTrack)?.artwork }}
-                    style={styles.nowPlayingImage}
-                  />
-                  <View style={styles.nowPlayingInfo}>
-                    <Text style={styles.nowPlayingTrack}>
-                      {(nowPlaying || currentTrack)?.title}
-                    </Text>
-                    <Text style={styles.nowPlayingArtist}>
-                      {(nowPlaying || currentTrack)?.artist}
-                    </Text>
-                    <View style={styles.nowPlayingMeta}>
-                      <View style={styles.metaChip}>
-                        <Gauge size={12} color="#FF0080" />
-                        <Text style={styles.metaText}>{bpm} BPM</Text>
-                      </View>
-                      <View style={styles.metaChip}>
-                        <Music size={12} color="#00FF88" />
-                        <Text style={styles.metaText}>C♯ Major</Text>
-                      </View>
-                    </View>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.playButton}
-                    onPress={togglePlayPause}
-                  >
-                    {isPlaying ? (
-                      <Pause size={28} color="#FFF" fill="#FFF" />
-                    ) : (
-                      <Play size={28} color="#FFF" fill="#FFF" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.waveform}>
-                  {Array.from({ length: 50 }).map((_, i) => (
-                    <View
-                      key={i}
-                      style={[
-                        styles.waveformBar,
-                        { 
-                          height: Math.random() * 40 + 10,
-                          opacity: isPlaying ? 0.8 : 0.3,
-                        },
-                      ]}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
             {queuePreview.length > 0 && (
               <View style={styles.queueCard}>
                 <View style={styles.queueHeader}>
@@ -660,223 +819,46 @@ export default function DJInstinctScreen() {
               </View>
             )}
 
+            <View style={styles.modeTabs}>
+              {[
+                { key: "automix", label: "AutoMix", icon: Sliders, desc: "AI-powered seamless mixing" },
+                { key: "livePrompt", label: "Live Prompt", icon: Mic, desc: "Voice-guided DJ sets" },
+                { key: "party", label: "Party Mode", icon: Users, desc: "Crowd-sourced vibes" },
+              ].map(({ key, label, icon: Icon, desc }) => (
+                <TouchableOpacity
+                  key={key}
+                  style={[
+                    styles.modeTab,
+                    mode === key && styles.modeTabActive,
+                  ]}
+                  onPress={() => handleModeChange(key as DJInstinctMode)}
+                >
+                  <Icon
+                    size={24}
+                    color={mode === key ? "#FFF" : "#666"}
+                  />
+                  <View style={styles.modeTabContent}>
+                    <Text
+                      style={[
+                        styles.modeTabText,
+                        mode === key && styles.modeTabTextActive,
+                      ]}
+                    >
+                      {label}
+                    </Text>
+                    <Text style={styles.modeTabDesc}>{desc}</Text>
+                  </View>
+                  {mode === key && (
+                    <View style={styles.modeTabIndicator} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
             <View style={styles.professionalSection}>
               <View style={styles.sectionHeader}>
                 <Radio size={24} color="#FF6B35" />
-                <Text style={styles.sectionTitle}>Live Mixing Console</Text>
-                <View style={styles.liveBadge}>
-                  <View style={styles.livePulse} />
-                  <Text style={styles.liveTextSmall}>LIVE</Text>
-                </View>
-              </View>
-
-              <View style={styles.mixerPanel}>
-                <View style={styles.mixerHeader}>
-                  <Sliders size={20} color="#FF0080" />
-                  <Text style={styles.mixerTitle}>Crossfade & Volume Control</Text>
-                </View>
-
-                <View style={styles.mixerContent}>
-                  <View style={styles.mixerContent}>
-                    <View style={styles.crossfadeSection}>
-                      <Text style={styles.mixerLabel}>Crossfade Time</Text>
-                      <View style={styles.crossfadeDisplay}>
-                        <Text style={styles.crossfadeValue}>{crossfadeTime}s</Text>
-                      </View>
-                      <View style={styles.crossfadeButtons}>
-                        {[4, 8, 12, 16].map((time) => (
-                          <TouchableOpacity
-                            key={time}
-                            style={[
-                              styles.crossfadeButton,
-                              crossfadeTime === time && styles.crossfadeButtonActive,
-                            ]}
-                            onPress={() => setCrossfadeTime(time)}
-                          >
-                            <Text
-                              style={[
-                                styles.crossfadeButtonText,
-                                crossfadeTime === time && styles.crossfadeButtonTextActive,
-                              ]}
-                            >
-                              {time}s
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-
-                    <View style={styles.masterVolumeSection}>
-                      <View style={styles.volumeHeader}>
-                        <Volume2 size={18} color="#FF0080" />
-                        <Text style={styles.mixerLabel}>Master Volume</Text>
-                        <Text style={styles.volumeValue}>{masterVolume}%</Text>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.volumeSlider}
-                        onPress={(e) => {
-                          const { locationX } = e.nativeEvent;
-                          const containerWidth = width - 120;
-                          const newVolume = Math.round((locationX / containerWidth) * 100);
-                          setMasterVolume(Math.max(0, Math.min(100, newVolume)));
-                        }}
-                      >
-                        <View style={styles.volumeTrack}>
-                          <View
-                            style={[
-                              styles.volumeProgress,
-                              { width: `${masterVolume}%` },
-                            ]}
-                          />
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.togglesSection}>
-                      <TouchableOpacity
-                        style={styles.toggleItem}
-                        onPress={() => setAutoGain(!autoGain)}
-                      >
-                        <Gauge size={18} color={autoGain ? "#00FF88" : "#666"} />
-                        <Text style={[styles.toggleLabel, autoGain && styles.toggleLabelActive]}>
-                          Auto Gain
-                        </Text>
-                        <View style={[styles.toggleSwitch, autoGain && styles.toggleSwitchActive]}>
-                          <View style={[styles.toggleKnob, autoGain && styles.toggleKnobActive]} />
-                        </View>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.toggleItem}
-                        onPress={() => setBeatSync(!beatSync)}
-                      >
-                        <Crosshair size={18} color={beatSync ? "#00FF88" : "#666"} />
-                        <Text style={[styles.toggleLabel, beatSync && styles.toggleLabelActive]}>
-                          Beat Sync
-                        </Text>
-                        <View style={[styles.toggleSwitch, beatSync && styles.toggleSwitchActive]}>
-                          <View style={[styles.toggleKnob, beatSync && styles.toggleKnobActive]} />
-                        </View>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.toggleItem}
-                        onPress={() => setHarmonic(!harmonic)}
-                      >
-                        <Music size={18} color={harmonic ? "#00FF88" : "#666"} />
-                        <Text style={[styles.toggleLabel, harmonic && styles.toggleLabelActive]}>
-                          Harmonic Mix
-                        </Text>
-                        <View style={[styles.toggleSwitch, harmonic && styles.toggleSwitchActive]}>
-                          <View style={[styles.toggleKnob, harmonic && styles.toggleKnobActive]} />
-                        </View>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.eqPanel}>
-                <View style={styles.eqHeader}>
-                  <BarChart3 size={20} color="#FF0080" />
-                  <Text style={styles.eqTitle}>3-Band Equalizer</Text>
-                </View>
-
-                <View style={styles.eqContent}>
-                  <View style={styles.eqContent}>
-                    <View style={styles.eqBand}>
-                      <Text style={styles.eqLabel}>LOW</Text>
-                      <View style={styles.eqSliderContainer}>
-                        <View style={styles.eqSlider}>
-                          <View
-                            style={[
-                              styles.eqFill,
-                              { height: `${eqLow}%`, backgroundColor: '#FF0080' },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                      <Text style={styles.eqValue}>{eqLow}%</Text>
-                    </View>
-
-                    <View style={styles.eqBand}>
-                      <Text style={styles.eqLabel}>MID</Text>
-                      <View style={styles.eqSliderContainer}>
-                        <View style={styles.eqSlider}>
-                          <View
-                            style={[
-                              styles.eqFill,
-                              { height: `${eqMid}%`, backgroundColor: '#00FF88' },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                      <Text style={styles.eqValue}>{eqMid}%</Text>
-                    </View>
-
-                    <View style={styles.eqBand}>
-                      <Text style={styles.eqLabel}>HIGH</Text>
-                      <View style={styles.eqSliderContainer}>
-                        <View style={styles.eqSlider}>
-                          <View
-                            style={[
-                              styles.eqFill,
-                              { height: `${eqHigh}%`, backgroundColor: '#FFD700' },
-                            ]}
-                          />
-                        </View>
-                      </View>
-                      <Text style={styles.eqValue}>{eqHigh}%</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-
-              <View style={styles.beatMatchPanel}>
-                <View style={styles.beatMatchHeader}>
-                  <Crosshair size={20} color="#00FF88" />
-                  <Text style={styles.beatMatchTitle}>Beat Matching & Sync</Text>
-                </View>
-                <View style={styles.beatMatchContent}>
-                  <View style={styles.bpmDisplay}>
-                    <Text style={styles.bpmLabel}>Current BPM</Text>
-                    <Text style={styles.bpmValue}>{bpm}</Text>
-                    <View style={styles.bpmControls}>
-                      <TouchableOpacity 
-                        style={styles.bpmButton}
-                        onPress={() => setBpm(prev => Math.max(60, prev - 1))}
-                      >
-                        <Text style={styles.bpmButtonText}>-</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={styles.bpmButton}
-                        onPress={() => setBpm(prev => Math.min(200, prev + 1))}
-                      >
-                        <Text style={styles.bpmButtonText}>+</Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                  <View style={styles.syncControls}>
-                    <TouchableOpacity 
-                      style={[styles.syncButton, beatSync && styles.syncButtonActive]}
-                      onPress={() => setBeatSync(!beatSync)}
-                    >
-                      <Crosshair size={18} color={beatSync ? "#FFF" : "#666"} />
-                      <Text style={[styles.syncButtonText, beatSync && styles.syncButtonTextActive]}>
-                        Auto Sync
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                      style={[styles.syncButton, harmonic && styles.syncButtonActive]}
-                      onPress={() => setHarmonic(!harmonic)}
-                    >
-                      <Music size={18} color={harmonic ? "#FFF" : "#666"} />
-                      <Text style={[styles.syncButtonText, harmonic && styles.syncButtonTextActive]}>
-                        Harmonic Mix
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <Text style={styles.sectionTitle}>Advanced Features</Text>
               </View>
 
               {features.liveDJ.enabled && (
@@ -1135,12 +1117,71 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  subtitle: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
+  heroSection: {
     marginBottom: 24,
-    fontWeight: "500",
+  },
+  heroGradient: {
+    borderRadius: 24,
+    overflow: "hidden",
+  },
+  heroContent: {
+    padding: 32,
+    alignItems: "center",
+  },
+  heroIcon: {
+    width: 80,
+    height: 80,
+    backgroundColor: "rgba(255, 0, 128, 0.2)",
+    borderRadius: 40,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: "rgba(255, 0, 128, 0.3)",
+  },
+  heroTitle: {
+    fontSize: 32,
+    fontWeight: "900",
+    color: "#FFF",
+    marginBottom: 8,
+    letterSpacing: 0.5,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    color: "#999",
+    marginBottom: 24,
+  },
+  liveStats: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.3)",
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 0, 128, 0.2)",
+  },
+  liveStat: {
+    flex: 1,
+    alignItems: "center",
+    gap: 8,
+  },
+  liveStatValue: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#FFF",
+  },
+  liveStatLabel: {
+    fontSize: 11,
+    color: "#999",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  liveStatDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
   },
   statsCard: {
     backgroundColor: "rgba(255, 0, 128, 0.05)",
