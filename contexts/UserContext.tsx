@@ -243,9 +243,6 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       console.log('[UserContext] Profile and password removed from AsyncStorage');
       console.log('[UserContext] signOut completed successfully');
       
-      // Force a reload of the context state to ensure UI updates
-      await load();
-      
     } catch (err) {
       console.error("[UserContext] signOut error", err);
       // If storage operations fail, still keep profile as null since user intended to sign out
@@ -253,7 +250,7 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       // Don't throw the error - we want sign out to succeed even if storage fails
       console.log('[UserContext] signOut completed despite storage error');
     }
-  }, [load]);
+  }, []);
 
   const clearStorage = useCallback(async () => {
     try {
