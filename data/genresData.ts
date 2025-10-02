@@ -1172,32 +1172,127 @@ export const genresData: Record<string, GenreData> = {
       }
     ]
   },
-  "Afro Beat": {
-    name: "Afro Beat",
+  "Afrobeat": {
+    name: "Afrobeat",
     color: "#EA580C",
-    description: "West African music blending traditional rhythms with jazz, funk, and highlife.",
-    subgenres: ["Afrobeats", "Afro-Fusion", "Afro-Pop", "Afro-House"],
+    description: "Classic West African genre pioneered by Fela Kuti, blending traditional Yoruba music, jazz, funk, and highlife with political consciousness.",
+    subgenres: ["Traditional Afrobeat", "Afrobeat Jazz", "Afrobeat Funk"],
     topArtists: [
       {
         id: "afrobeat-artist-1",
+        name: "Fela Kuti",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "8.5M"
+      },
+      {
+        id: "afrobeat-artist-2",
+        name: "Femi Kuti",
+        image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        followers: "3.2M"
+      },
+      {
+        id: "afrobeat-artist-3",
+        name: "Made Kuti",
+        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        followers: "1.8M"
+      },
+      {
+        id: "afrobeat-artist-4",
+        name: "Tony Allen",
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        followers: "2.5M"
+      }
+    ],
+    tracks: [
+      {
+        id: "afrobeat-1",
+        title: "Water No Get Enemy",
+        artist: "Fela Kuti",
+        album: "Expensive Shit",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 720,
+        type: "song"
+      },
+      {
+        id: "afrobeat-2",
+        title: "Zombie",
+        artist: "Fela Kuti",
+        album: "Zombie",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 744,
+        type: "song"
+      },
+      {
+        id: "afrobeat-3",
+        title: "Beng Beng Beng",
+        artist: "Femi Kuti",
+        album: "Day by Day",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 456,
+        type: "song"
+      },
+      {
+        id: "afrobeat-4",
+        title: "Your Enemy",
+        artist: "Made Kuti",
+        album: "For(e)ward",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        duration: 398,
+        type: "song"
+      }
+    ],
+    playlists: [
+      {
+        id: "afrobeat-pl-1",
+        name: "Afrobeat Classics",
+        description: "The revolutionary sound of Fela Kuti and the Afrobeat pioneers",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        trackCount: 60
+      },
+      {
+        id: "afrobeat-pl-2",
+        name: "Modern Afrobeat",
+        description: "Contemporary artists keeping the Afrobeat tradition alive",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        trackCount: 45
+      }
+    ],
+    albums: [
+      {
+        id: "afrobeat-album-1",
+        title: "Zombie",
+        artist: "Fela Kuti",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        year: "1976"
+      }
+    ]
+  },
+  "Afrobeats": {
+    name: "Afrobeats",
+    color: "#F97316",
+    description: "Modern Nigerian and West African pop music blending African rhythms with hip-hop, R&B, dancehall, and electronic music.",
+    subgenres: ["Afro-Fusion", "Afro-Pop", "Afro-Dancehall", "Afro-Highlife", "Afro-Reggae", "Afro-House"],
+    topArtists: [
+      {
+        id: "afrobeats-artist-1",
         name: "Burna Boy",
         image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
         followers: "32.5M"
       },
       {
-        id: "afrobeat-artist-2",
+        id: "afrobeats-artist-2",
         name: "Wizkid",
         image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
         followers: "28.7M"
       },
       {
-        id: "afrobeat-artist-3",
+        id: "afrobeats-artist-3",
         name: "Davido",
         image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
         followers: "25.3M"
       },
       {
-        id: "afrobeat-artist-4",
+        id: "afrobeats-artist-4",
         name: "Tems",
         image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
         followers: "18.2M"
@@ -1205,7 +1300,7 @@ export const genresData: Record<string, GenreData> = {
     ],
     tracks: [
       {
-        id: "afrobeat-1",
+        id: "afrobeats-1",
         title: "Last Last",
         artist: "Burna Boy",
         album: "Love, Damini",
@@ -1214,7 +1309,7 @@ export const genresData: Record<string, GenreData> = {
         type: "song"
       },
       {
-        id: "afrobeat-2",
+        id: "afrobeats-2",
         title: "Essence",
         artist: "Wizkid ft. Tems",
         album: "Made in Lagos",
@@ -1223,7 +1318,7 @@ export const genresData: Record<string, GenreData> = {
         type: "song"
       },
       {
-        id: "afrobeat-3",
+        id: "afrobeats-3",
         title: "Fall",
         artist: "Davido",
         album: "A Good Time",
@@ -1232,38 +1327,70 @@ export const genresData: Record<string, GenreData> = {
         type: "song"
       },
       {
-        id: "afrobeat-4",
+        id: "afrobeats-4",
         title: "Free Mind",
         artist: "Tems",
         album: "For Broken Ears",
         artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
         duration: 238,
         type: "song"
+      },
+      {
+        id: "afrobeats-5",
+        title: "Calm Down",
+        artist: "Rema",
+        album: "Rave & Roses",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        duration: 239,
+        type: "song"
+      },
+      {
+        id: "afrobeats-6",
+        title: "Peru",
+        artist: "Fireboy DML",
+        album: "Playboy",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        duration: 194,
+        type: "song"
       }
     ],
     playlists: [
       {
-        id: "afrobeat-pl-1",
+        id: "afrobeats-pl-1",
         name: "Afrobeats Hits",
-        description: "The hottest Afrobeats tracks",
+        description: "The hottest Afrobeats tracks from Nigeria and beyond",
         artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
-        trackCount: 75
+        trackCount: 85
       },
       {
-        id: "afrobeat-pl-2",
-        name: "Afro Vibes",
-        description: "Feel-good African rhythms",
+        id: "afrobeats-pl-2",
+        name: "Afro-Fusion",
+        description: "Blending Afrobeats with global sounds",
         artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
-        trackCount: 60
+        trackCount: 70
+      },
+      {
+        id: "afrobeats-pl-3",
+        name: "Afro-Pop Essentials",
+        description: "The best of modern African pop music",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        trackCount: 65
       }
     ],
     albums: [
       {
-        id: "afrobeat-album-1",
+        id: "afrobeats-album-1",
         title: "Love, Damini",
         artist: "Burna Boy",
         artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
         year: "2022"
+      },
+      {
+        id: "afrobeats-album-2",
+        title: "Made in Lagos",
+        artist: "Wizkid",
+        artwork: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop",
+        year: "2020"
       }
     ]
   },
