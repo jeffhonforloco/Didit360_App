@@ -49,6 +49,13 @@ import { liveEmergencyFadeProcedure } from "./routes/dj-instinct/live/emergency/
 import { detectBotProcedure } from "./routes/seo/detect-bot/route";
 import { generateMetaProcedure } from "./routes/seo/generate-meta/route";
 
+// Genres
+import { getGenresProcedure } from "./routes/genres/get-genres/route";
+import { submitGenreProcedure } from "./routes/genres/submit-genre/route";
+import { approveGenreProcedure } from "./routes/genres/approve-genre/route";
+import { updateGenreProcedure } from "./routes/genres/update-genre/route";
+import { getPendingGenresProcedure } from "./routes/genres/get-pending-genres/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -128,6 +135,13 @@ export const appRouter = createTRPCRouter({
   seo: createTRPCRouter({
     detectBot: detectBotProcedure,
     generateMeta: generateMetaProcedure,
+  }),
+  genres: createTRPCRouter({
+    getGenres: getGenresProcedure,
+    submitGenre: submitGenreProcedure,
+    approveGenre: approveGenreProcedure,
+    updateGenre: updateGenreProcedure,
+    getPendingGenres: getPendingGenresProcedure,
   }),
 });
 

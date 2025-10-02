@@ -387,3 +387,48 @@ export interface SimilarityResponse {
     matching_features?: string[];
   }[];
 }
+
+// Genre types
+export interface Genre {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color: string;
+  parent_genre_id?: string | null;
+  is_approved: boolean;
+  is_system: boolean;
+  submitted_by?: string;
+  submitted_at?: string;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  track_count: number;
+  artist_count: number;
+  subgenres?: string[];
+  metadata?: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface GenreRelationship {
+  id: string;
+  genre_id: string;
+  parent_genre_id: string;
+  relationship_type: 'subgenre' | 'related' | 'fusion';
+  created_at: string;
+}
+
+export interface SubmitGenreRequest {
+  name: string;
+  description?: string;
+  parent_genre_ids?: string[];
+  submitted_by?: string;
+}
+
+export interface ApproveGenreRequest {
+  genre_id: string;
+  approved: boolean;
+  approved_by: string;
+  color?: string;
+  parent_genre_ids?: string[];
+}

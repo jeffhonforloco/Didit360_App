@@ -1,6 +1,38 @@
 export const ddl = {
   core: `
 -- Master catalog tables with versioning and deduplication
+
+-- Dynamic genres table
+CREATE TABLE IF NOT EXISTS genre (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT UNIQUE NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  description TEXT,
+  color TEXT DEFAULT '#6366F1',
+  parent_genre_id BIGINT REFERENCES genre(id),
+  is_approved BOOLEAN DEFAULT FALSE,
+  is_system BOOLEAN DEFAULT FALSE,
+  submitted_by TEXT,
+  submitted_at TIMESTAMPTZ DEFAULT now(),
+  approved_by TEXT,
+  approved_at TIMESTAMPTZ,
+  track_count INT DEFAULT 0,
+  artist_count INT DEFAULT 0,
+  metadata JSONB DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Genre relationships (for multiple parent genres)
+CREATE TABLE IF NOT EXISTS genre_relationship (
+  id BIGSERIAL PRIMARY KEY,
+  genre_id BIGINT REFERENCES genre(id) ON DELETE CASCADE,
+  parent_genre_id BIGINT REFERENCES genre(id) ON DELETE CASCADE,
+  relationship_type TEXT DEFAULT 'subgenre',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(genre_id, parent_genre_id)
+);
+
 -- Artists table
 CREATE TABLE IF NOT EXISTS artist (
   id BIGSERIAL PRIMARY KEY,
@@ -417,6 +449,17 @@ CREATE INDEX IF NOT EXISTS idx_podcast_quality ON podcast(quality_score);
 CREATE INDEX IF NOT EXISTS idx_episode_quality ON episode(quality_score);
 CREATE INDEX IF NOT EXISTS idx_book_quality ON book(quality_score);
 CREATE INDEX IF NOT EXISTS idx_audiobook_quality ON audiobook(quality_score);
+
+-- Genre indexes
+CREATE INDEX IF NOT EXISTS idx_genre_slug ON genre(slug);
+CREATE INDEX IF NOT EXISTS idx_genre_name ON genre(name);
+CREATE INDEX IF NOT EXISTS idx_genre_approved ON genre(is_approved) WHERE is_approved = TRUE;
+CREATE INDEX IF NOT EXISTS idx_genre_parent ON genre(parent_genre_id) WHERE parent_genre_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_genre_system ON genre(is_system) WHERE is_system = TRUE;
+CREATE INDEX IF NOT EXISTS idx_genre_submitted ON genre(submitted_at);
+CREATE INDEX IF NOT EXISTS idx_genre_name_trgm ON genre USING GIN(name gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_genre_relationship_genre ON genre_relationship(genre_id);
+CREATE INDEX IF NOT EXISTS idx_genre_relationship_parent ON genre_relationship(parent_genre_id);
 `,
 };
 
