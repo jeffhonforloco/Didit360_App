@@ -14,8 +14,6 @@ export default function TabLayout() {
   const tabBarPadding = currentTrack ? 60 : 0;
   const activeTint = settings?.accentColor ?? "#FF0080";
 
-  const { isSignedIn } = useUser();
-
   const tabBarStyle = useMemo(() => ({
     backgroundColor: "#0A0A0A",
     borderTopColor: "#1A1A1A",
@@ -24,8 +22,7 @@ export default function TabLayout() {
     paddingTop: 10,
     height: Platform.OS === "ios" ? 80 + insets.bottom + tabBarPadding : 60 + tabBarPadding,
     position: "absolute" as const,
-    display: isSignedIn ? "flex" : "none", // Only show tab bar for signed in users
-  }), [insets.bottom, tabBarPadding, isSignedIn]);
+  }), [insets.bottom, tabBarPadding]);
 
   return (
     <Tabs
