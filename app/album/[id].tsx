@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,10 +7,13 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
+  Modal,
+  Platform,
+  Share as RNShare,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, MoreHorizontal, Heart, Play, Plus } from 'lucide-react-native';
+import { ArrowLeft, MoreHorizontal, Heart, Play, Plus, Share2, Download, Facebook, Twitter, Link } from 'lucide-react-native';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { allTracks } from '@/data/mockData';
 import type { Track } from '@/types';
@@ -51,6 +54,8 @@ export default function AlbumDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const { playTrack } = usePlayer();
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   
   const album = albums.find(a => a.id === id);
   
@@ -70,6 +75,36 @@ export default function AlbumDetailScreen() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleShare = async (platform?: string) => {
+    console.log(`[Album] Sharing to ${platform || 'default'}:`, album?.title);
+    
+    if (Platform.OS === 'web') {
+      if (platform === 'copy') {
+        navigator.clipboard.writeText(`Check out ${album?.title} by ${album?.artist} on our app!`);
+        console.log('Link copied to clipboard');
+      }
+    } else {
+      try {
+        await RNShare.share({
+          message: `Check out ${album?.title} by ${album?.artist} on our app!`,
+          title: album?.title,
+        });
+      } catch (error) {
+        console.log('Share error:', error);
+      }
+    }
+    
+    setShowShareModal(false);
+  };
+
+  const handleDownload = () => {
+    console.log('[Album] Downloading all songs from:', album?.title);
+  };
+
+  const handleAddToPlaylist = () => {
+    console.log('[Album] Adding album to playlist:', album?.title);
   };
 
   const renderSong = ({ item, index }: { item: Track; index: number }) => (
@@ -117,14 +152,29 @@ export default function AlbumDetailScreen() {
             <Text style={styles.albumYear}>Album | {album.year}</Text>
             
             <View style={styles.actions}>
-              <TouchableOpacity style={styles.actionButton}>
-                <Heart size={24} color="#FFF" />
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => setIsFavorite(!isFavorite)}
+              >
+                <Heart size={24} color="#FFF" fill={isFavorite ? "#E91E63" : "none"} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleAddToPlaylist}
+              >
                 <Plus size={24} color="#FFF" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionButton}>
-                <MoreHorizontal size={24} color="#FFF" />
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={() => setShowShareModal(true)}
+              >
+                <Share2 size={24} color="#FFF" />
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleDownload}
+              >
+                <Download size={24} color="#FFF" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.playButton}
@@ -154,6 +204,65 @@ export default function AlbumDetailScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Share Modal */}
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.shareModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.shareTitle}>SHARE ALBUM</Text>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('facebook')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Facebook size={24} color="#1877F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Facebook</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('twitter')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Twitter size={24} color="#1DA1F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Twitter</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('copy')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Link size={24} color="#999" />
+              </View>
+              <Text style={styles.shareOptionText}>Copy Link</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -291,5 +400,54 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginTop: 100,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+  },
+  shareModal: {
+    backgroundColor: '#2A2A2A',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  shareTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  shareOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  shareIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  shareOptionText: {
+    fontSize: 16,
+    color: '#FFF',
+    fontWeight: '500',
+  },
+  cancelButton: {
+    marginTop: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '600',
   },
 });
