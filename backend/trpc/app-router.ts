@@ -60,6 +60,14 @@ import { getPendingGenresProcedure } from "./routes/genres/get-pending-genres/ro
 import { transcribeProcedure } from "./routes/ai/transcribe/route";
 import { recommendationsProcedure } from "./routes/ai/recommendations/route";
 import { generatePlaylistProcedure } from "./routes/ai/generate-playlist/route";
+import { smartRecommendationsProcedure } from "./routes/ai/smart-recommendations/route";
+import { moodDetectionProcedure } from "./routes/ai/mood-detection/route";
+import { lyricsAnalysisProcedure, generateLyricsProcedure } from "./routes/ai/lyrics-analysis/route";
+import { voiceCommandProcedure, conversationProcedure } from "./routes/ai/voice-assistant/route";
+import { contextualDiscoveryProcedure } from "./routes/ai/contextual-discovery/route";
+import { collaborativeFilteringProcedure, findSimilarUsersProcedure } from "./routes/ai/collaborative-filtering/route";
+import { optimizeSetlistProcedure, analyzeSetProcedure } from "./routes/ai/setlist-optimizer/route";
+import { generateTrackEmbeddingProcedure, findSimilarTracksProcedure, semanticSearchProcedure } from "./routes/ai/similarity-search/route";
 
 // News
 import { fetchNewsProcedure } from "./routes/news/fetch-news/route";
@@ -155,6 +163,20 @@ export const appRouter = createTRPCRouter({
     transcribe: transcribeProcedure,
     recommendations: recommendationsProcedure,
     generatePlaylist: generatePlaylistProcedure,
+    smartRecommendations: smartRecommendationsProcedure,
+    moodDetection: moodDetectionProcedure,
+    lyricsAnalysis: lyricsAnalysisProcedure,
+    generateLyrics: generateLyricsProcedure,
+    voiceCommand: voiceCommandProcedure,
+    conversation: conversationProcedure,
+    contextualDiscovery: contextualDiscoveryProcedure,
+    collaborativeFiltering: collaborativeFilteringProcedure,
+    findSimilarUsers: findSimilarUsersProcedure,
+    optimizeSetlist: optimizeSetlistProcedure,
+    analyzeSet: analyzeSetProcedure,
+    generateTrackEmbedding: generateTrackEmbeddingProcedure,
+    findSimilarTracks: findSimilarTracksProcedure,
+    semanticSearch: semanticSearchProcedure,
   }),
   news: createTRPCRouter({
     fetchNews: fetchNewsProcedure,
