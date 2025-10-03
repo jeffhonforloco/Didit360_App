@@ -228,13 +228,47 @@ export function MiniPlayer() {
            pathname === '/profile';
   }, [pathname]);
 
+  // Routes that should show MiniPlayer at bottom without tab bar offset
+  const isFullScreenRoute = useMemo(() => {
+    return pathname.startsWith('/artist/') ||
+           pathname.startsWith('/album/') ||
+           pathname.startsWith('/song/') ||
+           pathname.startsWith('/playlist') ||
+           pathname.startsWith('/genre/') ||
+           pathname.startsWith('/audiobook/') ||
+           pathname.startsWith('/podcast-show/') ||
+           pathname.startsWith('/podcast-episode/') ||
+           pathname.startsWith('/profile/') ||
+           pathname === '/trending-now' ||
+           pathname === '/popular-artists' ||
+           pathname === '/new-releases' ||
+           pathname === '/music-videos' ||
+           pathname === '/top-charts' ||
+           pathname === '/your-mix' ||
+           pathname === '/history' ||
+           pathname === '/playlists' ||
+           pathname === '/downloads' ||
+           pathname === '/podcasts' ||
+           pathname === '/albums' ||
+           pathname === '/songs' ||
+           pathname === '/artists' ||
+           pathname === '/audiobooks' ||
+           pathname === '/browse-categories' ||
+           pathname.startsWith('/categories/');
+  }, [pathname]);
+
   const tabBarHeight = useMemo(() => {
-    if (!isTabRoute) {
-      // No tab bar on non-tab routes, position at bottom with safe area
+    if (isFullScreenRoute) {
+      // Full screen routes: position at bottom with safe area only
       return insets.bottom + 8;
     }
+    if (!isTabRoute) {
+      // Other non-tab routes: position at bottom with safe area
+      return insets.bottom + 8;
+    }
+    // Tab routes: account for tab bar height
     return Platform.OS === "ios" ? 80 + insets.bottom : 60;
-  }, [insets.bottom, isTabRoute]);
+  }, [insets.bottom, isTabRoute, isFullScreenRoute]);
 
   const isVideoTrack = useMemo(() => {
     return currentTrack?.isVideo || currentTrack?.type === "video";
