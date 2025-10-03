@@ -28,8 +28,10 @@ class WebAudioPlayer implements AudioPlayerLike {
       if (this.audio) {
         this.audio.preload = 'auto';
         this.audio.crossOrigin = 'anonymous';
+        // CRITICAL: Set volume IMMEDIATELY on creation
         this.audio.volume = 1.0;
         this.audio.muted = false;
+        console.log('[WebAudioPlayer] Initial audio setup - Volume:', this.audio.volume, 'Muted:', this.audio.muted);
         
         // Set up user interaction detection for autoplay policy
         this.setupUserInteractionDetection();
@@ -84,6 +86,7 @@ class WebAudioPlayer implements AudioPlayerLike {
   private setupUserInteractionDetection() {
     if (typeof window !== 'undefined') {
       const handleUserInteraction = () => {
+        if (this.hasUserInteracted) return;
         this.hasUserInteracted = true;
         console.log('[WebAudioPlayer] 🎯 User interaction detected - audio unlocked!');
         // Try to unlock audio context
@@ -91,9 +94,10 @@ class WebAudioPlayer implements AudioPlayerLike {
         // Try to play the audio if it's loaded
         if (this.audio && this.audio.paused && this.audio.readyState >= 2) {
           console.log('[WebAudioPlayer] 🔊 Attempting to play after user interaction');
-          // Ensure volume and unmuted
-          if (this.audio.volume === 0) this.audio.volume = 1.0;
-          if (this.audio.muted) this.audio.muted = false;
+          // CRITICAL: Ensure volume and unmuted BEFORE play
+          this.audio.volume = 1.0;
+          this.audio.muted = false;
+          console.log('[WebAudioPlayer] Set volume to 1.0 and unmuted before play');
           this.audio.play().catch((e) => {
             console.log('[WebAudioPlayer] Auto-play after interaction failed:', e);
           });
@@ -108,7 +112,7 @@ class WebAudioPlayer implements AudioPlayerLike {
       // Use capture phase to ensure we catch the interaction
       const events = ['click', 'touchstart', 'touchend', 'keydown', 'pointerdown', 'mousedown'];
       events.forEach(event => {
-        document.addEventListener(event, handleUserInteraction, { once: false, capture: true });
+        document.addEventListener(event, handleUserInteraction, { once: true, capture: true });
       });
       
       // Also detect any user interaction immediately if possible

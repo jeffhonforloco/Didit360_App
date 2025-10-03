@@ -153,21 +153,22 @@ export default function HomeScreen() {
     const baseItems: Array<{ id: string; title: string; icon: string; gradient: readonly [string, string]; route: string }> = [
       { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
       { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/your-mix' },
-      { id: '3', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
+      { id: '3', title: 'AI Features', icon: 'sparkles', gradient: ['#FF0080', '#8B5CF6'] as const, route: '/ai-features' },
+      { id: '4', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
     ];
 
     if (currentTrack) {
       if (currentTrack.type === 'song') {
-        baseItems.push({ id: '4', title: 'Music Videos', icon: 'video', gradient: ['#F59E0B', '#EF4444'] as const, route: '/categories/trending-videos' });
+        baseItems.push({ id: '5', title: 'Music Videos', icon: 'video', gradient: ['#F59E0B', '#EF4444'] as const, route: '/categories/trending-videos' });
       } else if (currentTrack.type === 'video' || currentTrack.isVideo) {
-        baseItems.push({ id: '4', title: 'Live Shows', icon: 'radio', gradient: ['#8B5CF6', '#EC4899'] as const, route: '/categories/live-performance' });
+        baseItems.push({ id: '5', title: 'Live Shows', icon: 'radio', gradient: ['#8B5CF6', '#EC4899'] as const, route: '/categories/live-performance' });
       } else if (currentTrack.type === 'podcast') {
-        baseItems.push({ id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
+        baseItems.push({ id: '5', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
       } else if (currentTrack.type === 'audiobook') {
-        baseItems.push({ id: '4', title: 'Audiobooks', icon: 'book', gradient: ['#6A85F1', '#B892FF'] as const, route: '/categories/audiobooks' });
+        baseItems.push({ id: '5', title: 'Audiobooks', icon: 'book', gradient: ['#6A85F1', '#B892FF'] as const, route: '/categories/audiobooks' });
       }
     } else {
-      baseItems.push({ id: '4', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
+      baseItems.push({ id: '5', title: 'Podcasts', icon: 'mic', gradient: ['#F7971E', '#FFD200'] as const, route: '/categories/podcasts' });
     }
 
     return baseItems;

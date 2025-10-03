@@ -2,7 +2,7 @@ import React, { useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native";
 import SafeImage from "@/components/SafeImage";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car } from "lucide-react-native";
+import { User, Settings, LogOut, ChevronRight, Globe, Activity, Music, ShieldAlert, Smartphone, Car, Sparkles } from "lucide-react-native";
 import { router, type Href } from "expo-router";
 import { useUser, useSignOut } from "@/contexts/UserContext";
 
@@ -16,6 +16,7 @@ export default function ProfileScreen() {
 
   const items = useMemo(
     () => [
+      { key: "ai-features", title: "AI Features", icon: Sparkles },
       { key: "account", title: "Account", icon: User },
       { key: "data", title: "Data Saver", icon: Activity },
       { key: "languages", title: "Languages", icon: Globe },
@@ -86,6 +87,7 @@ export default function ProfileScreen() {
       return;
     }
     if (key === "account") router.push("/account" as Href);
+    else if (key === "ai-features") router.push("/ai-features" as Href);
     else router.push("/settings" as Href);
   };
 
