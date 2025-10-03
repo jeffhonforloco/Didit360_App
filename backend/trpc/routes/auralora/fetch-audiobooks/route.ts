@@ -17,35 +17,7 @@ interface AuraloraAudiobook {
 }
 
 async function fetchFromAuralora(): Promise<AuraloraAudiobook[]> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch('https://www.auralora.com/api/audiobooks', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'MusicApp/1.0',
-      },
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      return getFallbackAudiobooks();
-    }
-
-    const data = await response.json();
-    
-    if (!data || !Array.isArray(data.audiobooks)) {
-      return getFallbackAudiobooks();
-    }
-
-    return data.audiobooks;
-  } catch (error: any) {
-    return getFallbackAudiobooks();
-  }
+  return getFallbackAudiobooks();
 }
 
 function getFallbackAudiobooks(): AuraloraAudiobook[] {

@@ -18,35 +18,7 @@ interface VoxSagaPodcast {
 }
 
 async function fetchFromVoxSaga(): Promise<VoxSagaPodcast[]> {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    const response = await fetch('https://www.voxsaga.com/api/podcasts', {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'MusicApp/1.0',
-      },
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      return getFallbackPodcasts();
-    }
-
-    const data = await response.json();
-    
-    if (!data || !Array.isArray(data.podcasts)) {
-      return getFallbackPodcasts();
-    }
-
-    return data.podcasts;
-  } catch (error: any) {
-    return getFallbackPodcasts();
-  }
+  return getFallbackPodcasts();
 }
 
 function getFallbackPodcasts(): VoxSagaPodcast[] {

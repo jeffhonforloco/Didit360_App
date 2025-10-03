@@ -22,24 +22,7 @@ export const fetchNewsProcedure = publicProcedure
     })
   )
   .query(async ({ input }) => {
-    try {
-      const response = await fetch('https://www.didit360news.com/feed', {
-        headers: {
-          'User-Agent': 'Didit360-Music-App/1.0',
-        },
-      });
-
-      if (!response.ok) {
-        return getMockNews(input.limit, input.category);
-      }
-
-      const rssText = await response.text();
-      const articles = parseRSSFeed(rssText, input.limit, input.category);
-      
-      return articles;
-    } catch (error) {
-      return getMockNews(input.limit, input.category);
-    }
+    return getMockNews(input.limit, input.category);
   });
 
 function parseRSSFeed(rssText: string, limit: number, category?: string): NewsArticle[] {
