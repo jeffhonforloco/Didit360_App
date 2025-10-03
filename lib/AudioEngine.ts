@@ -889,8 +889,10 @@ export class AudioEngine {
           active.sound.volume = 1.0;
         }
         
-        await active.sound.play();
+        // Set state to playing before the async call for immediate UI feedback
         this.setState('playing');
+        
+        await active.sound.play();
         
         console.log('[AudioEngine] ✅ play() successful');
         console.log('[AudioEngine] Sound state after play:', {
@@ -905,20 +907,20 @@ export class AudioEngine {
             console.log('[AudioEngine] ✅ Audio confirmed playing, currentTime:', active.sound.currentTime);
           } else {
             console.log('[AudioEngine] ⚠️ Audio may not be playing, paused:', active.sound?.paused);
+            // If not playing, try again
+            if (active.sound && active.sound.paused) {
+              console.log('[AudioEngine] Retrying play...');
+              active.sound.play().catch((retryErr) => {
+                console.log('[AudioEngine] Retry play failed:', retryErr);
+              });
+            }
           }
-        }, 500);
+        }, 300);
       } catch (e) {
         console.log('[AudioEngine] ❌ play error', e);
         this.setState('error');
         if (this.events.onError) this.events.onError(e);
-        if (active.track) {
-          // Try to recover by reloading the track
-          setTimeout(() => {
-            this.recoverFromError(active.track!).catch((err) => {
-              console.log('[AudioEngine] recovery failed', err);
-            });
-          }, 1000);
-        }
+        throw e;
       }
     } else {
       console.log('[AudioEngine] ❌ play() called but no active sound');
@@ -927,6 +929,7 @@ export class AudioEngine {
         track: active.track?.title,
         uri: active.uri
       });
+      throw new Error('No active sound to play');
     }
     console.log('[AudioEngine] ===== PLAY() FINISHED =====');
   }
@@ -947,8 +950,10 @@ export class AudioEngine {
           currentTime: active.sound.currentTime
         });
         
-        active.sound.pause();
+        // Set state to paused before the call for immediate UI feedback
         this.setState('paused');
+        
+        active.sound.pause();
         
         console.log('[AudioEngine] ✅ pause() successful');
         console.log('[AudioEngine] Sound state after pause:', {
@@ -957,6 +962,7 @@ export class AudioEngine {
         });
       } catch (e) {
         console.log('[AudioEngine] ❌ pause error', e);
+        throw e;
       }
     } else {
       console.log('[AudioEngine] ❌ pause() called but no active sound');
@@ -965,6 +971,7 @@ export class AudioEngine {
         track: active.track?.title,
         uri: active.uri
       });
+      throw new Error('No active sound to pause');
     }
     console.log('[AudioEngine] ===== PAUSE() FINISHED =====');
   }
