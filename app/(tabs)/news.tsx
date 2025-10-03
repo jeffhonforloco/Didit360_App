@@ -16,11 +16,13 @@ import { ExternalLink, Newspaper, Clock, User, Tag, Download, X, Share2, Bookmar
 import * as WebBrowser from "expo-web-browser";
 import { trpc } from "@/lib/trpc";
 import { Stack } from "expo-router";
+import { useUser } from "@/contexts/UserContext";
 
 const CATEGORIES = ["All", "Celebrity", "Entertainment", "Trending News"];
 
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
+  const { isSignedIn } = useUser();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [showDownloadBanner, setShowDownloadBanner] = useState<boolean>(true);
 
@@ -268,20 +270,22 @@ export default function NewsScreen() {
                         <User size={12} color="#6B7280" />
                         <Text style={styles.authorText}>{article.author}</Text>
                       </View>
-                      <View style={styles.articleActions}>
-                        <TouchableOpacity
-                          onPress={() => shareArticle(article)}
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        >
-                          <Share2 size={14} color="#6B7280" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        >
-                          <Bookmark size={14} color="#6B7280" />
-                        </TouchableOpacity>
-                        <ExternalLink size={14} color="#6EE7B7" />
-                      </View>
+                      {isSignedIn && (
+                        <View style={styles.articleActions}>
+                          <TouchableOpacity
+                            onPress={() => shareArticle(article)}
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Share2 size={14} color="#6B7280" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                          >
+                            <Bookmark size={14} color="#6B7280" />
+                          </TouchableOpacity>
+                          <ExternalLink size={14} color="#6EE7B7" />
+                        </View>
+                      )}
                     </View>
                   </View>
                 </TouchableOpacity>
