@@ -21,13 +21,15 @@ class WebAudioPlayer implements AudioPlayerLike {
   private hasUserInteracted = false;
 
   constructor(options: { uri: string }) {
-    console.log('[WebAudioPlayer] Creating audio element for:', options.uri);
+    console.log('[WebAudioPlayer] 🎵 Creating audio element for:', options.uri);
     
     try {
       this.audio = new Audio(options.uri);
       if (this.audio) {
         this.audio.preload = 'auto';
         this.audio.crossOrigin = 'anonymous';
+        this.audio.volume = 1.0;
+        this.audio.muted = false;
         
         // Set up user interaction detection for autoplay policy
         this.setupUserInteractionDetection();
@@ -54,10 +56,13 @@ class WebAudioPlayer implements AudioPlayerLike {
           console.log('[WebAudioPlayer] Metadata loaded, duration:', this.audio?.duration);
         });
         this.audio.addEventListener('play', () => {
-          console.log('[WebAudioPlayer] Play event fired');
+          console.log('[WebAudioPlayer] 🎵 Play event fired');
         });
         this.audio.addEventListener('playing', () => {
-          console.log('[WebAudioPlayer] Playing event fired');
+          console.log('[WebAudioPlayer] 🔊 Playing event fired - AUDIO IS NOW PLAYING!');
+        });
+        this.audio.addEventListener('volumechange', () => {
+          console.log('[WebAudioPlayer] 🔊 Volume changed to:', this.audio?.volume, 'muted:', this.audio?.muted);
         });
         this.audio.addEventListener('pause', () => {
           console.log('[WebAudioPlayer] Pause event fired');
@@ -80,12 +85,15 @@ class WebAudioPlayer implements AudioPlayerLike {
     if (typeof window !== 'undefined') {
       const handleUserInteraction = () => {
         this.hasUserInteracted = true;
-        console.log('[WebAudioPlayer] User interaction detected');
+        console.log('[WebAudioPlayer] 🎯 User interaction detected - audio unlocked!');
         // Try to unlock audio context
         this.unlockAudioContext();
         // Try to play the audio if it's loaded
         if (this.audio && this.audio.paused && this.audio.readyState >= 2) {
-          console.log('[WebAudioPlayer] Attempting to play after user interaction');
+          console.log('[WebAudioPlayer] 🔊 Attempting to play after user interaction');
+          // Ensure volume and unmuted
+          if (this.audio.volume === 0) this.audio.volume = 1.0;
+          if (this.audio.muted) this.audio.muted = false;
           this.audio.play().catch((e) => {
             console.log('[WebAudioPlayer] Auto-play after interaction failed:', e);
           });
@@ -267,12 +275,19 @@ class WebAudioPlayer implements AudioPlayerLike {
           await playPromise;
         }
         
-        console.log('[WebAudioPlayer] Play successful, final state:', {
+        console.log('[WebAudioPlayer] ✅ Play successful, final state:', {
           paused: this.audio.paused,
           volume: this.audio.volume,
           muted: this.audio.muted,
           currentTime: this.audio.currentTime
         });
+        
+        // Log a clear success message
+        if (!this.audio.paused && this.audio.volume > 0 && !this.audio.muted) {
+          console.log('[WebAudioPlayer] 🎉 AUDIO IS PLAYING WITH SOUND! Volume:', this.audio.volume);
+        } else if (this.audio.volume === 0 || this.audio.muted) {
+          console.warn('[WebAudioPlayer] ⚠️ AUDIO IS PLAYING BUT MUTED! Volume:', this.audio.volume, 'Muted:', this.audio.muted);
+        }
         
         // Verify playback started
         setTimeout(() => {
