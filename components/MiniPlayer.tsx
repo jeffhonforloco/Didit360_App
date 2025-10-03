@@ -5,7 +5,7 @@ import {
   View,
   TouchableOpacity,
   Platform,
-  PanResponder,
+  Animated,
 } from "react-native";
 import SafeImage from "@/components/SafeImage";
 import { Play, Pause, SkipForward, Video, X, Volume2, VolumeX } from "lucide-react-native";
@@ -26,18 +26,15 @@ export function MiniPlayer() {
   const [durationMs, setDurationMs] = useState<number>(0);
   const [volume, setVolume] = useState<number>(1.0);
   const [isMuted, setIsMuted] = useState<boolean>(false);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [dragProgress, setDragProgress] = useState<number>(0);
+  const [buttonPressed, setButtonPressed] = useState<string | null>(null);
+  const scaleAnim = useState(new Animated.Value(1))[0];
 
-  // Memoize progress update callback for better performance
   const updateProgress = useCallback((p: Progress) => {
-    if (!isDragging) {
-      setPositionMs(p.position);
-      setDurationMs(p.duration);
-      const pct = p.duration > 0 ? p.position / p.duration : 0;
-      setProgress(Math.max(0, Math.min(1, pct)));
-    }
-  }, [isDragging]);
+    setPositionMs(p.position);
+    setDurationMs(p.duration);
+    const pct = p.duration > 0 ? p.position / p.duration : 0;
+    setProgress(Math.max(0, Math.min(1, pct)));
+  }, []);
 
   useEffect(() => {
     const unsubscribe = audioEngine.subscribeProgress(updateProgress);
@@ -51,166 +48,128 @@ export function MiniPlayer() {
     setIsMuted(currentVolume === 0);
   }, []);
 
-  // Memoize control handlers for better performance
+  const animateButton = useCallback((buttonId: string) => {
+    setButtonPressed(buttonId);
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.85,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 1,
+        duration: 100,
+        useNativeDriver: true,
+      }),
+    ]).start(() => setButtonPressed(null));
+  }, [scaleAnim]);
+
   const handlePlayPause = useCallback(async () => {
     console.log('[MiniPlayer] ===== PLAY/PAUSE BUTTON PRESSED =====');
-    console.log('[MiniPlayer] Current state - isPlaying:', isPlaying, 'currentTrack:', currentTrack?.title);
-    console.log('[MiniPlayer] Current track details:', {
-      id: currentTrack?.id,
-      title: currentTrack?.title,
-      audioUrl: currentTrack?.audioUrl,
-      type: currentTrack?.type,
-      isVideo: currentTrack?.isVideo
-    });
     
-    // Check if we have a valid track
     if (!currentTrack) {
       console.log('[MiniPlayer] ❌ No current track available');
       return;
     }
     
-    console.log('[MiniPlayer] 🎯 Calling togglePlayPause - BEFORE');
-    console.log('[MiniPlayer] Button state before toggle:', { isPlaying });
+    animateButton('play-pause');
     
     try {
-      togglePlayPause();
-      console.log('[MiniPlayer] ✅ togglePlayPause completed successfully');
+      await togglePlayPause();
+      console.log('[MiniPlayer] ✅ togglePlayPause completed');
     } catch (error) {
       console.log('[MiniPlayer] ❌ togglePlayPause failed:', error);
     }
-    
-    console.log('[MiniPlayer] 🎯 togglePlayPause call finished - AFTER');
-  }, [togglePlayPause, isPlaying, currentTrack]);
+  }, [togglePlayPause, currentTrack, animateButton]);
 
   const handleSkipNext = useCallback(async () => {
     console.log('[MiniPlayer] ===== SKIP NEXT BUTTON PRESSED =====');
     
-    // Check if we have a valid track
     if (!currentTrack) {
       console.log('[MiniPlayer] ❌ No current track available for skip');
       return;
     }
     
+    animateButton('skip-next');
+    
     try {
-      skipNext();
-      console.log('[MiniPlayer] ✅ skipNext completed successfully');
+      await skipNext();
+      console.log('[MiniPlayer] ✅ skipNext completed');
     } catch (error) {
       console.log('[MiniPlayer] ❌ skipNext failed:', error);
     }
-  }, [skipNext, currentTrack]);
+  }, [skipNext, currentTrack, animateButton]);
 
   const handleStop = useCallback(async () => {
     console.log('[MiniPlayer] ===== STOP BUTTON PRESSED =====');
+    
+    animateButton('stop');
+    
     try {
-      stopPlayer();
-      console.log('[MiniPlayer] ✅ stopPlayer completed successfully');
+      await stopPlayer();
+      console.log('[MiniPlayer] ✅ stopPlayer completed');
     } catch (error) {
       console.log('[MiniPlayer] ❌ stopPlayer failed:', error);
     }
-  }, [stopPlayer]);
+  }, [stopPlayer, animateButton]);
 
-  // Handle volume control
-  const handleVolumeChange = useCallback((newVolume: number) => {
+  const handleVolumeChange = useCallback(async (newVolume: number) => {
     if (typeof newVolume !== 'number' || newVolume < 0 || newVolume > 1) return;
     console.log('[MiniPlayer] Setting volume to:', newVolume);
     
     setVolume(newVolume);
     setIsMuted(newVolume === 0);
     
-    // Apply volume to audio engine for non-video tracks
     if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
-      audioEngine.setVolume(newVolume).then(() => {
-        console.log('[MiniPlayer] Volume set successfully to:', newVolume);
-      }).catch((err) => {
-        console.log('[MiniPlayer] Volume set error:', err);
-      });
+      try {
+        await audioEngine.setVolume(newVolume);
+        console.log('[MiniPlayer] ✅ Volume set successfully to:', newVolume);
+      } catch (err) {
+        console.log('[MiniPlayer] ❌ Volume set error:', err);
+      }
     }
   }, [currentTrack]);
 
-  const toggleMute = useCallback(() => {
+  const toggleMute = useCallback(async () => {
     console.log('[MiniPlayer] Toggle mute - current state:', { isMuted, volume });
+    
+    animateButton('volume');
+    
     if (isMuted || volume === 0) {
-      // Unmute: restore to 0.7 or previous volume
       const newVolume = 0.7;
-      handleVolumeChange(newVolume);
+      await handleVolumeChange(newVolume);
     } else {
-      // Mute: set volume to 0
-      handleVolumeChange(0);
+      await handleVolumeChange(0);
     }
-  }, [isMuted, volume, handleVolumeChange]);
+  }, [isMuted, volume, handleVolumeChange, animateButton]);
 
-  // Handle progress bar seeking
-  const handleSeek = useCallback((locationX: number) => {
+  const handleSeek = useCallback(async (locationX: number, containerWidth: number) => {
     if (!currentTrack || currentTrack.type === 'video' || currentTrack.isVideo) return;
     
-    const containerWidth = 200; // Approximate progress bar width
     const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
     const target = Math.floor(newProgress * (durationMs || 0));
     
     console.log('[MiniPlayer] Seeking to:', target, 'ms, progress:', newProgress);
     
-    // Update progress immediately for responsive UI
     setProgress(newProgress);
     setPositionMs(target);
     
-    // Perform the actual seek
-    audioEngine.seekTo(target).then(() => {
-      console.log('[MiniPlayer] Seek successful to:', target, 'ms');
-    }).catch((err) => {
-      console.log('[MiniPlayer] Seek error:', err);
-      // Revert progress on error
+    try {
+      await audioEngine.seekTo(target);
+      console.log('[MiniPlayer] ✅ Seek successful to:', target, 'ms');
+    } catch (err) {
+      console.log('[MiniPlayer] ❌ Seek error:', err);
       const currentProgress = durationMs > 0 ? positionMs / durationMs : 0;
       setProgress(currentProgress);
-    });
+    }
   }, [currentTrack, durationMs, positionMs]);
 
-  // Create pan responder for progress slider
-  const progressPanResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onMoveShouldSetPanResponder: () => true,
-    onPanResponderGrant: (evt) => {
-      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
-      console.log('[MiniPlayer] Progress pan responder grant');
-      setIsDragging(true);
-      const { locationX } = evt.nativeEvent;
-      const containerWidth = 200;
-      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-      setDragProgress(newProgress);
-    },
-    onPanResponderMove: (evt) => {
-      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
-      const { locationX } = evt.nativeEvent;
-      const containerWidth = 200;
-      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-      setDragProgress(newProgress);
-    },
-    onPanResponderRelease: (evt) => {
-      if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo)) return;
-      console.log('[MiniPlayer] Progress pan responder release');
-      const { locationX } = evt.nativeEvent;
-      const containerWidth = 200;
-      const newProgress = Math.max(0, Math.min(1, locationX / containerWidth));
-      const target = Math.floor(newProgress * (durationMs || 0));
-      
-      // Update progress and position
-      setProgress(newProgress);
-      setPositionMs(target);
-      setIsDragging(false);
-      
-      // Perform the actual seek
-      audioEngine.seekTo(target).then(() => {
-        console.log('[MiniPlayer] Drag seek successful to:', target, 'ms');
-      }).catch((err) => {
-        console.log('[MiniPlayer] Drag seek error:', err);
-        // Revert progress on error
-        const currentProgress = durationMs > 0 ? positionMs / durationMs : 0;
-        setProgress(currentProgress);
-      });
-    },
-    onPanResponderTerminate: () => {
-      setIsDragging(false);
-    },
-  }), [currentTrack, durationMs, positionMs]);
+  const formatTime = useCallback((ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }, []);
 
   const handlePress = useCallback(() => {
     router.push("/player");
@@ -286,13 +245,9 @@ export function MiniPlayer() {
     return undefined;
   }, [currentTrack]);
 
-  // Hide MiniPlayer when full player is open or no track is loaded
   if (!currentTrack || pathname === '/player') {
-    console.log('[MiniPlayer] Hidden - currentTrack:', !!currentTrack, 'pathname:', pathname);
     return null;
   }
-
-  console.log('[MiniPlayer] Rendering - Track:', currentTrack.title, 'isPlaying:', isPlaying, 'Type:', currentTrack.type, 'isVideo:', currentTrack.isVideo);
 
   return (
     <>
@@ -334,98 +289,111 @@ export function MiniPlayer() {
           <Text style={styles.artist} numberOfLines={1} testID="mini-artist">
             {currentTrack.artist}
           </Text>
-          <View 
-            style={styles.progressBarContainer}
-            {...progressPanResponder.panHandlers}
-          >
-            <TouchableOpacity 
+          <View style={styles.progressBarContainer}>
+            <View 
               style={styles.progressBarTouchArea}
-              activeOpacity={1}
-              onPress={(e) => {
+              onStartShouldSetResponder={() => true}
+              onResponderRelease={(e) => {
+                if (currentTrack.type === 'video' || currentTrack.isVideo) return;
                 const { locationX } = e.nativeEvent;
-                handleSeek(locationX);
+                const layout = e.currentTarget as any;
+                if (layout && layout.measure) {
+                  layout.measure((_x: number, _y: number, width: number) => {
+                    handleSeek(locationX, width);
+                  });
+                } else {
+                  handleSeek(locationX, 200);
+                }
               }}
-              disabled={currentTrack.type === 'video' || currentTrack.isVideo}
               testID="mini-progress-bar"
             >
               <View style={styles.barTrack}>
                 <View 
-                  style={[styles.barProgress, { width: `${(isDragging ? dragProgress : progress) * 100}%` }]} 
+                  style={[styles.barProgress, { width: `${progress * 100}%` }]} 
                   testID="mini-progress" 
                 />
                 <View 
-                  style={[styles.progressThumb, { left: `${(isDragging ? dragProgress : progress) * 100}%` }]} 
+                  style={[styles.progressThumb, { left: `${progress * 100}%` }]} 
                 />
               </View>
-            </TouchableOpacity>
+            </View>
+            <View style={styles.timeContainer}>
+              <Text style={styles.timeText}>{formatTime(positionMs)}</Text>
+              <Text style={styles.timeText}>{formatTime(durationMs)}</Text>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
 
       <View style={styles.controls}>
-        {/* Volume Control for Audio Tracks */}
         {currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo && (
-          <TouchableOpacity
-            style={styles.controlButton}
-            onPress={toggleMute}
-            testID="mini-volume"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            accessible={true}
-            accessibilityLabel={isMuted ? "Unmute" : "Mute"}
-            accessibilityRole="button"
-          >
-            {isMuted ? (
-              <VolumeX size={18} color="#FF0080" />
-            ) : (
-              <Volume2 size={18} color="#FFF" />
-            )}
-          </TouchableOpacity>
+          <Animated.View style={{ transform: [{ scale: buttonPressed === 'volume' ? scaleAnim : 1 }] }}>
+            <TouchableOpacity
+              style={styles.controlButton}
+              onPress={toggleMute}
+              testID="mini-volume"
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              accessible={true}
+              accessibilityLabel={isMuted ? "Unmute" : "Mute"}
+              accessibilityRole="button"
+            >
+              {isMuted ? (
+                <VolumeX size={20} color="#FF0080" />
+              ) : (
+                <Volume2 size={20} color="#FFF" />
+              )}
+            </TouchableOpacity>
+          </Animated.View>
         )}
 
-        <TouchableOpacity
-          style={[styles.controlButton, styles.playButton]}
-          onPress={handlePlayPause}
-          testID="mini-toggle"
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          activeOpacity={0.6}
-          delayPressIn={0}
-          delayPressOut={50}
-          disabled={!currentTrack}
-          accessible={true}
-          accessibilityLabel={isPlaying ? "Pause" : "Play"}
-          accessibilityRole="button"
-        >
-          {isPlaying ? (
-            <Pause size={24} color="#FFF" fill="#FFF" />
-          ) : (
-            <Play size={24} color="#FFF" fill="#FFF" />
-          )}
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonPressed === 'play-pause' ? scaleAnim : 1 }] }}>
+          <TouchableOpacity
+            style={[styles.controlButton, styles.playButton]}
+            onPress={handlePlayPause}
+            testID="mini-toggle"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            activeOpacity={0.7}
+            disabled={!currentTrack}
+            accessible={true}
+            accessibilityLabel={isPlaying ? "Pause" : "Play"}
+            accessibilityRole="button"
+          >
+            {isPlaying ? (
+              <Pause size={26} color="#FFF" fill="#FFF" />
+            ) : (
+              <Play size={26} color="#FFF" fill="#FFF" />
+            )}
+          </TouchableOpacity>
+        </Animated.View>
 
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={handleSkipNext}
-          testID="mini-next"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          disabled={!currentTrack}
-          accessible={true}
-          accessibilityLabel="Skip to next track"
-          accessibilityRole="button"
-        >
-          <SkipForward size={20} color="#FFF" fill="#FFF" />
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonPressed === 'skip-next' ? scaleAnim : 1 }] }}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handleSkipNext}
+            testID="mini-next"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            disabled={!currentTrack}
+            accessible={true}
+            accessibilityLabel="Skip to next track"
+            accessibilityRole="button"
+          >
+            <SkipForward size={22} color="#FFF" fill="#FFF" />
+          </TouchableOpacity>
+        </Animated.View>
 
-        <TouchableOpacity
-          style={styles.controlButton}
-          onPress={handleStop}
-          testID="mini-close"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          accessible={true}
-          accessibilityLabel="Stop and close player"
-          accessibilityRole="button"
-        >
-          <X size={18} color="#999" />
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: buttonPressed === 'stop' ? scaleAnim : 1 }] }}>
+          <TouchableOpacity
+            style={styles.controlButton}
+            onPress={handleStop}
+            testID="mini-close"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            accessible={true}
+            accessibilityLabel="Stop and close player"
+            accessibilityRole="button"
+          >
+            <X size={20} color="#999" />
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </View>
     </>
@@ -437,19 +405,19 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 8,
     right: 8,
-    height: 60,
+    height: 72,
     backgroundColor: "#1A1A1A",
-    borderRadius: 8,
+    borderRadius: 12,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: "#2A2A2A",
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   leftArea: {
     flex: 1,
@@ -475,25 +443,34 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
-    marginRight: 8,
+    marginRight: 12,
   },
   progressBarContainer: {
-    marginTop: 6,
-    height: 20,
-    justifyContent: 'center',
+    marginTop: 4,
   },
   progressBarTouchArea: {
-    height: 20,
+    height: 24,
     justifyContent: 'center',
+    paddingVertical: 8,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 2,
+  },
+  timeText: {
+    fontSize: 10,
+    color: '#666',
+    fontWeight: '500' as const,
   },
   controls: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 4,
+    gap: 8,
   },
   barTrack: {
-    height: 3,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderRadius: 2,
     overflow: 'hidden',
     position: 'relative',
@@ -501,15 +478,23 @@ const styles = StyleSheet.create({
   barProgress: {
     height: '100%',
     backgroundColor: '#FF0080',
+    borderRadius: 2,
   },
   progressThumb: {
     position: 'absolute',
-    top: -2,
-    width: 7,
-    height: 7,
+    top: -3,
+    width: 10,
+    height: 10,
     backgroundColor: '#FF0080',
-    borderRadius: 3.5,
-    marginLeft: -3.5,
+    borderRadius: 5,
+    marginLeft: -5,
+    borderWidth: 2,
+    borderColor: '#FFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
   },
   title: {
     fontSize: 14,
@@ -522,13 +507,18 @@ const styles = StyleSheet.create({
     color: "#999",
   },
   controlButton: {
-    padding: 8,
-    marginLeft: 4,
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   playButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: '#FF0080',
+    borderRadius: 24,
+    padding: 10,
+    shadowColor: '#FF0080',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
   },
 });
