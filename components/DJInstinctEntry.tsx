@@ -11,21 +11,42 @@ interface DJInstinctEntryProps {
 
 export function DJInstinctEntry({ style }: DJInstinctEntryProps) {
   const { setActive } = useDJInstinct();
-  const { tier, canAccessFeature } = useSubscription();
+  const { tier, canAccessFeature, djInstinctTrialsRemaining, canUseDJInstinctTrial, useDJInstinctTrial } = useSubscription();
   const isLocked = !canAccessFeature('djInstinct');
+  const hasTrial = canUseDJInstinctTrial();
 
   const handlePress = () => {
     console.log('[DJInstinct] Entry button pressed');
+    console.log('[DJInstinct] Tier:', tier, 'Trials remaining:', djInstinctTrialsRemaining);
     
-    if (isLocked) {
+    if (isLocked && !hasTrial) {
       Alert.alert(
         "Premium Feature",
-        "DJ Instinct is available for Premium and Pro subscribers. Upgrade now to unlock AI-powered DJ features!",
+        "You've used all your DJ Instinct trials. Upgrade to Premium or Pro to unlock unlimited access to AI-powered DJ features!",
         [
           { text: "Cancel", style: "cancel" },
           { 
             text: "Upgrade", 
             onPress: () => router.push('/subscription' as any)
+          }
+        ]
+      );
+      return;
+    }
+
+    if (isLocked && hasTrial) {
+      Alert.alert(
+        "Try DJ Instinct",
+        `You have ${djInstinctTrialsRemaining} free ${djInstinctTrialsRemaining === 1 ? 'trial' : 'trials'} remaining. Experience AI-powered DJ features before upgrading!`,
+        [
+          { text: "Cancel", style: "cancel" },
+          { 
+            text: "Start Trial", 
+            onPress: () => {
+              useDJInstinctTrial();
+              setActive(true);
+              router.push('/dj-instinct');
+            }
           }
         ]
       );
@@ -50,10 +71,14 @@ export function DJInstinctEntry({ style }: DJInstinctEntryProps) {
           <Headphones size={20} color="#FF0080" />
         )}
       </View>
-      <Text style={[styles.label, isLocked && styles.labelLocked]}>DJ Instinct</Text>
-      {isLocked ? (
+      <Text style={[styles.label, isLocked && !hasTrial && styles.labelLocked]}>DJ Instinct</Text>
+      {isLocked && !hasTrial ? (
         <View style={styles.lockBadge}>
           <Text style={styles.lockBadgeText}>PREMIUM</Text>
+        </View>
+      ) : isLocked && hasTrial ? (
+        <View style={styles.trialBadge}>
+          <Text style={styles.trialBadgeText}>{djInstinctTrialsRemaining} FREE</Text>
         </View>
       ) : (
         <View style={styles.badge}>
@@ -112,5 +137,16 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     color: '#FFF',
+  },
+  trialBadge: {
+    backgroundColor: '#00FF88',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  trialBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#000',
   },
 });

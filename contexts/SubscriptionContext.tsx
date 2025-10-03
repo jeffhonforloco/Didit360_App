@@ -36,6 +36,9 @@ export interface SubscriptionState {
   canSkip: () => boolean;
   recordSkip: () => void;
   resetDailyLimits: () => void;
+  djInstinctTrialsRemaining: number;
+  canUseDJInstinctTrial: () => boolean;
+  useDJInstinctTrial: () => void;
 }
 
 const TIER_FEATURES: Record<SubscriptionTier, SubscriptionFeatures> = {
@@ -95,6 +98,7 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
   const [streamCount, setStreamCount] = useState(0);
   const [skipCount, setSkipCount] = useState(0);
   const [lastResetDate, setLastResetDate] = useState(new Date().toDateString());
+  const [djInstinctTrialsRemaining, setDjInstinctTrialsRemaining] = useState(2);
 
   useEffect(() => {
     loadSubscriptionData();
@@ -124,6 +128,7 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
         setStreamCount(data.streamCount || 0);
         setSkipCount(data.skipCount || 0);
         setLastResetDate(data.lastResetDate || new Date().toDateString());
+        setDjInstinctTrialsRemaining(data.djInstinctTrialsRemaining ?? 2);
       }
       
       if (!profile) {
@@ -143,6 +148,7 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
     streamCount: number;
     skipCount: number;
     lastResetDate: string;
+    djInstinctTrialsRemaining: number;
   }>) => {
     try {
       const current = await AsyncStorage.getItem(STORAGE_KEY);
@@ -213,6 +219,20 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
     });
   }, [saveSubscriptionData]);
 
+  const canUseDJInstinctTrial = useCallback((): boolean => {
+    if (tier !== "free") return true;
+    return djInstinctTrialsRemaining > 0;
+  }, [tier, djInstinctTrialsRemaining]);
+
+  const useDJInstinctTrial = useCallback(() => {
+    if (tier === "free" && djInstinctTrialsRemaining > 0) {
+      const newCount = djInstinctTrialsRemaining - 1;
+      setDjInstinctTrialsRemaining(newCount);
+      saveSubscriptionData({ djInstinctTrialsRemaining: newCount });
+      console.log("[Subscription] DJ Instinct trial used. Remaining:", newCount);
+    }
+  }, [tier, djInstinctTrialsRemaining, saveSubscriptionData]);
+
   return {
     tier,
     features,
@@ -229,5 +249,8 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
     canSkip,
     recordSkip,
     resetDailyLimits,
+    djInstinctTrialsRemaining,
+    canUseDJInstinctTrial,
+    useDJInstinctTrial,
   };
 });

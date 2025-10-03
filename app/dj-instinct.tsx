@@ -60,7 +60,9 @@ import { router } from "expo-router";
 import { features } from "@/constants/features";
 import { useDJInstinct, type DJInstinctMode, type TransitionStyle } from "@/contexts/DJInstinctContext";
 import { usePlayer } from "@/contexts/PlayerContext";
+import { useSubscription } from "@/contexts/SubscriptionContext";
 import type { Track } from "@/types";
+import { Crown, AlertCircle } from "lucide-react-native";
 
 const TRANSITION_OPTIONS: { value: TransitionStyle; label: string; icon: any }[] = [
   { value: "fade", label: "Fade", icon: Wind },
@@ -82,6 +84,9 @@ interface BeatPulse {
 export default function DJInstinctScreen() {
   const { width } = useWindowDimensions();
   const { currentTrack, isPlaying, togglePlayPause } = usePlayer();
+  const { tier, djInstinctTrialsRemaining, canUseDJInstinctTrial } = useSubscription();
+  const isFreeUser = tier === "free";
+  const hasTrials = canUseDJInstinctTrial();
   const {
     mode,
     energy,
@@ -307,6 +312,32 @@ export default function DJInstinctScreen() {
               <Activity size={24} color={showStats ? "#FF0080" : "#666"} />
             </TouchableOpacity>
           </View>
+
+          {isFreeUser && (
+            <View style={styles.trialBanner}>
+              {hasTrials ? (
+                <View style={styles.trialInfo}>
+                  <AlertCircle size={20} color="#00FF88" />
+                  <Text style={styles.trialText}>
+                    Free Trial: {djInstinctTrialsRemaining} {djInstinctTrialsRemaining === 1 ? 'use' : 'uses'} remaining
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.trialInfo}>
+                  <Crown size={20} color="#FFD700" />
+                  <Text style={styles.trialText}>
+                    Trial expired • Upgrade for unlimited access
+                  </Text>
+                </View>
+              )}
+              <TouchableOpacity
+                style={styles.upgradeButtonSmall}
+                onPress={() => router.push('/subscription')}
+              >
+                <Text style={styles.upgradeButtonSmallText}>Upgrade</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.heroSection}>
@@ -2467,5 +2498,40 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#444",
     textAlign: "center",
+  },
+  trialBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "rgba(0, 255, 136, 0.1)",
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "rgba(0, 255, 136, 0.3)",
+  },
+  trialInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  trialText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#FFF",
+    flex: 1,
+  },
+  upgradeButtonSmall: {
+    backgroundColor: "#FF0080",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+  },
+  upgradeButtonSmallText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#FFF",
   },
 });
