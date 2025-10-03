@@ -18,8 +18,6 @@ interface AuraloraAudiobook {
 
 async function fetchFromAuralora(): Promise<AuraloraAudiobook[]> {
   try {
-    console.log('[Auralora] Fetching audiobooks from www.Auralora.com');
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     
@@ -35,31 +33,22 @@ async function fetchFromAuralora(): Promise<AuraloraAudiobook[]> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.warn(`[Auralora] API returned status ${response.status}, using fallback data`);
       return getFallbackAudiobooks();
     }
 
     const data = await response.json();
     
     if (!data || !Array.isArray(data.audiobooks)) {
-      console.warn('[Auralora] Invalid response format, using fallback data');
       return getFallbackAudiobooks();
     }
 
-    console.log(`[Auralora] Successfully fetched ${data.audiobooks.length} audiobooks`);
     return data.audiobooks;
   } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.warn('[Auralora] Request timeout, using fallback data');
-    } else {
-      console.warn('[Auralora] Error fetching audiobooks, using fallback data:', error.message);
-    }
     return getFallbackAudiobooks();
   }
 }
 
 function getFallbackAudiobooks(): AuraloraAudiobook[] {
-  console.log('[Auralora] Using fallback audiobook data');
   
   return [
     {

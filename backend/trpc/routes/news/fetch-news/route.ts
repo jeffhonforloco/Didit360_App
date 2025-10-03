@@ -23,8 +23,6 @@ export const fetchNewsProcedure = publicProcedure
   )
   .query(async ({ input }) => {
     try {
-      console.log('[News] Fetching news from Didit360news.com', input);
-      
       const response = await fetch('https://www.didit360news.com/feed', {
         headers: {
           'User-Agent': 'Didit360-Music-App/1.0',
@@ -32,17 +30,14 @@ export const fetchNewsProcedure = publicProcedure
       });
 
       if (!response.ok) {
-        console.warn('[News] Failed to fetch from RSS feed, using mock data');
         return getMockNews(input.limit, input.category);
       }
 
       const rssText = await response.text();
       const articles = parseRSSFeed(rssText, input.limit, input.category);
       
-      console.log(`[News] Successfully fetched ${articles.length} articles`);
       return articles;
     } catch (error) {
-      console.error('[News] Error fetching news:', error);
       return getMockNews(input.limit, input.category);
     }
   });
@@ -102,7 +97,6 @@ function parseRSSFeed(rssText: string, limit: number, category?: string): NewsAr
       });
     }
   } catch (error) {
-    console.error('[News] Error parsing RSS feed:', error);
   }
   
   return articles;

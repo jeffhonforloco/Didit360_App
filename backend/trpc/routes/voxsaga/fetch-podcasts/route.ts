@@ -19,8 +19,6 @@ interface VoxSagaPodcast {
 
 async function fetchFromVoxSaga(): Promise<VoxSagaPodcast[]> {
   try {
-    console.log('[VoxSaga] Fetching podcasts from www.Voxsaga.com');
-    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     
@@ -36,31 +34,22 @@ async function fetchFromVoxSaga(): Promise<VoxSagaPodcast[]> {
     clearTimeout(timeoutId);
 
     if (!response.ok) {
-      console.warn(`[VoxSaga] API returned status ${response.status}, using fallback data`);
       return getFallbackPodcasts();
     }
 
     const data = await response.json();
     
     if (!data || !Array.isArray(data.podcasts)) {
-      console.warn('[VoxSaga] Invalid response format, using fallback data');
       return getFallbackPodcasts();
     }
 
-    console.log(`[VoxSaga] Successfully fetched ${data.podcasts.length} podcasts`);
     return data.podcasts;
   } catch (error: any) {
-    if (error.name === 'AbortError') {
-      console.warn('[VoxSaga] Request timeout, using fallback data');
-    } else {
-      console.warn('[VoxSaga] Error fetching podcasts, using fallback data:', error.message);
-    }
     return getFallbackPodcasts();
   }
 }
 
 function getFallbackPodcasts(): VoxSagaPodcast[] {
-  console.log('[VoxSaga] Using fallback podcast data');
   
   return [
     {
