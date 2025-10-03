@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  useWindowDimensions,
 } from "react-native";
 import { Stack, router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -22,6 +21,8 @@ import {
   Sparkles,
   User,
   ArrowLeft,
+  Lock,
+  Crown,
 } from "lucide-react-native";
 import SafeImage from "@/components/SafeImage";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -32,14 +33,15 @@ import type { Track } from "@/types";
 import { allTracks, popularArtists } from "@/data/mockData";
 
 export default function YourMixScreen() {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const { playTrack, currentTrack } = usePlayer();
   const { favorites, isFavorite, toggleFavorite, recentlyPlayed } = useLibrary();
-  const { tier } = useSubscription();
+  const { tier, canAccessFeature } = useSubscription();
+  const { profile } = useUser();
   const [selectedFilter, setSelectedFilter] = useState<"all" | "recent" | "favorites">("all");
 
   const isPremium = tier === "premium" || tier === "pro";
+  const canAccessYourMix = profile && canAccessFeature("personalization");
 
   const yourMixTracks = useMemo(() => {
     if (!isPremium) {
@@ -334,6 +336,96 @@ export default function YourMixScreen() {
     [currentTrack, isFavorite, playTrack, toggleFavorite]
   );
 
+  if (!canAccessYourMix) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+          }}
+        />
+
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.8}
+        >
+          <ArrowLeft size={24} color="#FFF" />
+        </TouchableOpacity>
+
+        <LinearGradient
+          colors={["#667eea", "#764ba2", "#0B0A14"]}
+          locations={[0, 0.3, 1]}
+          style={styles.lockedContainer}
+        >
+          <View style={styles.lockedContent}>
+            <View style={styles.lockedIconContainer}>
+              <Lock size={64} color="#FFF" strokeWidth={1.5} />
+              <View style={styles.crownBadge}>
+                <Crown size={24} color="#FFD700" fill="#FFD700" />
+              </View>
+            </View>
+
+            <Text style={styles.lockedTitle}>Your Mix is Premium Only</Text>
+            <Text style={styles.lockedDescription}>
+              Your Mix uses AI-powered personalization and DJ Instinct features to create a unique listening experience tailored just for you.
+            </Text>
+
+            <View style={styles.featuresList}>
+              <View style={styles.featureItem}>
+                <Sparkles size={20} color="#FFD700" />
+                <Text style={styles.featureText}>AI-powered personalization</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Music2 size={20} color="#FFD700" />
+                <Text style={styles.featureText}>DJ Instinct integration</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <TrendingUp size={20} color="#FFD700" />
+                <Text style={styles.featureText}>Smart recommendations</Text>
+              </View>
+              <View style={styles.featureItem}>
+                <Heart size={20} color="#FFD700" />
+                <Text style={styles.featureText}>Personalized playlists</Text>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.upgradeButtonLarge}
+              onPress={() => router.push("/subscription")}
+              activeOpacity={0.8}
+            >
+              <LinearGradient
+                colors={["#FF0080", "#8B5CF6"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={styles.upgradeButtonGradient}
+              >
+                <Crown size={24} color="#FFF" fill="#FFF" />
+                <Text style={styles.upgradeButtonLargeText}>Upgrade to Premium</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+
+            {!profile && (
+              <View style={styles.guestNotice}>
+                <Text style={styles.guestNoticeText}>
+                  Not signed in? Create an account to unlock premium features
+                </Text>
+                <TouchableOpacity
+                  style={styles.signInButton}
+                  onPress={() => router.push("/auth")}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.signInButtonText}>Sign In / Sign Up</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </LinearGradient>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -623,5 +715,107 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     alignItems: "center",
     justifyContent: "center",
+  },
+  lockedContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  lockedContent: {
+    alignItems: "center",
+    maxWidth: 400,
+  },
+  lockedIconContainer: {
+    position: "relative",
+    marginBottom: 32,
+  },
+  crownBadge: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: "rgba(0, 0, 0, 0.8)",
+    borderRadius: 20,
+    padding: 8,
+    borderWidth: 2,
+    borderColor: "#FFD700",
+  },
+  lockedTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#FFF",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  lockedDescription: {
+    fontSize: 16,
+    color: "#CCC",
+    textAlign: "center",
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  featuresList: {
+    width: "100%",
+    marginBottom: 32,
+  },
+  featureItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  featureText: {
+    fontSize: 15,
+    color: "#FFF",
+    fontWeight: "600",
+  },
+  upgradeButtonLarge: {
+    width: "100%",
+    borderRadius: 28,
+    overflow: "hidden",
+    marginBottom: 24,
+  },
+  upgradeButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 18,
+    gap: 12,
+  },
+  upgradeButtonLargeText: {
+    color: "#FFF",
+    fontSize: 18,
+    fontWeight: "700",
+  },
+  guestNotice: {
+    width: "100%",
+    padding: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.1)",
+    alignItems: "center",
+  },
+  guestNoticeText: {
+    fontSize: 14,
+    color: "#CCC",
+    textAlign: "center",
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  signInButton: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 24,
+  },
+  signInButtonText: {
+    color: "#FFF",
+    fontSize: 15,
+    fontWeight: "700",
   },
 });
