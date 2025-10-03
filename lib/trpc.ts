@@ -82,25 +82,34 @@ export const trpcClient = trpc.createClient({
           console.log('[tRPC] Response headers:', Object.fromEntries(response.headers.entries()));
           
           if (!response.ok) {
-            console.error('[tRPC] HTTP error:', response.status, response.statusText);
+            const urlString = typeof url === 'string' ? url : url.toString();
+            const isSilentEndpoint = urlString.includes('auralora') || urlString.includes('voxsaga') || urlString.includes('didit360news');
             
-            // Try to get error details from response
-            try {
-              const errorText = await response.text();
-              console.error('[tRPC] Error response body:', errorText);
-            } catch (e) {
-              console.warn('[tRPC] Could not read error response body:', e);
+            if (!isSilentEndpoint) {
+              console.error('[tRPC] HTTP error:', response.status, response.statusText);
+              
+              try {
+                const errorText = await response.text();
+                console.error('[tRPC] Error response body:', errorText);
+              } catch (e) {
+                console.warn('[tRPC] Could not read error response body:', e);
+              }
             }
           }
           
           return response;
         } catch (error: any) {
-          console.error('[tRPC] Request failed:', {
-            url,
-            error: error.message,
-            name: error.name,
-            stack: error.stack
-          });
+          const urlString = typeof url === 'string' ? url : url.toString();
+          const isSilentEndpoint = urlString.includes('auralora') || urlString.includes('voxsaga') || urlString.includes('didit360news');
+          
+          if (!isSilentEndpoint) {
+            console.error('[tRPC] Request failed:', {
+              url,
+              error: error.message,
+              name: error.name,
+              stack: error.stack
+            });
+          }
           throw error;
         }
       },
