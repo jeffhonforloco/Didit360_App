@@ -152,7 +152,7 @@ export default function HomeScreen() {
   const quickAccessItems = useMemo(() => {
     const baseItems: Array<{ id: string; title: string; icon: string; gradient: readonly [string, string]; route: string }> = [
       { id: '1', title: 'Liked Songs', icon: 'heart', gradient: ['#FF0080', '#FF8C00'] as const, route: '/library-all' },
-      { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/categories/top-mix' },
+      { id: '2', title: 'Your Mix', icon: 'music', gradient: ['#667eea', '#764ba2'] as const, route: '/your-mix' },
       { id: '3', title: 'Discover', icon: 'compass', gradient: ['#11998e', '#38ef7d'] as const, route: '/browse-categories' },
     ];
 
