@@ -42,6 +42,14 @@ export default function HomeScreen() {
     }
   );
 
+  const voxsagaQuery = trpc.voxsaga.fetchPodcasts.useQuery(
+    { limit: 12 },
+    { 
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    }
+  );
+
   useEffect(() => {
     const generatePersonalizedContent = () => {
       const sections: any[] = [];
@@ -667,15 +675,25 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("VoxSaga", "Immerse in podcasts", "voxsaga-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
-          <FlatList
-            data={podcasts.slice(0, 8)}
-            renderItem={renderSmartCard}
-            keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
+          {renderSectionHeader("VoxSaga", "Discover amazing podcasts from Voxsaga.com", "voxsaga-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
+          {voxsagaQuery.isLoading ? (
+            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
+              <Text style={{ color: '#999', fontSize: 14 }}>Loading podcasts from VoxSaga...</Text>
+            </View>
+          ) : voxsagaQuery.error ? (
+            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
+              <Text style={{ color: '#FF6B6B', fontSize: 14 }}>Failed to load podcasts</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={voxsagaQuery.data?.podcasts.slice(0, 8) || podcasts.slice(0, 8)}
+              renderItem={renderSmartCard}
+              keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          )}
         </View>
 
         <View style={styles.section}>
