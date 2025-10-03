@@ -39,6 +39,7 @@ export default function HomeScreen() {
     { 
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
+      retry: false,
     }
   );
 
@@ -47,8 +48,18 @@ export default function HomeScreen() {
     { 
       staleTime: 1000 * 60 * 5,
       refetchOnWindowFocus: false,
+      retry: false,
     }
   );
+
+  useEffect(() => {
+    if (auraloraQuery.error) {
+      console.log('[Home] Auralora query error (using fallback):', auraloraQuery.error.message);
+    }
+    if (voxsagaQuery.error) {
+      console.log('[Home] VoxSaga query error (using fallback):', voxsagaQuery.error.message);
+    }
+  }, [auraloraQuery.error, voxsagaQuery.error]);
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
@@ -659,9 +670,14 @@ export default function HomeScreen() {
               <Text style={{ color: '#999', fontSize: 14 }}>Loading audiobooks from Auralora...</Text>
             </View>
           ) : auraloraQuery.error ? (
-            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
-              <Text style={{ color: '#FF6B6B', fontSize: 14 }}>Failed to load audiobooks</Text>
-            </View>
+            <FlatList
+              data={audiobooks.slice(0, 8)}
+              renderItem={renderSmartCard}
+              keyExtractor={(item, idx) => `audiobook-fallback-${item.id || idx}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
           ) : (
             <FlatList
               data={auraloraQuery.data?.audiobooks.slice(0, 8) || audiobooks.slice(0, 8)}
@@ -681,9 +697,14 @@ export default function HomeScreen() {
               <Text style={{ color: '#999', fontSize: 14 }}>Loading podcasts from VoxSaga...</Text>
             </View>
           ) : voxsagaQuery.error ? (
-            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
-              <Text style={{ color: '#FF6B6B', fontSize: 14 }}>Failed to load podcasts</Text>
-            </View>
+            <FlatList
+              data={podcasts.slice(0, 8)}
+              renderItem={renderSmartCard}
+              keyExtractor={(item, idx) => `podcast-fallback-${item.id || idx}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
           ) : (
             <FlatList
               data={voxsagaQuery.data?.podcasts.slice(0, 8) || podcasts.slice(0, 8)}

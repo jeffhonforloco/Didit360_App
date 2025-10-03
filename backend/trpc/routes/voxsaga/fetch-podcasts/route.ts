@@ -21,13 +21,19 @@ async function fetchFromVoxSaga(): Promise<VoxSagaPodcast[]> {
   try {
     console.log('[VoxSaga] Fetching podcasts from www.Voxsaga.com');
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch('https://www.voxsaga.com/api/podcasts', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'MusicApp/1.0',
       },
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.warn(`[VoxSaga] API returned status ${response.status}, using fallback data`);
@@ -43,8 +49,12 @@ async function fetchFromVoxSaga(): Promise<VoxSagaPodcast[]> {
 
     console.log(`[VoxSaga] Successfully fetched ${data.podcasts.length} podcasts`);
     return data.podcasts;
-  } catch (error) {
-    console.error('[VoxSaga] Error fetching podcasts:', error);
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.warn('[VoxSaga] Request timeout, using fallback data');
+    } else {
+      console.warn('[VoxSaga] Error fetching podcasts, using fallback data:', error.message);
+    }
     return getFallbackPodcasts();
   }
 }

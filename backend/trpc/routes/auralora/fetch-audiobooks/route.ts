@@ -20,13 +20,19 @@ async function fetchFromAuralora(): Promise<AuraloraAudiobook[]> {
   try {
     console.log('[Auralora] Fetching audiobooks from www.Auralora.com');
     
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     const response = await fetch('https://www.auralora.com/api/audiobooks', {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'MusicApp/1.0',
       },
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       console.warn(`[Auralora] API returned status ${response.status}, using fallback data`);
@@ -42,8 +48,12 @@ async function fetchFromAuralora(): Promise<AuraloraAudiobook[]> {
 
     console.log(`[Auralora] Successfully fetched ${data.audiobooks.length} audiobooks`);
     return data.audiobooks;
-  } catch (error) {
-    console.error('[Auralora] Error fetching audiobooks:', error);
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      console.warn('[Auralora] Request timeout, using fallback data');
+    } else {
+      console.warn('[Auralora] Error fetching audiobooks, using fallback data:', error.message);
+    }
     return getFallbackAudiobooks();
   }
 }
