@@ -637,11 +637,11 @@ export default function HomeScreen() {
         ))}
 
         <View style={styles.section}>
-          {renderSectionHeader("Auralora", "Discover amazing podcasts", "auralora-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
+          {renderSectionHeader("Auralora", "Discover amazing audiobooks", "auralora-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
           <FlatList
-            data={podcasts.slice(0, 8)}
+            data={audiobooks.slice(0, 8)}
             renderItem={renderSmartCard}
-            keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
+            keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
@@ -649,11 +649,11 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.section}>
-          {renderSectionHeader("VoxSaga", "Immerse in audiobooks", "voxsaga-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
+          {renderSectionHeader("VoxSaga", "Immerse in podcasts", "voxsaga-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
           <FlatList
-            data={audiobooks.slice(0, 8)}
+            data={podcasts.slice(0, 8)}
             renderItem={renderSmartCard}
-            keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
+            keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalList}
