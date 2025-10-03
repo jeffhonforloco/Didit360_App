@@ -57,7 +57,7 @@ export default function PlayerScreen() {
   const [positionMs, setPositionMs] = useState<number>(0);
   const [durationMs, setDurationMs] = useState<number>(0);
   const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState(false);
+  const [repeat, setRepeat] = useState<'off' | 'one' | 'all'>('off');
   const [currentView, setCurrentView] = useState<'player' | 'queue' | 'details'>('player');
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAddToPlaylistModal, setShowAddToPlaylistModal] = useState(false);
@@ -176,6 +176,7 @@ export default function PlayerScreen() {
     console.log('[Player] Current track:', currentTrack?.title, 'Type:', currentTrack?.type);
     console.log('[Player] Queue length:', queue.length);
     console.log('[Player] Queue tracks:', queue.map(t => t.title));
+    console.log('[Player] Shuffle:', shuffle, 'Repeat:', repeat);
     
     if (currentTrack && (currentTrack.type === 'video' || currentTrack.isVideo || currentTrack.videoUrl)) {
       console.log('[Player] Video track - skipping to next video in queue');
@@ -184,7 +185,6 @@ export default function PlayerScreen() {
         skipNext();
       } else {
         console.log('[Player] No tracks in queue, generating new queue and skipping');
-        // Generate a new queue if empty
         import('@/data/mockData').then((mockData) => {
           const allTracks = [
             ...mockData.featuredContent,
@@ -196,7 +196,9 @@ export default function PlayerScreen() {
             (t.type === 'video' || t.isVideo || t.videoUrl) && t.id !== currentTrack.id
           );
           if (videoTracks.length > 0) {
-            const nextTrack = videoTracks[0];
+            const nextTrack = shuffle 
+              ? videoTracks[Math.floor(Math.random() * videoTracks.length)]
+              : videoTracks[0];
             console.log('[Player] Playing next video:', nextTrack.title);
             playTrack(nextTrack);
           } else {
@@ -211,7 +213,7 @@ export default function PlayerScreen() {
       skipNext();
     }
     console.log('[Player] ===== HANDLE SKIP NEXT FINISHED =====');
-  }, [skipNext, currentTrack, queue, playTrack]);
+  }, [skipNext, currentTrack, queue, playTrack, shuffle, repeat]);
 
   const handleSkipPrevious = useCallback(() => {
     console.log('[Player] ===== HANDLE SKIP PREVIOUS CALLED =====');
@@ -1190,10 +1192,19 @@ export default function PlayerScreen() {
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={() => setRepeat(!repeat)}
+                    onPress={() => {
+                      if (repeat === 'off') setRepeat('all');
+                      else if (repeat === 'all') setRepeat('one');
+                      else setRepeat('off');
+                    }}
                     style={styles.controlButton}
                   >
-                    <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
+                    <RotateCcw size={24} color={repeat !== 'off' ? "#FF0080" : "#FFF"} />
+                    {repeat === 'one' && (
+                      <View style={styles.repeatOneBadge}>
+                        <Text style={styles.repeatOneText}>1</Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 </View>
               )}
@@ -1429,10 +1440,19 @@ export default function PlayerScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
-                      onPress={() => setRepeat(!repeat)}
+                      onPress={() => {
+                        if (repeat === 'off') setRepeat('all');
+                        else if (repeat === 'all') setRepeat('one');
+                        else setRepeat('off');
+                      }}
                       style={styles.controlButton}
                     >
-                      <RotateCcw size={24} color={repeat ? "#FF0080" : "#FFF"} />
+                      <RotateCcw size={24} color={repeat !== 'off' ? "#FF0080" : "#FFF"} />
+                      {repeat === 'one' && (
+                        <View style={styles.repeatOneBadge}>
+                          <Text style={styles.repeatOneText}>1</Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   </View>
                 )}
@@ -2249,5 +2269,21 @@ const styles = StyleSheet.create({
   volumeSlider: {
     width: 120,
     height: 40,
+  },
+  repeatOneBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#FF0080',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  repeatOneText: {
+    color: '#FFF',
+    fontSize: 9,
+    fontWeight: '700' as const,
   },
 });
