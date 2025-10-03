@@ -182,7 +182,7 @@ export default function HomeScreen() {
   });
 
   const renderHeader = useCallback(() => (
-    <Animated.View style={[styles.header, { paddingTop: 12 + insets.top, backgroundColor: headerOpacity.interpolate({
+    <Animated.View style={[styles.header, { paddingTop: insets.top + 16, backgroundColor: headerOpacity.interpolate({
       inputRange: [0, 1],
       outputRange: ['rgba(11, 10, 20, 0)', 'rgba(11, 10, 20, 0.98)']
     }) }]}> 
@@ -552,6 +552,7 @@ export default function HomeScreen() {
           { useNativeDriver: false }
         )}
         scrollEventThrottle={16}
+        contentContainerStyle={{ paddingTop: insets.top + 80 }}
       >
         {!profile && (
           <TouchableOpacity 
@@ -771,7 +772,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 16,
     gap: 12,
-    marginTop: 100,
     marginBottom: 8,
   },
   quickAccessItem: {
@@ -1056,7 +1056,6 @@ const styles = StyleSheet.create({
   },
   guestBanner: {
     marginHorizontal: 16,
-    marginTop: 80,
     marginBottom: 8,
     borderRadius: 16,
     overflow: 'hidden',
