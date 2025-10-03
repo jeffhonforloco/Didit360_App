@@ -217,9 +217,24 @@ export function MiniPlayer() {
   }, []);
 
   // Memoize computed values
+  const isTabRoute = useMemo(() => {
+    // Check if current route is within tabs
+    return pathname.startsWith('/(tabs)') || 
+           pathname === '/' || 
+           pathname === '/search' || 
+           pathname === '/library' || 
+           pathname === '/news' || 
+           pathname === '/ai-dj' || 
+           pathname === '/profile';
+  }, [pathname]);
+
   const tabBarHeight = useMemo(() => {
+    if (!isTabRoute) {
+      // No tab bar on non-tab routes, position at bottom with safe area
+      return insets.bottom + 8;
+    }
     return Platform.OS === "ios" ? 80 + insets.bottom : 60;
-  }, [insets.bottom]);
+  }, [insets.bottom, isTabRoute]);
 
   const isVideoTrack = useMemo(() => {
     return currentTrack?.isVideo || currentTrack?.type === "video";
