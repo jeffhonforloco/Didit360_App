@@ -17,7 +17,7 @@ import * as WebBrowser from "expo-web-browser";
 import { trpc } from "@/lib/trpc";
 import { Stack } from "expo-router";
 
-const CATEGORIES = ["All", "Music", "Technology", "Events", "Industry", "Production"];
+const CATEGORIES = ["All", "Celebrity", "Entertainment", "Trending News"];
 
 export default function NewsScreen() {
   const insets = useSafeAreaInsets();
