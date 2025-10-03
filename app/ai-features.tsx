@@ -13,16 +13,11 @@ import {
   Sparkles,
   Brain,
   Mic,
-  Music,
   Zap,
   Heart,
-  TrendingUp,
-  MessageCircle,
   Search,
-  Shuffle,
   Radio,
   BarChart3,
-  Headphones,
   Wand2,
   Target,
   Users,
@@ -35,7 +30,7 @@ const aiFeatures = [
     title: "Smart Recommendations",
     description: "AI analyzes your listening history and context to suggest perfect tracks",
     icon: <Brain size={28} color="#FF0080" />,
-    gradient: ["#FF0080", "#FF8C00"],
+    gradient: ["#FF0080", "#FF8C00"] as const,
     route: "/your-mix",
     features: [
       "Deep listening history analysis",
@@ -49,7 +44,7 @@ const aiFeatures = [
     title: "AI Mood Detection",
     description: "Comprehensive emotional analysis from audio features and lyrics",
     icon: <Heart size={28} color="#8B5CF6" />,
-    gradient: ["#8B5CF6", "#EC4899"],
+    gradient: ["#8B5CF6", "#EC4899"] as const,
     route: "/ai-dj",
     features: [
       "Multi-dimensional mood profiling",
@@ -63,7 +58,7 @@ const aiFeatures = [
     title: "Voice DJ Assistant",
     description: "Natural language voice control and music conversations",
     icon: <Mic size={28} color="#00D4AA" />,
-    gradient: ["#00D4AA", "#00C6FF"],
+    gradient: ["#00D4AA", "#00C6FF"] as const,
     route: "/voice-assistant-settings",
     features: [
       "Natural language understanding",
@@ -77,7 +72,7 @@ const aiFeatures = [
     title: "DJ Instinct",
     description: "AI DJ that creates seamless mixes with human-like intuition",
     icon: <Radio size={28} color="#F59E0B" />,
-    gradient: ["#F59E0B", "#EF4444"],
+    gradient: ["#F59E0B", "#EF4444"] as const,
     route: "/ai-dj",
     features: [
       "Harmonic mixing (Camelot Wheel)",
@@ -91,7 +86,7 @@ const aiFeatures = [
     title: "Contextual Discovery",
     description: "Music discovery based on time, weather, activity, and location",
     icon: <Target size={28} color="#667eea" />,
-    gradient: ["#667eea", "#764ba2"],
+    gradient: ["#667eea", "#764ba2"] as const,
     route: "/browse-categories",
     features: [
       "Multi-factor context analysis",
@@ -105,7 +100,7 @@ const aiFeatures = [
     title: "Lyrics Analysis",
     description: "Deep analysis of themes, literary devices, and emotional tone",
     icon: <Wand2 size={28} color="#F7971E" />,
-    gradient: ["#F7971E", "#FFD200"],
+    gradient: ["#F7971E", "#FFD200"] as const,
     route: "/lyrics",
     features: [
       "Theme and motif identification",
@@ -119,7 +114,7 @@ const aiFeatures = [
     title: "Collaborative Filtering",
     description: "Recommendations based on users with similar taste",
     icon: <Users size={28} color="#11998e" />,
-    gradient: ["#11998e", "#38ef7d"],
+    gradient: ["#11998e", "#38ef7d"] as const,
     route: "/your-mix",
     features: [
       "User similarity analysis",
@@ -133,7 +128,7 @@ const aiFeatures = [
     title: "Music Similarity Search",
     description: "Find similar tracks using AI embeddings and semantic search",
     icon: <Search size={28} color="#6A85F1" />,
-    gradient: ["#6A85F1", "#B892FF"],
+    gradient: ["#6A85F1", "#B892FF"] as const,
     route: "/search",
     features: [
       "Vector embeddings for tracks",
@@ -147,7 +142,7 @@ const aiFeatures = [
     title: "DJ Setlist Optimizer",
     description: "Optimize track order for perfect DJ sets",
     icon: <BarChart3 size={28} color="#FF6B6B" />,
-    gradient: ["#FF6B6B", "#FF8E53"],
+    gradient: ["#FF6B6B", "#FF8E53"] as const,
     route: "/dj-instinct",
     features: [
       "Harmonic mixing optimization",
@@ -163,28 +158,28 @@ const quickActions = [
     id: "try-voice",
     title: "Try Voice Control",
     icon: <Mic size={20} color="#FFF" />,
-    gradient: ["#00D4AA", "#00C6FF"],
+    gradient: ["#00D4AA", "#00C6FF"] as const,
     route: "/ai-dj",
   },
   {
     id: "smart-mix",
     title: "Get Smart Mix",
     icon: <Sparkles size={20} color="#FFF" />,
-    gradient: ["#FF0080", "#FF8C00"],
+    gradient: ["#FF0080", "#FF8C00"] as const,
     route: "/your-mix",
   },
   {
     id: "dj-live",
     title: "DJ Instinct Live",
     icon: <Radio size={20} color="#FFF" />,
-    gradient: ["#F59E0B", "#EF4444"],
+    gradient: ["#F59E0B", "#EF4444"] as const,
     route: "/dj-instinct/live",
   },
   {
     id: "discover",
     title: "Contextual Discovery",
     icon: <Target size={20} color="#FFF" />,
-    gradient: ["#667eea", "#764ba2"],
+    gradient: ["#667eea", "#764ba2"] as const,
     route: "/browse-categories",
   },
 ];
@@ -257,7 +252,7 @@ export default function AIFeaturesScreen() {
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={[...feature.gradient, "transparent"]}
+                colors={[feature.gradient[0], feature.gradient[1], "transparent"]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.featureGradientBorder}
