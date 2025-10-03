@@ -25,24 +25,45 @@ export const fetchNewsProcedure = publicProcedure
     try {
       console.log('[News] Fetching news from Didit360news.com', input);
       
-      const response = await fetch('https://www.didit360news.com/feed', {
-        headers: {
-          'User-Agent': 'Didit360-Music-App/1.0',
-        },
-      });
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
+      try {
+        const response = await fetch('https://www.didit360news.com/feed', {
+          headers: {
+            'User-Agent': 'Didit360-Music-App/1.0',
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        console.warn('[News] Failed to fetch from RSS feed, using mock data');
+        if (!response.ok) {
+          console.warn(`[News] RSS feed returned status ${response.status}, using mock data`);
+          return getMockNews(input.limit, input.category);
+        }
+
+        const rssText = await response.text();
+        console.log('[News] RSS feed fetched, parsing...');
+        const articles = parseRSSFeed(rssText, input.limit, input.category);
+        
+        if (articles.length === 0) {
+          console.warn('[News] No articles parsed from RSS feed, using mock data');
+          return getMockNews(input.limit, input.category);
+        }
+        
+        console.log(`[News] Successfully fetched ${articles.length} articles from RSS`);
+        return articles;
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.warn('[News] RSS feed request timed out, using mock data');
+        } else {
+          console.warn('[News] RSS feed fetch failed:', fetchError.message);
+        }
         return getMockNews(input.limit, input.category);
       }
-
-      const rssText = await response.text();
-      const articles = parseRSSFeed(rssText, input.limit, input.category);
-      
-      console.log(`[News] Successfully fetched ${articles.length} articles`);
-      return articles;
     } catch (error) {
-      console.error('[News] Error fetching news:', error);
+      console.error('[News] Unexpected error fetching news:', error);
       return getMockNews(input.limit, input.category);
     }
   });
