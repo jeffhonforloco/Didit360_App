@@ -61,6 +61,9 @@ import { transcribeProcedure } from "./routes/ai/transcribe/route";
 import { recommendationsProcedure } from "./routes/ai/recommendations/route";
 import { generatePlaylistProcedure } from "./routes/ai/generate-playlist/route";
 
+// News
+import { fetchNewsProcedure } from "./routes/news/fetch-news/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -152,6 +155,9 @@ export const appRouter = createTRPCRouter({
     transcribe: transcribeProcedure,
     recommendations: recommendationsProcedure,
     generatePlaylist: generatePlaylistProcedure,
+  }),
+  news: createTRPCRouter({
+    fetchNews: fetchNewsProcedure,
   }),
 });
 
