@@ -83,6 +83,13 @@ class WebAudioPlayer implements AudioPlayerLike {
         console.log('[WebAudioPlayer] User interaction detected');
         // Try to unlock audio context
         this.unlockAudioContext();
+        // Try to play the audio if it's loaded
+        if (this.audio && this.audio.paused && this.audio.readyState >= 2) {
+          console.log('[WebAudioPlayer] Attempting to play after user interaction');
+          this.audio.play().catch((e) => {
+            console.log('[WebAudioPlayer] Auto-play after interaction failed:', e);
+          });
+        }
         // Remove listeners after first interaction
         this.removeInteractionListeners();
       };
@@ -117,12 +124,19 @@ class WebAudioPlayer implements AudioPlayerLike {
   }
 
   private unlockAudioContext() {
-    if (this.audio && typeof window !== 'undefined') {
+    if (typeof window !== 'undefined') {
       // Create a silent audio context to unlock web audio
       try {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         if (AudioContext) {
           const audioContext = new AudioContext();
+          if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+              console.log('[WebAudioPlayer] Audio context resumed');
+            }).catch((e) => {
+              console.log('[WebAudioPlayer] Audio context resume failed:', e);
+            });
+          }
           const buffer = audioContext.createBuffer(1, 1, 22050);
           const source = audioContext.createBufferSource();
           source.buffer = buffer;
@@ -132,6 +146,12 @@ class WebAudioPlayer implements AudioPlayerLike {
         }
       } catch (e) {
         console.log('[WebAudioPlayer] Audio context unlock failed:', e);
+      }
+      
+      // Also try to load the audio element if it exists
+      if (this.audio && this.audio.readyState === 0) {
+        console.log('[WebAudioPlayer] Loading audio after unlock');
+        this.audio.load();
       }
     }
   }
@@ -169,8 +189,15 @@ class WebAudioPlayer implements AudioPlayerLike {
           this.audio.volume = 1;
         }
         
+        // Ensure muted is false
+        if (this.audio.muted) {
+          console.log('[WebAudioPlayer] Audio was muted, unmuting');
+          this.audio.muted = false;
+        }
+        
         // Force user interaction detection if not already detected
         if (!this.hasUserInteracted) {
+          console.log('[WebAudioPlayer] No user interaction detected yet, setting up detection');
           this.hasUserInteracted = true;
           this.unlockAudioContext();
         }
@@ -243,6 +270,7 @@ class WebAudioPlayer implements AudioPlayerLike {
         console.log('[WebAudioPlayer] Play successful, final state:', {
           paused: this.audio.paused,
           volume: this.audio.volume,
+          muted: this.audio.muted,
           currentTime: this.audio.currentTime
         });
         
@@ -252,6 +280,13 @@ class WebAudioPlayer implements AudioPlayerLike {
             console.log('[WebAudioPlayer] ✅ Playback confirmed, currentTime:', this.audio.currentTime);
           } else {
             console.log('[WebAudioPlayer] ⚠️ Playback may not have started, paused:', this.audio?.paused);
+            // Try one more time if still paused
+            if (this.audio && this.audio.paused) {
+              console.log('[WebAudioPlayer] Retrying play after delay...');
+              this.audio.play().catch((retryErr) => {
+                console.log('[WebAudioPlayer] Retry play failed:', retryErr);
+              });
+            }
           }
         }, 500);
       } catch (e) {
@@ -264,12 +299,12 @@ class WebAudioPlayer implements AudioPlayerLike {
         
         // If it's an autoplay policy error, try to handle it gracefully
         if (e instanceof Error && (e.name === 'NotAllowedError' || e.name === 'AbortError')) {
-          console.log('[WebAudioPlayer] Autoplay was prevented. User needs to interact with the page first.');
+          console.log('[WebAudioPlayer] ⚠️ Autoplay was prevented. Waiting for user interaction...');
           // Set up interaction detection if not already done
           if (!this.hasUserInteracted) {
             this.setupUserInteractionDetection();
           }
-          // Don't throw for autoplay errors - just log them
+          // Don't throw for autoplay errors - just log them and wait for user interaction
           return;
         }
         
