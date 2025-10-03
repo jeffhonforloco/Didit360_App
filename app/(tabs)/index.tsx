@@ -245,6 +245,9 @@ export default function HomeScreen() {
           case "Top Charts":
             router.push("/top-charts");
             break;
+          case "Recently Played":
+            router.push("/history");
+            break;
           default:
             console.log("See all:", title);
         }
