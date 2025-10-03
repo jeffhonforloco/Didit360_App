@@ -8,11 +8,15 @@ import {
   ScrollView,
   FlatList,
   useWindowDimensions,
+  Modal,
+  Platform,
+  Share,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, MoreHorizontal, Play, Shuffle, Share2, Bell, BellOff } from 'lucide-react-native';
+import { ArrowLeft, MoreHorizontal, Play, Shuffle, Share2, Bell, BellOff, Download, List, Heart, Facebook, Twitter, Link } from 'lucide-react-native';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useLibrary } from '@/contexts/LibraryContext';
 import { allTracks, searchArtists, popularArtists, searchAlbums } from '@/data/mockData';
 import type { Track } from '@/types';
 
@@ -21,8 +25,11 @@ export default function ArtistDetailScreen() {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { playTrack } = usePlayer();
+  const { toggleFavorite, isFavorite } = useLibrary();
   const [isFollowing, setIsFollowing] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showOptionsModal, setShowOptionsModal] = useState(false);
   
   const artist = searchArtists.find(a => a.id === id) || popularArtists.find(a => a.id === id);
   
@@ -46,7 +53,42 @@ export default function ArtistDetailScreen() {
 
   const ALBUM_WIDTH = (width - 60) / 2;
 
+  const handleShuffle = () => {
+    console.log('[Artist] Shuffle all songs');
+    if (artistSongs.length > 0) {
+      const shuffled = [...artistSongs].sort(() => Math.random() - 0.5);
+      playTrack(shuffled[0]);
+    }
+  };
 
+  const handlePlayAll = () => {
+    console.log('[Artist] Play all songs');
+    if (artistSongs.length > 0) {
+      playTrack(artistSongs[0]);
+    }
+  };
+
+  const handleShare = async (platform?: string) => {
+    console.log(`[Artist] Sharing to ${platform || 'default'}:`, artist.name);
+    
+    if (Platform.OS === 'web') {
+      if (platform === 'copy') {
+        navigator.clipboard.writeText(`Check out ${artist.name} on our app!`);
+        console.log('Link copied to clipboard');
+      }
+    } else {
+      try {
+        await Share.share({
+          message: `Check out ${artist.name} on our app!`,
+          title: artist.name,
+        });
+      } catch (error) {
+        console.log('Share error:', error);
+      }
+    }
+    
+    setShowShareModal(false);
+  };
 
   const renderSong = ({ item, index }: { item: Track; index: number }) => (
     <TouchableOpacity
@@ -64,10 +106,18 @@ export default function ArtistDetailScreen() {
           {item.artist}
         </Text>
       </View>
-      <TouchableOpacity style={styles.songPlayButton}>
+      <TouchableOpacity 
+        style={styles.songPlayButton}
+        onPress={() => playTrack(item)}
+      >
         <Play size={16} color="#E91E63" fill="#E91E63" />
       </TouchableOpacity>
-      <TouchableOpacity style={styles.moreButton}>
+      <TouchableOpacity 
+        style={styles.moreButton}
+        onPress={() => {
+          console.log('[Artist] Song options for:', item.title);
+        }}
+      >
         <MoreHorizontal size={20} color="#999" />
       </TouchableOpacity>
     </TouchableOpacity>
@@ -110,7 +160,10 @@ export default function ArtistDetailScreen() {
         >
           <ArrowLeft size={24} color="#FFF" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.moreButton}>
+        <TouchableOpacity 
+          style={styles.moreButton}
+          onPress={() => setShowOptionsModal(true)}
+        >
           <MoreHorizontal size={24} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -149,20 +202,34 @@ export default function ArtistDetailScreen() {
                   <BellOff size={24} color="#FFF" />
                 )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={() => setShowShareModal(true)}
+              >
                 <Share2 size={24} color="#FFF" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
+              <TouchableOpacity 
+                style={styles.iconButton}
+                onPress={() => setShowOptionsModal(true)}
+              >
                 <MoreHorizontal size={24} color="#FFF" />
               </TouchableOpacity>
             </View>
             
             <View style={styles.playControls}>
-              <TouchableOpacity style={styles.shuffleButton}>
+              <TouchableOpacity 
+                style={styles.shuffleButton}
+                onPress={handleShuffle}
+                activeOpacity={0.8}
+              >
                 <Shuffle size={20} color="#FFF" />
                 <Text style={styles.shuffleText}>Shuffle</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.playAllButton}>
+              <TouchableOpacity 
+                style={styles.playAllButton}
+                onPress={handlePlayAll}
+                activeOpacity={0.8}
+              >
                 <Play size={20} color="#FFF" fill="#FFF" />
                 <Text style={styles.playAllText}>Play</Text>
               </TouchableOpacity>
@@ -235,6 +302,133 @@ export default function ArtistDetailScreen() {
           )}
         </View>
       </ScrollView>
+
+      {/* Share Modal */}
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.shareModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.shareTitle}>SHARE ARTIST</Text>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('facebook')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Facebook size={24} color="#1877F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Facebook</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('twitter')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Twitter size={24} color="#1DA1F2" />
+              </View>
+              <Text style={styles.shareOptionText}>Twitter</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => handleShare('copy')}
+            >
+              <View style={styles.shareIconContainer}>
+                <Link size={24} color="#999" />
+              </View>
+              <Text style={styles.shareOptionText}>Copy Link</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowShareModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Options Modal */}
+      <Modal
+        visible={showOptionsModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowOptionsModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowOptionsModal(false)}
+        >
+          <TouchableOpacity 
+            style={styles.shareModal}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.shareTitle}>OPTIONS</Text>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => {
+                setShowOptionsModal(false);
+                setShowShareModal(true);
+              }}
+            >
+              <View style={styles.shareIconContainer}>
+                <Share2 size={24} color="#FFF" />
+              </View>
+              <Text style={styles.shareOptionText}>Share Artist</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => {
+                console.log('[Artist] Download all songs');
+                setShowOptionsModal(false);
+              }}
+            >
+              <View style={styles.shareIconContainer}>
+                <Download size={24} color="#FFF" />
+              </View>
+              <Text style={styles.shareOptionText}>Download All</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.shareOption}
+              onPress={() => {
+                console.log('[Artist] View queue');
+                setShowOptionsModal(false);
+              }}
+            >
+              <View style={styles.shareIconContainer}>
+                <List size={24} color="#FFF" />
+              </View>
+              <Text style={styles.shareOptionText}>View Queue</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setShowOptionsModal(false)}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -457,5 +651,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'flex-end',
+  },
+  shareModal: {
+    backgroundColor: '#2A2A2A',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 20,
+  },
+  shareTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFF',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  shareOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  shareIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  shareOptionText: {
+    fontSize: 16,
+    color: '#FFF',
+    fontWeight: '500',
+  },
+  cancelButton: {
+    marginTop: 20,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '600',
   },
 });
