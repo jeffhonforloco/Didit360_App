@@ -21,19 +21,16 @@ import {
   AlertTriangle,
   QrCode,
   Save,
+  Settings,
   Volume2,
   Zap,
   Shield,
   Cast,
   FileText,
-  Share2,
-  Download,
 } from "lucide-react-native";
 import { router } from "expo-router";
 import { useDJInstinct, type TransitionStyle, type Mood, type ExplicitFilter } from "@/contexts/DJInstinctContext";
 import { usePlayer } from "@/contexts/PlayerContext";
-import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
 import type { Track } from "@/types";
 
 const TRANSITION_OPTIONS: { value: TransitionStyle; label: string }[] = [
@@ -70,11 +67,9 @@ export default function LiveDJScreen() {
     saveLiveMix,
   } = useDJInstinct();
 
-  const [, setShowRecapModal] = useState(false);
+  const [showRecapModal, setShowRecapModal] = useState(false);
   const [genreInput, setGenreInput] = useState("");
   const [noPlayInput, setNoPlayInput] = useState("");
-  const [downloading, setDownloading] = useState(false);
-  const [sharing, setSharing] = useState(false);
 
   const handleVibeChange = (vibe: string) => {
     setLiveDJPromptConfig({ vibe });
@@ -158,101 +153,6 @@ export default function LiveDJScreen() {
       case "pairing": return "Pairing...";
       case "error": return "Error";
       default: return "Offline";
-    }
-  };
-
-  const handleShare = async () => {
-    console.log('[LiveDJ] Share button pressed');
-    setSharing(true);
-    
-    try {
-      if (Platform.OS === 'web') {
-        const shareData = {
-          title: 'DJ Instinct Live Mix',
-          text: `Check out my live DJ mix! ${liveDJ.mixHistory.length} tracks mixed with ${liveDJ.promptConfig.mood} vibes.`,
-          url: Platform.OS === 'web' ? window.location.href : 'https://didit360.com/dj-instinct/live'
-        };
-        
-        if (navigator.share) {
-          await navigator.share(shareData);
-          console.log('[LiveDJ] Shared successfully via Web Share API');
-        } else {
-          await navigator.clipboard.writeText(shareData.url);
-          console.log('[LiveDJ] Link copied to clipboard');
-          alert('Link copied to clipboard!');
-        }
-      } else {
-        const isAvailable = await Sharing.isAvailableAsync();
-        if (isAvailable) {
-          const mixData = JSON.stringify({
-            sessionId: liveDJ.sessionId,
-            config: liveDJ.promptConfig,
-            history: liveDJ.mixHistory,
-            timestamp: Date.now()
-          }, null, 2);
-          
-          const fileUri = `${FileSystem.cacheDirectory}dj-mix-${Date.now()}.json`;
-          await FileSystem.writeAsStringAsync(fileUri, mixData);
-          
-          await Sharing.shareAsync(fileUri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Share DJ Mix'
-          });
-          console.log('[LiveDJ] Mix shared successfully');
-        } else {
-          console.log('[LiveDJ] Sharing not available on this device');
-          alert('Sharing is not available on this device');
-        }
-      }
-    } catch (error) {
-      console.error('[LiveDJ] Share error:', error);
-      if (error instanceof Error && error.message !== 'Share canceled') {
-        alert('Failed to share mix');
-      }
-    } finally {
-      setSharing(false);
-    }
-  };
-
-  const handleDownload = async () => {
-    console.log('[LiveDJ] Download button pressed');
-    setDownloading(true);
-    
-    try {
-      const mixData = JSON.stringify({
-        sessionId: liveDJ.sessionId,
-        config: liveDJ.promptConfig,
-        params: liveDJ.params,
-        history: liveDJ.mixHistory,
-        nowPlaying: liveDJ.nowPlaying,
-        nextUp: liveDJ.nextUp,
-        timestamp: Date.now(),
-        exportedAt: new Date().toISOString()
-      }, null, 2);
-      
-      if (Platform.OS === 'web') {
-        const blob = new Blob([mixData], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `dj-mix-${Date.now()}.json`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        console.log('[LiveDJ] Mix downloaded successfully');
-        alert('Mix downloaded successfully!');
-      } else {
-        const fileUri = `${FileSystem.documentDirectory}dj-mix-${Date.now()}.json`;
-        await FileSystem.writeAsStringAsync(fileUri, mixData);
-        console.log('[LiveDJ] Mix saved to:', fileUri);
-        alert(`Mix saved to: ${fileUri}`);
-      }
-    } catch (error) {
-      console.error('[LiveDJ] Download error:', error);
-      alert('Failed to download mix');
-    } finally {
-      setDownloading(false);
     }
   };
 
@@ -643,6 +543,7 @@ export default function LiveDJScreen() {
 
               <TouchableOpacity style={styles.actionButton} onPress={saveLiveMix}>
                 <Save size={20} color="#FFF" />
+                <Text style={styles.actionButtonText}>Save Mix</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -650,43 +551,7 @@ export default function LiveDJScreen() {
                 onPress={() => setShowRecapModal(true)}
               >
                 <FileText size={20} color="#FFF" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Share and Download Buttons */}
-            <View style={styles.secondaryActionBar}>
-              <TouchableOpacity
-                style={[
-                  styles.secondaryActionButton,
-                  sharing && styles.secondaryActionButtonDisabled
-                ]}
-                onPress={handleShare}
-                disabled={sharing}
-              >
-                <Share2 size={20} color={sharing ? "#999" : "#A78BFA"} />
-                <Text style={[
-                  styles.secondaryActionButtonText,
-                  sharing && styles.secondaryActionButtonTextDisabled
-                ]}>
-                  {sharing ? "Sharing..." : "Share"}
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.secondaryActionButton,
-                  downloading && styles.secondaryActionButtonDisabled
-                ]}
-                onPress={handleDownload}
-                disabled={downloading}
-              >
-                <Download size={20} color={downloading ? "#999" : "#00FF88"} />
-                <Text style={[
-                  styles.secondaryActionButtonText,
-                  downloading && styles.secondaryActionButtonTextDisabled
-                ]}>
-                  {downloading ? "Downloading..." : "Download"}
-                </Text>
+                <Text style={styles.actionButtonText}>Recap</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -1118,33 +983,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: "#FFF",
-  },
-  secondaryActionBar: {
-    flexDirection: "row",
-    gap: 12,
-    paddingBottom: 40,
-  },
-  secondaryActionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)",
-  },
-  secondaryActionButtonDisabled: {
-    opacity: 0.5,
-  },
-  secondaryActionButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFF",
-  },
-  secondaryActionButtonTextDisabled: {
-    color: "#999",
   },
 });

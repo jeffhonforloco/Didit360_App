@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,13 +7,10 @@ import {
   TouchableOpacity,
   ScrollView,
   FlatList,
-  Modal,
-  Platform,
-  Share as RNShare,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ArrowLeft, MoreHorizontal, Heart, Play, Plus, Share2, Download, Facebook, Twitter, Link } from 'lucide-react-native';
+import { ArrowLeft, MoreHorizontal, Heart, Play, Plus } from 'lucide-react-native';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { allTracks } from '@/data/mockData';
 import type { Track } from '@/types';
@@ -25,8 +22,6 @@ export default function SongDetailScreen() {
   const insets = useSafeAreaInsets();
   const { playTrack } = usePlayer();
   const { settings } = useUser();
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const trackQuery = trpc.catalog.getTrack.useQuery({ id: id ?? '' }, { enabled: !!id });
   const rightsQuery = trpc.catalog.rights.isStreamable.useQuery(
     { entityType: 'track', id: id ?? '', country: 'US', explicitOk: settings.explicitContent },
@@ -53,49 +48,14 @@ export default function SongDetailScreen() {
     );
   }
 
-  const artistName = song.artists?.[0]?.name || 'Unknown Artist';
-  const albumTitle = song.release?.title;
-  const artwork = song.release?.cover_uri || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop';
-  const duration = song.duration_ms ? Math.floor(song.duration_ms / 1000) : 180;
-
   const moreLikeThis = allTracks
-    .filter(track => track.artist.toLowerCase().includes(artistName.toLowerCase()) && track.id !== String(song.id))
+    .filter(track => track.artist === song.artist && track.id !== song.id)
     .slice(0, 3);
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleShare = async (platform?: string) => {
-    console.log(`[Song] Sharing to ${platform || 'default'}:`, song?.title);
-    
-    if (Platform.OS === 'web') {
-      if (platform === 'copy') {
-        navigator.clipboard.writeText(`Check out ${song?.title} by ${artistName} on our app!`);
-        console.log('Link copied to clipboard');
-      }
-    } else {
-      try {
-        await RNShare.share({
-          message: `Check out ${song?.title} by ${artistName} on our app!`,
-          title: song?.title,
-        });
-      } catch (error) {
-        console.log('Share error:', error);
-      }
-    }
-    
-    setShowShareModal(false);
-  };
-
-  const handleDownload = () => {
-    console.log('[Song] Downloading:', song?.title);
-  };
-
-  const handleAddToPlaylist = () => {
-    console.log('[Song] Adding to playlist:', song?.title);
   };
 
   const renderSimilarSong = ({ item }: { item: Track }) => (
@@ -139,13 +99,13 @@ export default function SongDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.artworkContainer}>
-            <Image source={{ uri: artwork }} style={styles.artwork} />
+            <Image source={{ uri: song.artwork }} style={styles.artwork} />
           </View>
           
           <Text style={styles.title}>{song.title}</Text>
-          <Text style={styles.artist}>{artistName}{albumTitle ? `, ${albumTitle}` : ''}</Text>
+          <Text style={styles.artist}>{song.artist}{song.album ? `, ${song.album}` : ''}</Text>
           <Text style={styles.metadata}>
-            Track | {formatDuration(duration)} mins
+            {song.type === 'song' ? 'Song' : song.type === 'podcast' ? 'Podcast' : 'Audiobook'} | {formatDuration(song.duration)} mins
           </Text>
 
           {rightsQuery.data && !rightsQuery.data.streamable && (
@@ -155,44 +115,19 @@ export default function SongDetailScreen() {
           )}
 
           <View style={styles.actions}>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => setIsFavorite(!isFavorite)}
-            >
-              <Heart size={24} color="#FFF" fill={isFavorite ? "#E91E63" : "none"} />
+            <TouchableOpacity style={styles.actionButton}>
+              <Heart size={24} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleAddToPlaylist}
-            >
+            <TouchableOpacity style={styles.actionButton}>
               <Plus size={24} color="#FFF" />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => setShowShareModal(true)}
-            >
-              <Share2 size={24} color="#FFF" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={handleDownload}
-            >
-              <Download size={24} color="#FFF" />
+            <TouchableOpacity style={styles.actionButton}>
+              <MoreHorizontal size={24} color="#FFF" />
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.playButton, rightsQuery.data && !rightsQuery.data.streamable ? { opacity: 0.4 } : null]}
               disabled={rightsQuery.data ? !rightsQuery.data.streamable : true}
-              onPress={() => {
-                const trackForPlayer: Track = {
-                  id: String(song.id),
-                  title: song.title,
-                  artist: artistName,
-                  artwork: artwork,
-                  duration: duration,
-                  type: 'song',
-                };
-                playTrack(trackForPlayer);
-              }}
+              onPress={() => playTrack(song)}
               testID="play-track"
             >
               <Play size={20} color="#FFF" fill="#FFF" />
@@ -218,65 +153,6 @@ export default function SongDetailScreen() {
           )}
         </View>
       </ScrollView>
-
-      {/* Share Modal */}
-      <Modal
-        visible={showShareModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowShareModal(false)}
-      >
-        <TouchableOpacity 
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowShareModal(false)}
-        >
-          <TouchableOpacity 
-            style={styles.shareModal}
-            activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={styles.shareTitle}>SHARE SONG</Text>
-            
-            <TouchableOpacity 
-              style={styles.shareOption}
-              onPress={() => handleShare('facebook')}
-            >
-              <View style={styles.shareIconContainer}>
-                <Facebook size={24} color="#1877F2" />
-              </View>
-              <Text style={styles.shareOptionText}>Facebook</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.shareOption}
-              onPress={() => handleShare('twitter')}
-            >
-              <View style={styles.shareIconContainer}>
-                <Twitter size={24} color="#1DA1F2" />
-              </View>
-              <Text style={styles.shareOptionText}>Twitter</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.shareOption}
-              onPress={() => handleShare('copy')}
-            >
-              <View style={styles.shareIconContainer}>
-                <Link size={24} color="#999" />
-              </View>
-              <Text style={styles.shareOptionText}>Copy Link</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setShowShareModal(false)}
-            >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
     </View>
   );
 }
@@ -426,54 +302,5 @@ const styles = StyleSheet.create({
     color: '#FECACA',
     fontSize: 14,
     textAlign: 'center',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    justifyContent: 'flex-end',
-  },
-  shareModal: {
-    backgroundColor: '#2A2A2A',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  shareTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFF',
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  shareOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  shareIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  shareOptionText: {
-    fontSize: 16,
-    color: '#FFF',
-    fontWeight: '500',
-  },
-  cancelButton: {
-    marginTop: 20,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    fontSize: 16,
-    color: '#999',
-    fontWeight: '600',
   },
 });
