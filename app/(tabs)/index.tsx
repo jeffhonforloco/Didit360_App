@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     paddingHorizontal: 16,
     gap: 12,
-    marginTop: 20,
+    marginTop: 100,
     marginBottom: 8,
   },
   quickAccessItem: {
