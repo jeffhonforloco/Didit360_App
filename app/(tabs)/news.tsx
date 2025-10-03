@@ -9,9 +9,10 @@ import {
   RefreshControl,
   ActivityIndicator,
   Linking,
+  Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ExternalLink, Newspaper, Clock, User, Tag } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ExternalLink, Newspaper, Clock, User, Tag, Download, X, Share2, Bookmark } from "lucide-react-native";
 import * as WebBrowser from "expo-web-browser";
 import { trpc } from "@/lib/trpc";
 import { Stack } from "expo-router";
@@ -19,7 +20,9 @@ import { Stack } from "expo-router";
 const CATEGORIES = ["All", "Music", "Technology", "Events", "Industry", "Production"];
 
 export default function NewsScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [showDownloadBanner, setShowDownloadBanner] = useState<boolean>(true);
 
   const newsQuery = trpc.news.fetchNews.useQuery({
     limit: 50,
@@ -32,10 +35,43 @@ export default function NewsScreen() {
 
   const openArticle = async (url: string) => {
     try {
-      await WebBrowser.openBrowserAsync(url);
+      await WebBrowser.openBrowserAsync(url, {
+        toolbarColor: '#0A0A0A',
+        controlsColor: '#6EE7B7',
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+      });
     } catch (e) {
       console.error("[News] Error opening article", e);
       Linking.openURL(url);
+    }
+  };
+
+  const openNewsApp = () => {
+    const appUrl = Platform.select({
+      ios: 'https://apps.apple.com/app/didit360news',
+      android: 'https://play.google.com/store/apps/details?id=com.didit360news',
+      default: 'https://www.didit360news.com/download',
+    });
+    Linking.openURL(appUrl);
+  };
+
+  const shareArticle = async (article: any) => {
+    try {
+      if (Platform.OS === 'web') {
+        await navigator.share({
+          title: article.title,
+          text: article.excerpt,
+          url: article.url,
+        });
+      } else {
+        const { Share } = await import('react-native');
+        await Share.share({
+          message: `${article.title}\n\n${article.excerpt}\n\n${article.url}`,
+          url: article.url,
+        });
+      }
+    } catch (e) {
+      console.log('[News] Share cancelled or failed', e);
     }
   };
 
@@ -53,20 +89,48 @@ export default function NewsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={styles.container}>
       <Stack.Screen
         options={{
           headerShown: false,
         }}
       />
       
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <View style={styles.headerTop}>
           <Newspaper size={28} color="#6EE7B7" />
           <Text style={styles.headerTitle}>Didit360 News</Text>
         </View>
         <Text style={styles.headerSubtitle}>Latest music industry updates</Text>
       </View>
+
+      {showDownloadBanner && (
+        <View style={styles.downloadBanner}>
+          <TouchableOpacity
+            style={styles.closeBanner}
+            onPress={() => setShowDownloadBanner(false)}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
+            <X size={18} color="#9CA3AF" />
+          </TouchableOpacity>
+          <View style={styles.bannerContent}>
+            <View style={styles.bannerIcon}>
+              <Download size={24} color="#6EE7B7" />
+            </View>
+            <View style={styles.bannerText}>
+              <Text style={styles.bannerTitle}>Get the Didit360 News App</Text>
+              <Text style={styles.bannerSubtitle}>Stay updated with breaking music news</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.downloadButton}
+              onPress={openNewsApp}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.downloadButtonText}>Download</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       <ScrollView
         horizontal
@@ -115,9 +179,21 @@ export default function NewsScreen() {
           </View>
         ) : newsQuery.error ? (
           <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>Failed to load news</Text>
+            <View style={styles.errorIcon}>
+              <Newspaper size={64} color="#374151" />
+            </View>
+            <Text style={styles.errorTitle}>Unable to Load News</Text>
+            <Text style={styles.errorText}>Please check your connection and try again</Text>
             <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
               <Text style={styles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.openAppButton}
+              onPress={openNewsApp}
+              activeOpacity={0.8}
+            >
+              <Download size={16} color="#6EE7B7" />
+              <Text style={styles.openAppButtonText}>Open Didit360 News App</Text>
             </TouchableOpacity>
           </View>
         ) : newsQuery.data && newsQuery.data.length > 0 ? (
@@ -192,21 +268,58 @@ export default function NewsScreen() {
                         <User size={12} color="#6B7280" />
                         <Text style={styles.authorText}>{article.author}</Text>
                       </View>
-                      <ExternalLink size={14} color="#6EE7B7" />
+                      <View style={styles.articleActions}>
+                        <TouchableOpacity
+                          onPress={() => shareArticle(article)}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Share2 size={14} color="#6B7280" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <Bookmark size={14} color="#6B7280" />
+                        </TouchableOpacity>
+                        <ExternalLink size={14} color="#6EE7B7" />
+                      </View>
                     </View>
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <TouchableOpacity
-              style={styles.viewMoreButton}
-              onPress={() => openArticle("https://www.didit360news.com")}
-              activeOpacity={0.9}
-            >
-              <Text style={styles.viewMoreText}>View More on Didit360 News</Text>
-              <ExternalLink size={16} color="#6EE7B7" />
-            </TouchableOpacity>
+            <View style={styles.bottomSection}>
+              <TouchableOpacity
+                style={styles.viewMoreButton}
+                onPress={() => openArticle("https://www.didit360news.com")}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.viewMoreText}>View More on Didit360 News</Text>
+                <ExternalLink size={16} color="#6EE7B7" />
+              </TouchableOpacity>
+
+              <View style={styles.appPromoCard}>
+                <View style={styles.appPromoContent}>
+                  <View style={styles.appPromoIcon}>
+                    <Newspaper size={32} color="#6EE7B7" />
+                  </View>
+                  <View style={styles.appPromoText}>
+                    <Text style={styles.appPromoTitle}>Get the Full Experience</Text>
+                    <Text style={styles.appPromoSubtitle}>
+                      Download Didit360 News for breaking alerts, personalized feeds, and offline reading
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={styles.appPromoButton}
+                  onPress={openNewsApp}
+                  activeOpacity={0.8}
+                >
+                  <Download size={18} color="#0B0B0C" />
+                  <Text style={styles.appPromoButtonText}>Download App</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </>
         ) : (
           <View style={styles.emptyContainer}>
@@ -216,7 +329,7 @@ export default function NewsScreen() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -295,21 +408,51 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingVertical: 60,
+    paddingHorizontal: 40,
+  },
+  errorIcon: {
+    marginBottom: 20,
+    opacity: 0.5,
+  },
+  errorTitle: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "700" as const,
+    marginBottom: 8,
+    textAlign: "center",
   },
   errorText: {
-    color: "#EF4444",
-    fontSize: 16,
-    fontWeight: "600" as const,
-    marginBottom: 16,
+    color: "#9CA3AF",
+    fontSize: 14,
+    marginBottom: 24,
+    textAlign: "center",
+    lineHeight: 20,
   },
   retryButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 14,
+    backgroundColor: "#6EE7B7",
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  retryButtonText: {
+    color: "#0B0B0C",
+    fontSize: 15,
+    fontWeight: "700" as const,
+  },
+  openAppButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     paddingHorizontal: 24,
     paddingVertical: 12,
     backgroundColor: "#1F2937",
-    borderRadius: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#374151",
   },
-  retryButtonText: {
-    color: "#FFFFFF",
+  openAppButtonText: {
+    color: "#6EE7B7",
     fontSize: 14,
     fontWeight: "600" as const,
   },
@@ -449,6 +592,11 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontSize: 12,
   },
+  articleActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
   viewMoreButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -483,5 +631,112 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontSize: 14,
     marginTop: 8,
+  },
+  downloadBanner: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: "#111113",
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+    overflow: "hidden",
+  },
+  closeBanner: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    zIndex: 10,
+    padding: 4,
+  },
+  bannerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    gap: 12,
+  },
+  bannerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#1F2937",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  bannerText: {
+    flex: 1,
+  },
+  bannerTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700" as const,
+    marginBottom: 2,
+  },
+  bannerSubtitle: {
+    color: "#9CA3AF",
+    fontSize: 12,
+  },
+  downloadButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#6EE7B7",
+    borderRadius: 8,
+  },
+  downloadButtonText: {
+    color: "#0B0B0C",
+    fontSize: 13,
+    fontWeight: "700" as const,
+  },
+  bottomSection: {
+    gap: 20,
+  },
+  appPromoCard: {
+    marginHorizontal: 20,
+    marginTop: 8,
+    padding: 20,
+    backgroundColor: "#111113",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+  appPromoContent: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 16,
+  },
+  appPromoIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#1F2937",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  appPromoText: {
+    flex: 1,
+  },
+  appPromoTitle: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "800" as const,
+    marginBottom: 6,
+  },
+  appPromoSubtitle: {
+    color: "#9CA3AF",
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  appPromoButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 14,
+    backgroundColor: "#6EE7B7",
+    borderRadius: 12,
+  },
+  appPromoButtonText: {
+    color: "#0B0B0C",
+    fontSize: 15,
+    fontWeight: "800" as const,
   },
 });
