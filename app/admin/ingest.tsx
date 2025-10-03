@@ -25,7 +25,6 @@ interface IngestJob {
 export default function AdminIngest() {
   const [selectedTab, setSelectedTab] = useState<string>('jobs');
   const [newJobSource, setNewJobSource] = useState<string>('');
-  const [validationError, setValidationError] = useState<string>('');
   
   const { data: jobsData, isLoading, error } = trpc.admin.ingest.getJobs.useQuery({
     limit: 50,
@@ -139,79 +138,27 @@ export default function AdminIngest() {
               <Text style={styles.sectionTitle}>Create New Ingest Job</Text>
               <View style={styles.newJobForm}>
                 <TextInput
-                  style={[styles.newJobInput, validationError ? styles.newJobInputError : null]}
+                  style={styles.newJobInput}
                   value={newJobSource}
-                  onChangeText={(text) => {
-                    setNewJobSource(text);
-                    if (validationError) setValidationError('');
-                  }}
-                  placeholder="Enter source URL (e.g., https://www.didit360news.com/feed)"
+                  onChangeText={setNewJobSource}
+                  placeholder="Enter source URL or upload file..."
                   placeholderTextColor="#94a3b8"
                   testID="new-job-source"
                 />
-                {validationError ? (
-                  <Text style={styles.validationError}>{validationError}</Text>
-                ) : null}
                 <View style={styles.newJobButtons}>
-                  <Pressable 
-                    style={styles.newJobButton} 
-                    testID="create-ddex-job"
-                    onPress={() => {
-                      if (!newJobSource.trim()) {
-                        setValidationError('Please enter a source URL');
-                        return;
-                      }
-                      console.log('Creating DDEX job:', newJobSource);
-                    }}
-                  >
+                  <Pressable style={styles.newJobButton} testID="create-ddex-job">
                     <Database color="#3b82f6" size={16} />
                     <Text style={styles.newJobButtonText}>DDEX</Text>
                   </Pressable>
-                  <Pressable 
-                    style={styles.newJobButton} 
-                    testID="create-json-job"
-                    onPress={() => {
-                      if (!newJobSource.trim()) {
-                        setValidationError('Please enter a source URL');
-                        return;
-                      }
-                      console.log('Creating JSON job:', newJobSource);
-                    }}
-                  >
+                  <Pressable style={styles.newJobButton} testID="create-json-job">
                     <FileText color="#22c55e" size={16} />
                     <Text style={styles.newJobButtonText}>JSON</Text>
                   </Pressable>
-                  <Pressable 
-                    style={styles.newJobButton} 
-                    testID="create-rss-job"
-                    onPress={() => {
-                      if (!newJobSource.trim()) {
-                        setValidationError('Please enter a source URL');
-                        return;
-                      }
-                      try {
-                        new URL(newJobSource);
-                      } catch {
-                        setValidationError('Please enter a valid URL');
-                        return;
-                      }
-                      console.log('Creating RSS job:', newJobSource);
-                    }}
-                  >
+                  <Pressable style={styles.newJobButton} testID="create-rss-job">
                     <Headphones color="#f59e0b" size={16} />
                     <Text style={styles.newJobButtonText}>RSS</Text>
                   </Pressable>
-                  <Pressable 
-                    style={styles.newJobButton} 
-                    testID="create-manual-job"
-                    onPress={() => {
-                      if (!newJobSource.trim()) {
-                        setValidationError('Please enter a source URL');
-                        return;
-                      }
-                      console.log('Creating Manual job:', newJobSource);
-                    }}
-                  >
+                  <Pressable style={styles.newJobButton} testID="create-manual-job">
                     <Upload color="#8b5cf6" size={16} />
                     <Text style={styles.newJobButtonText}>Manual</Text>
                   </Pressable>
@@ -443,8 +390,6 @@ const styles = StyleSheet.create({
   newJobContainer: { padding: 16, borderRadius: 12, borderWidth: 1, marginBottom: 16 },
   newJobForm: { gap: 12 },
   newJobInput: { color: '#fff', backgroundColor: '#0b0f12', borderColor: '#1f2937', borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10 },
-  newJobInputError: { borderColor: '#ef4444' },
-  validationError: { color: '#ef4444', fontSize: 12, marginTop: 4 },
   newJobButtons: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   newJobButton: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 6, backgroundColor: '#0b0f12', borderWidth: 1, borderColor: '#1f2937' },
   newJobButtonText: { color: '#cbd5e1', fontSize: 12 },
