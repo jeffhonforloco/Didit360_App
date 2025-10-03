@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Sparkles,
   User,
+  ArrowLeft,
 } from "lucide-react-native";
 import SafeImage from "@/components/SafeImage";
 import { usePlayer } from "@/contexts/PlayerContext";
@@ -341,6 +342,14 @@ export default function YourMixScreen() {
         }}
       />
 
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        activeOpacity={0.8}
+      >
+        <ArrowLeft size={24} color="#FFF" />
+      </TouchableOpacity>
+
       <FlatList
         data={filteredTracks}
         renderItem={renderTrack}
@@ -602,5 +611,17 @@ const styles = StyleSheet.create({
   },
   trackAction: {
     padding: 8,
+  },
+  backButton: {
+    position: "absolute",
+    top: 60,
+    left: 20,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
