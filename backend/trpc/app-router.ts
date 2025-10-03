@@ -64,6 +64,9 @@ import { generatePlaylistProcedure } from "./routes/ai/generate-playlist/route";
 // News
 import { fetchNewsProcedure } from "./routes/news/fetch-news/route";
 
+// Auralora
+import { fetchAudiobooksProcedure, getAudiobookDetailsProcedure } from "./routes/auralora/fetch-audiobooks/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -158,6 +161,10 @@ export const appRouter = createTRPCRouter({
   }),
   news: createTRPCRouter({
     fetchNews: fetchNewsProcedure,
+  }),
+  auralora: createTRPCRouter({
+    fetchAudiobooks: fetchAudiobooksProcedure,
+    getAudiobookDetails: getAudiobookDetailsProcedure,
   }),
 });
 

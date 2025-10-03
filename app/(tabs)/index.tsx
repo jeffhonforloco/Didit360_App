@@ -33,6 +33,14 @@ export default function HomeScreen() {
   const { recentlyPlayed: userRecentlyPlayed } = useLibrary();
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
+  
+  const auraloraQuery = trpc.auralora.fetchAudiobooks.useQuery(
+    { limit: 12 },
+    { 
+      staleTime: 1000 * 60 * 5,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
@@ -637,15 +645,25 @@ export default function HomeScreen() {
         ))}
 
         <View style={styles.section}>
-          {renderSectionHeader("Auralora", "Discover amazing audiobooks", "auralora-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
-          <FlatList
-            data={audiobooks.slice(0, 8)}
-            renderItem={renderSmartCard}
-            keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalList}
-          />
+          {renderSectionHeader("Auralora", "Discover amazing audiobooks from Auralora.com", "auralora-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
+          {auraloraQuery.isLoading ? (
+            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
+              <Text style={{ color: '#999', fontSize: 14 }}>Loading audiobooks from Auralora...</Text>
+            </View>
+          ) : auraloraQuery.error ? (
+            <View style={[styles.horizontalList, { paddingVertical: 20 }]}>
+              <Text style={{ color: '#FF6B6B', fontSize: 14 }}>Failed to load audiobooks</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={auraloraQuery.data?.audiobooks.slice(0, 8) || audiobooks.slice(0, 8)}
+              renderItem={renderSmartCard}
+              keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalList}
+            />
+          )}
         </View>
 
         <View style={styles.section}>
