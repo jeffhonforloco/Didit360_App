@@ -188,16 +188,17 @@ class WebAudioPlayer implements AudioPlayerLike {
           duration: this.audio.duration,
           src: this.audio.src,
           volume: this.audio.volume,
+          muted: this.audio.muted,
           hasUserInteracted: this.hasUserInteracted
         });
         
-        // Ensure volume is set properly
-        if (this.audio.volume === 0) {
-          console.log('[WebAudioPlayer] Volume was 0, setting to 1');
-          this.audio.volume = 1;
+        // CRITICAL: Ensure volume is set properly BEFORE play
+        if (this.audio.volume === 0 || this.audio.volume < 0.1) {
+          console.log('[WebAudioPlayer] Volume was', this.audio.volume, ', setting to 1.0');
+          this.audio.volume = 1.0;
         }
         
-        // Ensure muted is false
+        // CRITICAL: Ensure muted is false BEFORE play
         if (this.audio.muted) {
           console.log('[WebAudioPlayer] Audio was muted, unmuting');
           this.audio.muted = false;
@@ -270,9 +271,21 @@ class WebAudioPlayer implements AudioPlayerLike {
         
         // Direct play attempt with better error handling
         console.log('[WebAudioPlayer] Calling audio.play()...');
+        console.log('[WebAudioPlayer] Pre-play check - Volume:', this.audio.volume, 'Muted:', this.audio.muted);
+        
         const playPromise = this.audio.play();
         if (playPromise !== undefined) {
           await playPromise;
+        }
+        
+        // CRITICAL: Double-check volume after play starts
+        if (this.audio.volume === 0 || this.audio.volume < 0.1) {
+          console.log('[WebAudioPlayer] Volume dropped to', this.audio.volume, 'after play, restoring to 1.0');
+          this.audio.volume = 1.0;
+        }
+        if (this.audio.muted) {
+          console.log('[WebAudioPlayer] Audio got muted after play, unmuting');
+          this.audio.muted = false;
         }
         
         console.log('[WebAudioPlayer] ✅ Play successful, final state:', {
@@ -287,6 +300,10 @@ class WebAudioPlayer implements AudioPlayerLike {
           console.log('[WebAudioPlayer] 🎉 AUDIO IS PLAYING WITH SOUND! Volume:', this.audio.volume);
         } else if (this.audio.volume === 0 || this.audio.muted) {
           console.warn('[WebAudioPlayer] ⚠️ AUDIO IS PLAYING BUT MUTED! Volume:', this.audio.volume, 'Muted:', this.audio.muted);
+          // Force unmute one more time
+          this.audio.volume = 1.0;
+          this.audio.muted = false;
+          console.log('[WebAudioPlayer] Forced unmute, new state - Volume:', this.audio.volume, 'Muted:', this.audio.muted);
         }
         
         // Verify playback started
@@ -933,9 +950,9 @@ export class AudioEngine {
           duration: active.sound.duration
         });
         
-        // Ensure volume is set before playing
-        if (active.sound.volume === 0) {
-          console.log('[AudioEngine] Volume is 0, setting to 1.0');
+        // CRITICAL: Ensure volume is set before playing
+        if (active.sound.volume === 0 || active.sound.volume < 0.1) {
+          console.log('[AudioEngine] Volume is', active.sound.volume, ', setting to 1.0');
           active.sound.volume = 1.0;
         }
         
@@ -943,6 +960,12 @@ export class AudioEngine {
         this.setState('playing');
         
         await active.sound.play();
+        
+        // CRITICAL: Verify and restore volume after play
+        if (active.sound.volume === 0 || active.sound.volume < 0.1) {
+          console.log('[AudioEngine] Volume dropped to', active.sound.volume, 'after play, restoring to 1.0');
+          active.sound.volume = 1.0;
+        }
         
         console.log('[AudioEngine] ✅ play() successful');
         console.log('[AudioEngine] Sound state after play:', {
