@@ -9,6 +9,17 @@ import { useSubscription } from "@/contexts/SubscriptionContext";
 import { audioEngine } from "@/lib/AudioEngine";
 import { trpcClient } from "@/lib/trpc";
 
+interface HistoryEntry {
+  track: Track;
+  playedAt: Date;
+  playCount: number;
+  lastPosition?: number;
+  completed: boolean;
+}
+
+const HISTORY_STORAGE_KEY = "listening_history";
+const MAX_HISTORY_ITEMS = 500;
+
 interface PlayerState {
   currentTrack: Track | null;
   queue: Track[];
@@ -94,16 +105,48 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     }
   }, []);
 
+  const addToHistory = useCallback(async (track: Track) => {
+    try {
+      const stored = await AsyncStorage.getItem(HISTORY_STORAGE_KEY);
+      const history: HistoryEntry[] = stored ? JSON.parse(stored) : [];
+      
+      const existingIndex = history.findIndex(e => e.track.id === track.id);
+      
+      if (existingIndex >= 0) {
+        const existing = history[existingIndex];
+        history.splice(existingIndex, 1);
+        history.unshift({
+          ...existing,
+          playedAt: new Date(),
+          playCount: existing.playCount + 1,
+        });
+      } else {
+        history.unshift({
+          track,
+          playedAt: new Date(),
+          playCount: 1,
+          completed: false,
+        });
+      }
+      
+      const limited = history.slice(0, MAX_HISTORY_ITEMS);
+      await AsyncStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(limited));
+      console.log("[Player] Added to history:", track.title);
+    } catch (error) {
+      console.error("[Player] History save error:", error);
+    }
+  }, []);
+
   const playTrack = useCallback((track: Track) => {
     console.log("[Player] Playing track:", track.title, "Type:", track.type, "IsVideo:", track.isVideo);
     
-    // Track stream for featured algorithm
     trpcClient.catalog.trackStream.mutate({
       id: track.id,
       type: track.type as 'song' | 'video' | 'podcast' | 'audiobook',
     }).catch((e: unknown) => console.log('[Player] Stream tracking error:', e));
     
-    // Immediate UI updates for responsiveness
+    addToHistory(track);
+    
     setCurrentTrack(track);
     setIsPlaying(true);
     
