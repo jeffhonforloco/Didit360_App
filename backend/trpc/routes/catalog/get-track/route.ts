@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
 import type { CatalogTrack } from "@/types/catalog";
+import { allTracks } from "@/data/mockData";
 
-// Track schema matching CatalogTrack type
 const TrackSchema = z.object({
   id: z.string(),
   canonical_id: z.string(),
@@ -36,75 +36,77 @@ export const getTrackProcedure = publicProcedure
   .query(async ({ input }): Promise<CatalogTrack | null> => {
     console.log(`[catalog] Getting track: ${input.id}`);
     
-    // Mock track data
-    if (input.id === 'track-1' || input.id === '1') {
-      const track: CatalogTrack = {
-        id: '1',
-        canonical_id: 'track:sunset',
-        isrc: 'USRC17607839',
-        title: 'Sunset Dreams',
-        release_id: 'release-1',
-        duration_ms: 240000,
-        explicit: false,
-        track_no: 1,
-        disc_no: 1,
-        preview_uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        stream_uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        media_type: 'audio',
-        genres: ['synthwave', 'electronic'],
-        external_ids: { spotify: 'spotify:track:123' },
-        metadata: { mood: 'chill', energy: 'medium' },
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        version: 1,
-        etag: '"abc123"',
-        is_active: true,
-        quality_score: 0.85,
-        artists: [
-          {
-            id: 'artist-1',
-            canonical_id: 'artist:synthwave-master',
-            name: 'Synthwave Master',
-            genres: ['synthwave', 'electronic'],
-            images: [
-              {
-                id: 'img-1',
-                entity_type: 'artist',
-                entity_id: 'artist-1',
-                purpose: 'profile',
-                uri: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop',
-                created_at: new Date().toISOString(),
-              }
-            ],
-            external_ids: {},
-            metadata: {},
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            version: 1,
-            is_active: true,
-            quality_score: 0.9,
-          }
-        ],
-        release: {
-          id: 'release-1',
-          canonical_id: 'release:neon-nights',
-          title: 'Neon Nights',
-          release_type: 'album',
-          cover_uri: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
-          genres: ['synthwave', 'electronic'],
-          territories: ['US', 'CA', 'GB'],
+    const uiTrack = allTracks.find(t => t.id === input.id && (t.type === 'song' || t.type === 'podcast' || t.type === 'audiobook'));
+    
+    if (!uiTrack) {
+      console.log(`[catalog] Track not found: ${input.id}`);
+      return null;
+    }
+
+    const track: CatalogTrack = {
+      id: uiTrack.id,
+      canonical_id: `track:${uiTrack.id}`,
+      isrc: `ISRC${uiTrack.id.toUpperCase()}`,
+      title: uiTrack.title,
+      release_id: uiTrack.album ? `release-${uiTrack.id}` : undefined,
+      duration_ms: uiTrack.duration * 1000,
+      explicit: false,
+      track_no: 1,
+      disc_no: 1,
+      preview_uri: uiTrack.audioUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      stream_uri: uiTrack.audioUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      media_type: 'audio',
+      genres: ['pop', 'electronic'],
+      external_ids: {},
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      version: 1,
+      etag: `"${uiTrack.id}"`,
+      is_active: true,
+      quality_score: 0.85,
+      artists: [
+        {
+          id: `artist-${uiTrack.id}`,
+          canonical_id: `artist:${uiTrack.artist.toLowerCase().replace(/\s+/g, '-')}`,
+          name: uiTrack.artist,
+          genres: ['pop', 'electronic'],
+          images: [
+            {
+              id: `img-${uiTrack.id}`,
+              entity_type: 'artist' as const,
+              entity_id: `artist-${uiTrack.id}`,
+              purpose: 'profile' as const,
+              uri: uiTrack.artwork,
+              created_at: new Date().toISOString(),
+            }
+          ],
           external_ids: {},
           metadata: {},
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           version: 1,
           is_active: true,
-          quality_score: 0.85,
-        },
-      };
-      return track;
-    }
+          quality_score: 0.9,
+        }
+      ],
+      release: uiTrack.album ? {
+        id: `release-${uiTrack.id}`,
+        canonical_id: `release:${uiTrack.album.toLowerCase().replace(/\s+/g, '-')}`,
+        title: uiTrack.album,
+        release_type: 'album' as const,
+        cover_uri: uiTrack.artwork,
+        genres: ['pop', 'electronic'],
+        territories: ['US', 'CA', 'GB'],
+        external_ids: {},
+        metadata: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        version: 1,
+        is_active: true,
+        quality_score: 0.85,
+      } : undefined,
+    };
     
-    console.log(`[catalog] Track not found: ${input.id}`);
-    return null;
+    return track;
   });
