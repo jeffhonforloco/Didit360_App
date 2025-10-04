@@ -228,7 +228,7 @@ export default function AIFeaturesScreen() {
                 activeOpacity={0.8}
               >
                 <LinearGradient
-                  colors={action.gradient}
+                  colors={[action.gradient[0], action.gradient[1]]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 1 }}
                   style={styles.quickActionGradient}
@@ -252,7 +252,7 @@ export default function AIFeaturesScreen() {
               activeOpacity={0.9}
             >
               <LinearGradient
-                colors={[feature.gradient[0], feature.gradient[1], "transparent"]}
+                colors={[feature.gradient[0], feature.gradient[1], "transparent" as const]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.featureGradientBorder}
