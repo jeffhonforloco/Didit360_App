@@ -16,6 +16,7 @@ import { allTracks } from '@/data/mockData';
 import type { Track } from '@/types';
 import { trpc } from '@/lib/trpc';
 import { useUser } from '@/contexts/UserContext';
+import { catalogTrackToUITrack } from '@/lib/catalog-adapter';
 
 export default function SongDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -30,7 +31,9 @@ export default function SongDetailScreen() {
 
   const isLoading = trackQuery.isLoading || rightsQuery.isLoading;
   const error = trackQuery.error || rightsQuery.error;
-  const song = trackQuery.data;
+  
+  const catalogTrack = trackQuery.data;
+  const song = catalogTrack ? catalogTrackToUITrack(catalogTrack) : null;
 
   if (isLoading) {
     return (

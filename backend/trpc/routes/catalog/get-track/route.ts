@@ -40,7 +40,7 @@ export const getTrackProcedure = publicProcedure
         track_no: 1,
         disc_no: 1,
         preview_uri: 'https://example.com/preview/sunset.mp3',
-        media_type: 'audio',
+        media_type: 'audio' as const,
         genres: ['synthwave', 'electronic'],
         external_ids: {},
         metadata: {},
