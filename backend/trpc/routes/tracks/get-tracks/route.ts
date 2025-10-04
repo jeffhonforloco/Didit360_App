@@ -186,6 +186,88 @@ export const getTracksProcedure = publicProcedure
       input.offset + input.limit
     );
 
+    const videoTracks = [
+      {
+        id: "video-1",
+        title: "Sunset Dreams (Official Video)",
+        artist: "Electronic Waves",
+        album: "Neon Nights",
+        artwork: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
+        duration: 240,
+        type: "video" as const,
+        isVideo: true,
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      },
+      {
+        id: "video-2",
+        title: "Midnight City (Live Performance)",
+        artist: "Neon Lights",
+        album: "Urban Dreams",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800",
+        duration: 300,
+        type: "video" as const,
+        isVideo: true,
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+      },
+      {
+        id: "video-3",
+        title: "Cosmic Journey (Music Video)",
+        artist: "Space Voyager",
+        album: "Interstellar",
+        artwork: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
+        duration: 280,
+        type: "video" as const,
+        isVideo: true,
+        videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+      },
+    ];
+
+    const podcastTracks = [
+      {
+        id: "podcast-1",
+        title: "The Future of Music Technology",
+        artist: "Tech Talk Podcast",
+        artwork: "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=800",
+        duration: 3600,
+        type: "podcast" as const,
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        description: "Exploring the latest innovations in music technology",
+      },
+      {
+        id: "podcast-2",
+        title: "Behind the Beats: Producer Stories",
+        artist: "Music Makers Podcast",
+        artwork: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=800",
+        duration: 2700,
+        type: "podcast" as const,
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        description: "Interviews with top music producers",
+      },
+    ];
+
+    const audiobookTracks = [
+      {
+        id: "audiobook-1",
+        title: "The Art of Sound Design",
+        artist: "John Smith",
+        artwork: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800",
+        duration: 18000,
+        type: "audiobook" as const,
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        description: "A comprehensive guide to sound design",
+      },
+      {
+        id: "audiobook-2",
+        title: "Music Theory Fundamentals",
+        artist: "Sarah Johnson",
+        artwork: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800",
+        duration: 21600,
+        type: "audiobook" as const,
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        description: "Learn the basics of music theory",
+      },
+    ];
+
     const uiTracks = paginatedTracks.map(track => ({
       id: track.id,
       title: track.title,
@@ -197,5 +279,5 @@ export const getTracksProcedure = publicProcedure
       audioUrl: track.streamUrl,
     }));
 
-    return uiTracks;
+    return [...uiTracks, ...videoTracks, ...podcastTracks, ...audiobookTracks];
   });
