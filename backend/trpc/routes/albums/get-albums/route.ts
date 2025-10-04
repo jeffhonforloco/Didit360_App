@@ -81,10 +81,14 @@ export const getAlbumsProcedure = publicProcedure
       input.offset + input.limit
     );
 
-    return {
-      albums: paginatedAlbums,
-      total: filteredAlbums.length,
-      limit: input.limit,
-      offset: input.offset,
-    };
+    const uiAlbums = paginatedAlbums.map(album => ({
+      id: album.id,
+      title: album.title,
+      artist: album.artistName,
+      year: new Date(album.releaseDate).getFullYear().toString(),
+      artwork: album.coverImage,
+      type: "album" as const,
+    }));
+
+    return uiAlbums;
   });

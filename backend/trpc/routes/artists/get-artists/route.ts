@@ -83,10 +83,13 @@ export const getArtistsProcedure = publicProcedure
       input.offset + input.limit
     );
 
-    return {
-      artists: paginatedArtists,
-      total: filteredArtists.length,
-      limit: input.limit,
-      offset: input.offset,
-    };
+    const uiArtists = paginatedArtists.map(artist => ({
+      id: artist.id,
+      name: artist.name,
+      image: artist.image,
+      followers: artist.followers.toLocaleString(),
+      verified: artist.verified,
+    }));
+
+    return uiArtists;
   });

@@ -91,10 +91,16 @@ export const getTracksProcedure = publicProcedure
       input.offset + input.limit
     );
 
-    return {
-      tracks: paginatedTracks,
-      total: filteredTracks.length,
-      limit: input.limit,
-      offset: input.offset,
-    };
+    const uiTracks = paginatedTracks.map(track => ({
+      id: track.id,
+      title: track.title,
+      artist: track.artistName,
+      album: track.albumName,
+      artwork: track.coverImage,
+      duration: Math.floor(track.duration / 1000),
+      type: "song" as const,
+      audioUrl: track.streamUrl,
+    }));
+
+    return uiTracks;
   });
