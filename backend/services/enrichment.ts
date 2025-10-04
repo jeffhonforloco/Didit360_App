@@ -398,5 +398,137 @@ export class MockEnrichmentService implements EnrichmentService {
   }
 }
 
+// Real API implementation
+export class APIEnrichmentService implements EnrichmentService {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = process.env.EXPO_PUBLIC_ENRICHMENT_API_URL || process.env.ENRICHMENT_API_URL || '';
+    this.apiKey = process.env.EXPO_PUBLIC_ENRICHMENT_API_KEY || process.env.ENRICHMENT_API_KEY || '';
+    
+    if (!this.baseUrl) {
+      console.warn('[enrichment] API URL not configured, using mock service');
+    }
+    if (!this.apiKey) {
+      console.warn('[enrichment] API key not configured, using mock service');
+    }
+  }
+
+  private async fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    };
+
+    console.log(`[enrichment] Fetching: ${url}`);
+    const response = await fetch(url, { ...options, headers });
+
+    if (!response.ok) {
+      throw new Error(`Enrichment API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async createEnrichmentJob(
+    entityType: string,
+    entityId: number,
+    enrichmentType: EnrichmentJob['enrichment_type'],
+    inputData: Record<string, any>
+  ): Promise<EnrichmentJob> {
+    return await this.fetchAPI<EnrichmentJob>('/jobs', {
+      method: 'POST',
+      body: JSON.stringify({ entity_type: entityType, entity_id: entityId, enrichment_type: enrichmentType, input_data: inputData }),
+    });
+  }
+
+  async getEnrichmentJob(jobId: string): Promise<EnrichmentJob | null> {
+    try {
+      return await this.fetchAPI<EnrichmentJob>(`/jobs/${jobId}`);
+    } catch (error) {
+      console.error(`[enrichment] Error fetching job ${jobId}:`, error);
+      return null;
+    }
+  }
+
+  async processEnrichmentJob(jobId: string): Promise<void> {
+    await this.fetchAPI(`/jobs/${jobId}/process`, { method: 'POST' });
+  }
+
+  async processEnrichmentJobs(limit = 10): Promise<void> {
+    await this.fetchAPI(`/jobs/process?limit=${limit}`, { method: 'POST' });
+  }
+
+  async analyzeAudio(audioUri: string): Promise<AudioAnalysis> {
+    return await this.fetchAPI<AudioAnalysis>('/audio/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ audio_uri: audioUri }),
+    });
+  }
+
+  async extractAudioFeatures(entityType: string, entityId: number, audioUri: string): Promise<AudioFeatures> {
+    return await this.fetchAPI<AudioFeatures>('/audio/features', {
+      method: 'POST',
+      body: JSON.stringify({ entity_type: entityType, entity_id: entityId, audio_uri: audioUri }),
+    });
+  }
+
+  async generateEmbedding(entityType: string, entityId: number, content: string, embeddingType: string): Promise<Embedding> {
+    return await this.fetchAPI<Embedding>('/embeddings', {
+      method: 'POST',
+      body: JSON.stringify({ entity_type: entityType, entity_id: entityId, content, embedding_type: embeddingType }),
+    });
+  }
+
+  async findSimilarByEmbedding(vector: number[], limit = 10): Promise<Array<{ entity_type: string; entity_id: number; similarity: number }>> {
+    return await this.fetchAPI(`/embeddings/similar?limit=${limit}`, {
+      method: 'POST',
+      body: JSON.stringify({ vector }),
+    });
+  }
+
+  async classifyGenre(audioUri: string, metadata?: Record<string, any>): Promise<GenreClassification> {
+    return await this.fetchAPI<GenreClassification>('/genre/classify', {
+      method: 'POST',
+      body: JSON.stringify({ audio_uri: audioUri, metadata }),
+    });
+  }
+
+  async analyzeMood(audioUri: string, lyrics?: string): Promise<MoodAnalysis> {
+    return await this.fetchAPI<MoodAnalysis>('/mood/analyze', {
+      method: 'POST',
+      body: JSON.stringify({ audio_uri: audioUri, lyrics }),
+    });
+  }
+
+  async findSimilarTracks(trackId: number, limit = 10): Promise<SimilarityAnalysis> {
+    return await this.fetchAPI<SimilarityAnalysis>(`/similarity/tracks/${trackId}?limit=${limit}`);
+  }
+
+  async updateSimilarityIndex(entityType: string, entityId: number): Promise<void> {
+    await this.fetchAPI(`/similarity/index`, {
+      method: 'POST',
+      body: JSON.stringify({ entity_type: entityType, entity_id: entityId }),
+    });
+  }
+}
+
+// Factory function to create the appropriate service
+function createEnrichmentService(): EnrichmentService {
+  const apiUrl = process.env.EXPO_PUBLIC_ENRICHMENT_API_URL || process.env.ENRICHMENT_API_URL;
+  const apiKey = process.env.EXPO_PUBLIC_ENRICHMENT_API_KEY || process.env.ENRICHMENT_API_KEY;
+  
+  if (apiUrl && apiKey) {
+    console.log('[enrichment] Using real API service');
+    return new APIEnrichmentService();
+  } else {
+    console.log('[enrichment] Using mock service (no API credentials configured)');
+    return new MockEnrichmentService();
+  }
+}
+
 // Singleton instance
-export const enrichmentService = new MockEnrichmentService();
+export const enrichmentService = createEnrichmentService();

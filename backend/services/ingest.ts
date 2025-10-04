@@ -375,5 +375,133 @@ export class MockIngestService implements IngestService {
   }
 }
 
+// Real API implementation
+export class APIIngestService implements IngestService {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = process.env.EXPO_PUBLIC_INGEST_API_URL || process.env.INGEST_API_URL || '';
+    this.apiKey = process.env.EXPO_PUBLIC_INGEST_API_KEY || process.env.INGEST_API_KEY || '';
+    
+    if (!this.baseUrl) {
+      console.warn('[ingest] API URL not configured, using mock service');
+    }
+    if (!this.apiKey) {
+      console.warn('[ingest] API key not configured, using mock service');
+    }
+  }
+
+  private async fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    };
+
+    console.log(`[ingest] Fetching: ${url}`);
+    const response = await fetch(url, { ...options, headers });
+
+    if (!response.ok) {
+      throw new Error(`Ingest API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async createJob(
+    source: string,
+    sourceId: string,
+    entityType: string,
+    op: 'create' | 'update' | 'delete',
+    payload: Record<string, any>,
+    checksum?: string
+  ): Promise<IngestJob> {
+    return await this.fetchAPI<IngestJob>('/jobs', {
+      method: 'POST',
+      body: JSON.stringify({ source, source_id: sourceId, entity_type: entityType, op, payload, checksum }),
+    });
+  }
+
+  async getJob(jobId: string): Promise<IngestJob | null> {
+    try {
+      return await this.fetchAPI<IngestJob>(`/jobs/${jobId}`);
+    } catch (error) {
+      console.error(`[ingest] Error fetching job ${jobId}:`, error);
+      return null;
+    }
+  }
+
+  async updateJobStatus(jobId: string, status: IngestJob['status'], error?: string): Promise<void> {
+    await this.fetchAPI(`/jobs/${jobId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status, error }),
+    });
+  }
+
+  async registerSource(source: IngestSource): Promise<void> {
+    await this.fetchAPI('/sources', {
+      method: 'POST',
+      body: JSON.stringify(source),
+    });
+  }
+
+  async getSource(name: string): Promise<IngestSource | null> {
+    try {
+      return await this.fetchAPI<IngestSource>(`/sources/${name}`);
+    } catch (error) {
+      console.error(`[ingest] Error fetching source ${name}:`, error);
+      return null;
+    }
+  }
+
+  async processJob(jobId: string): Promise<void> {
+    await this.fetchAPI(`/jobs/${jobId}/process`, { method: 'POST' });
+  }
+
+  async processJobs(limit = 10): Promise<void> {
+    await this.fetchAPI(`/jobs/process?limit=${limit}`, { method: 'POST' });
+  }
+
+  async processDDEXRelease(deliveryId: string, release: DDEXRelease): Promise<string> {
+    const result = await this.fetchAPI<{ job_id: string }>('/ddex/releases', {
+      method: 'POST',
+      body: JSON.stringify({ delivery_id: deliveryId, release }),
+    });
+    return result.job_id;
+  }
+
+  async processRSSFeed(feedUrl: string, feed: RSSFeed): Promise<string> {
+    const result = await this.fetchAPI<{ job_id: string }>('/rss/feeds', {
+      method: 'POST',
+      body: JSON.stringify({ feed_url: feedUrl, feed }),
+    });
+    return result.job_id;
+  }
+
+  async processMusicBrainzArtist(mbid: string, artist: MusicBrainzArtist): Promise<string> {
+    const result = await this.fetchAPI<{ job_id: string }>('/musicbrainz/artists', {
+      method: 'POST',
+      body: JSON.stringify({ mbid, artist }),
+    });
+    return result.job_id;
+  }
+}
+
+// Factory function to create the appropriate service
+function createIngestService(): IngestService {
+  const apiUrl = process.env.EXPO_PUBLIC_INGEST_API_URL || process.env.INGEST_API_URL;
+  const apiKey = process.env.EXPO_PUBLIC_INGEST_API_KEY || process.env.INGEST_API_KEY;
+  
+  if (apiUrl && apiKey) {
+    console.log('[ingest] Using real API service');
+    return new APIIngestService();
+  } else {
+    console.log('[ingest] Using mock service (no API credentials configured)');
+    return new MockIngestService();
+  }
+}
+
 // Singleton instance
-export const ingestService = new MockIngestService();
+export const ingestService = createIngestService();

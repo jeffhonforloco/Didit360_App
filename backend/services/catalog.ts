@@ -535,5 +535,196 @@ export class MockCatalogService implements CatalogService {
   }
 }
 
+// Real API implementation
+export class APICatalogService implements CatalogService {
+  private baseUrl: string;
+  private apiKey: string;
+
+  constructor() {
+    this.baseUrl = process.env.EXPO_PUBLIC_CATALOG_API_URL || process.env.CATALOG_API_URL || '';
+    this.apiKey = process.env.EXPO_PUBLIC_CATALOG_API_KEY || process.env.CATALOG_API_KEY || '';
+    
+    if (!this.baseUrl) {
+      console.warn('[catalog] API URL not configured, using mock service');
+    }
+    if (!this.apiKey) {
+      console.warn('[catalog] API key not configured, using mock service');
+    }
+  }
+
+  private async fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const headers = {
+      'Authorization': `Bearer ${this.apiKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    };
+
+    console.log(`[catalog] Fetching: ${url}`);
+    const response = await fetch(url, { ...options, headers });
+
+    if (!response.ok) {
+      throw new Error(`Catalog API error: ${response.status} ${response.statusText}`);
+    }
+
+    return response.json();
+  }
+
+  async getTrack(id: string): Promise<Track | null> {
+    try {
+      return await this.fetchAPI<Track>(`/tracks/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching track ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getVideo(id: string): Promise<Video | null> {
+    try {
+      return await this.fetchAPI<Video>(`/videos/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching video ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getArtist(id: string): Promise<Artist | null> {
+    try {
+      return await this.fetchAPI<Artist>(`/artists/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching artist ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getRelease(id: string): Promise<Release | null> {
+    try {
+      return await this.fetchAPI<Release>(`/releases/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching release ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getPodcast(id: string): Promise<Podcast | null> {
+    try {
+      return await this.fetchAPI<Podcast>(`/podcasts/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching podcast ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getEpisode(id: string): Promise<Episode | null> {
+    try {
+      return await this.fetchAPI<Episode>(`/episodes/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching episode ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getBook(id: string): Promise<Book | null> {
+    try {
+      return await this.fetchAPI<Book>(`/books/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching book ${id}:`, error);
+      return null;
+    }
+  }
+
+  async getAudiobook(id: string): Promise<Audiobook | null> {
+    try {
+      return await this.fetchAPI<Audiobook>(`/audiobooks/${id}`);
+    } catch (error) {
+      console.error(`[catalog] Error fetching audiobook ${id}:`, error);
+      return null;
+    }
+  }
+
+  async search(query: string, type = 'all', limit = 20, offset = 0): Promise<{
+    results: Array<{
+      id: string;
+      type: string;
+      title: string;
+      subtitle?: string;
+      artwork?: string;
+      version: number;
+    }>;
+    total: number;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        q: query,
+        type,
+        limit: limit.toString(),
+        offset: offset.toString(),
+      });
+      return await this.fetchAPI(`/search?${params}`);
+    } catch (error) {
+      console.error('[catalog] Error searching:', error);
+      return { results: [], total: 0 };
+    }
+  }
+
+  async getUpdates(since: string, until: string, limit: number): Promise<{
+    events: UpdateEvent[];
+    next_since: string;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        since,
+        until,
+        limit: limit.toString(),
+      });
+      return await this.fetchAPI(`/updates?${params}`);
+    } catch (error) {
+      console.error('[catalog] Error fetching updates:', error);
+      return { events: [], next_since: until };
+    }
+  }
+
+  async checkRights(entityType: string, entityId: string, country: string, explicitOk: boolean): Promise<{
+    allowed: boolean;
+    reason?: string;
+  }> {
+    try {
+      const params = new URLSearchParams({
+        entity_type: entityType,
+        entity_id: entityId,
+        country,
+        explicit_ok: explicitOk.toString(),
+      });
+      return await this.fetchAPI(`/rights/check?${params}`);
+    } catch (error) {
+      console.error('[catalog] Error checking rights:', error);
+      return { allowed: false, reason: 'api_error' };
+    }
+  }
+
+  async getAudioFeatures(entityType: string, entityId: string): Promise<AudioFeatures | null> {
+    try {
+      return await this.fetchAPI<AudioFeatures>(`/audio-features/${entityType}/${entityId}`);
+    } catch (error) {
+      console.error('[catalog] Error fetching audio features:', error);
+      return null;
+    }
+  }
+}
+
+// Factory function to create the appropriate service
+function createCatalogService(): CatalogService {
+  const apiUrl = process.env.EXPO_PUBLIC_CATALOG_API_URL || process.env.CATALOG_API_URL;
+  const apiKey = process.env.EXPO_PUBLIC_CATALOG_API_KEY || process.env.CATALOG_API_KEY;
+  
+  if (apiUrl && apiKey) {
+    console.log('[catalog] Using real API service');
+    return new APICatalogService();
+  } else {
+    console.log('[catalog] Using mock service (no API credentials configured)');
+    return new MockCatalogService();
+  }
+}
+
 // Singleton instance
-export const catalogService = new MockCatalogService();
+export const catalogService = createCatalogService();
