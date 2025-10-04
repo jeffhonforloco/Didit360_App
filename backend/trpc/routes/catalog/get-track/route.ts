@@ -38,7 +38,7 @@ export const getTrackProcedure = publicProcedure
     
     // Mock track data
     if (input.id === 'track-1' || input.id === '1') {
-      return {
+      const track: CatalogTrack = {
         id: '1',
         canonical_id: 'track:sunset',
         isrc: 'USRC17607839',
@@ -50,7 +50,7 @@ export const getTrackProcedure = publicProcedure
         disc_no: 1,
         preview_uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
         stream_uri: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        media_type: 'audio' as const,
+        media_type: 'audio',
         genres: ['synthwave', 'electronic'],
         external_ids: { spotify: 'spotify:track:123' },
         metadata: { mood: 'chill', energy: 'medium' },
@@ -89,7 +89,7 @@ export const getTrackProcedure = publicProcedure
           id: 'release-1',
           canonical_id: 'release:neon-nights',
           title: 'Neon Nights',
-          release_type: 'album' as const,
+          release_type: 'album',
           cover_uri: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop',
           genres: ['synthwave', 'electronic'],
           territories: ['US', 'CA', 'GB'],
@@ -102,6 +102,7 @@ export const getTrackProcedure = publicProcedure
           quality_score: 0.85,
         },
       };
+      return track;
     }
     
     console.log(`[catalog] Track not found: ${input.id}`);
