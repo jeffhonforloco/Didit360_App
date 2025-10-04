@@ -13,16 +13,19 @@ export function catalogTrackToUITrack(
   artists?: Artist[],
   release?: Release
 ): UITrack {
-  const artistNames = artists?.map(a => a.name).join(", ") || "Unknown Artist";
-  const artwork = release?.cover_uri || 
-    (artists?.[0]?.images?.[0]?.uri) || 
+  const trackArtists = artists || catalogTrack.artists || [];
+  const trackRelease = release || catalogTrack.release;
+  
+  const artistNames = trackArtists.map(a => a.name).join(", ") || "Unknown Artist";
+  const artwork = trackRelease?.cover_uri || 
+    (trackArtists[0]?.images?.[0]?.uri) || 
     "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop";
 
   return {
-    id: catalogTrack.canonical_id || catalogTrack.id.toString(),
+    id: catalogTrack.canonical_id || catalogTrack.id,
     title: catalogTrack.title,
     artist: artistNames,
-    album: release?.title,
+    album: trackRelease?.title,
     artwork,
     duration: catalogTrack.duration_ms ? Math.floor(catalogTrack.duration_ms / 1000) : 0,
     type: "song",
