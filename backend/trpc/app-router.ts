@@ -72,6 +72,34 @@ import { generateTrackEmbeddingProcedure, findSimilarTracksProcedure, semanticSe
 // News
 import { fetchNewsProcedure } from "./routes/news/fetch-news/route";
 
+// Playlists
+import { getPlaylistsProcedure } from "./routes/playlists/get-playlists/route";
+import { getPlaylistProcedure } from "./routes/playlists/get-playlist/route";
+import { createPlaylistProcedure } from "./routes/playlists/create-playlist/route";
+import { updatePlaylistProcedure } from "./routes/playlists/update-playlist/route";
+import { deletePlaylistProcedure } from "./routes/playlists/delete-playlist/route";
+
+// Tracks
+import { getTracksProcedure } from "./routes/tracks/get-tracks/route";
+import { getTrackByIdProcedure } from "./routes/tracks/get-track-by-id/route";
+import { createTrackProcedure } from "./routes/tracks/create-track/route";
+import { updateTrackProcedure } from "./routes/tracks/update-track/route";
+import { deleteTrackProcedure } from "./routes/tracks/delete-track/route";
+
+// Albums
+import { getAlbumsProcedure } from "./routes/albums/get-albums/route";
+import { getAlbumProcedure } from "./routes/albums/get-album/route";
+import { createAlbumProcedure } from "./routes/albums/create-album/route";
+import { updateAlbumProcedure } from "./routes/albums/update-album/route";
+import { deleteAlbumProcedure } from "./routes/albums/delete-album/route";
+
+// Artists
+import { getArtistsProcedure } from "./routes/artists/get-artists/route";
+import { getArtistByIdProcedure } from "./routes/artists/get-artist/route";
+import { createArtistProcedure } from "./routes/artists/create-artist/route";
+import { updateArtistProcedure } from "./routes/artists/update-artist/route";
+import { deleteArtistProcedure } from "./routes/artists/delete-artist/route";
+
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
@@ -180,6 +208,34 @@ export const appRouter = createTRPCRouter({
   }),
   news: createTRPCRouter({
     fetchNews: fetchNewsProcedure,
+  }),
+  playlists: createTRPCRouter({
+    getPlaylists: getPlaylistsProcedure,
+    getPlaylist: getPlaylistProcedure,
+    createPlaylist: createPlaylistProcedure,
+    updatePlaylist: updatePlaylistProcedure,
+    deletePlaylist: deletePlaylistProcedure,
+  }),
+  tracks: createTRPCRouter({
+    getTracks: getTracksProcedure,
+    getTrackById: getTrackByIdProcedure,
+    createTrack: createTrackProcedure,
+    updateTrack: updateTrackProcedure,
+    deleteTrack: deleteTrackProcedure,
+  }),
+  albums: createTRPCRouter({
+    getAlbums: getAlbumsProcedure,
+    getAlbum: getAlbumProcedure,
+    createAlbum: createAlbumProcedure,
+    updateAlbum: updateAlbumProcedure,
+    deleteAlbum: deleteAlbumProcedure,
+  }),
+  artists: createTRPCRouter({
+    getArtists: getArtistsProcedure,
+    getArtist: getArtistByIdProcedure,
+    createArtist: createArtistProcedure,
+    updateArtist: updateArtistProcedure,
+    deleteArtist: deleteArtistProcedure,
   }),
 });
 
