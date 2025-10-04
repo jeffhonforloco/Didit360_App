@@ -292,48 +292,97 @@ export interface CatalogService {
 
 // Mock implementation for development
 export class MockCatalogService implements CatalogService {
-  private mockTracks = new Map<string, Track>([
-    ['track-1', {
-      id: 1,
-      canonical_id: 'track:sunset',
-      title: 'Sunset',
-      duration_ms: 240000,
-      explicit: false,
-      track_no: 1,
-      disc_no: 1,
-      preview_uri: 'https://example.com/preview/sunset.mp3',
-      media_type: 'audio' as const,
-      genres: ['synthwave', 'electronic'],
-      external_ids: {},
-      metadata: {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      version: 1,
-      etag: '"abc123"',
-      is_active: true,
-      quality_score: 0.8,
-    }],
-    ['track-2', {
-      id: 2,
-      canonical_id: 'track:get-lucky',
-      title: 'Get Lucky',
-      duration_ms: 367000,
-      explicit: false,
-      track_no: 8,
-      disc_no: 1,
-      preview_uri: 'https://example.com/preview/get-lucky.mp3',
-      media_type: 'audio' as const,
-      genres: ['electronic', 'disco'],
-      external_ids: {},
-      metadata: {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      version: 1,
-      etag: '"def456"',
-      is_active: true,
-      quality_score: 0.9,
-    }],
-  ]);
+  private mockTracks = new Map<string, Track>();
+  
+  constructor() {
+    this.initializeMockData();
+  }
+  
+  private initializeMockData() {
+    const mockUITracks = [
+      {
+        id: "1",
+        title: "Midnight Dreams",
+        artist: "Luna Echo",
+        album: "Celestial Vibes",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        duration: 225,
+        type: "song",
+      },
+      {
+        id: "2",
+        title: "Electric Pulse",
+        artist: "Neon Waves",
+        album: "Digital Horizon",
+        artwork: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=400&h=400&fit=crop",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        duration: 198,
+        type: "song",
+      },
+      {
+        id: "3",
+        title: "Golden Hour",
+        artist: "Sunset Boulevard",
+        album: "California Dreams",
+        artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        duration: 242,
+        type: "song",
+      },
+      {
+        id: "4",
+        title: "Lost in Tokyo",
+        artist: "Urban Nights",
+        album: "City Lights",
+        artwork: "https://via.placeholder.com/400x400/f7dc6f/ffffff?text=🎵",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+        duration: 186,
+        type: "song",
+      },
+      {
+        id: "5",
+        title: "Ocean Waves",
+        artist: "Coastal Breeze",
+        album: "Seaside Sessions",
+        artwork: "https://via.placeholder.com/400x400/bb8fce/ffffff?text=🎵",
+        audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+        duration: 210,
+        type: "song",
+      },
+    ];
+    
+    mockUITracks.forEach((uiTrack, index) => {
+      const track: Track = {
+        id: index + 1,
+        canonical_id: `track:${uiTrack.id}`,
+        title: uiTrack.title,
+        duration_ms: uiTrack.duration * 1000,
+        explicit: false,
+        track_no: 1,
+        disc_no: 1,
+        preview_uri: uiTrack.audioUrl,
+        stream_uri: uiTrack.audioUrl,
+        media_type: 'audio' as const,
+        genres: ['pop', 'electronic'],
+        external_ids: {},
+        metadata: {
+          artist: uiTrack.artist,
+          album: uiTrack.album,
+          artwork: uiTrack.artwork,
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        version: 1,
+        etag: `"${uiTrack.id}"`,
+        is_active: true,
+        quality_score: 0.85,
+      };
+      
+      this.mockTracks.set(`track:${uiTrack.id}`, track);
+      this.mockTracks.set(uiTrack.id, track);
+    });
+  }
 
   private mockVideos = new Map<string, Video>([
     ['video-1', {

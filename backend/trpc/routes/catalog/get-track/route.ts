@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { publicProcedure } from "@/backend/trpc/create-context";
 import type { CatalogTrack } from "@/types/catalog";
-import { allTracks } from "@/data/mockData";
+import { catalogService } from "@/backend/services/catalog";
 
 const TrackSchema = z.object({
   id: z.string(),
@@ -25,8 +25,43 @@ const TrackSchema = z.object({
   etag: z.string().optional(),
   is_active: z.boolean(),
   quality_score: z.number(),
-  artists: z.array(z.any()).optional(),
-  release: z.any().optional(),
+  artists: z.array(z.object({
+    id: z.string(),
+    canonical_id: z.string(),
+    name: z.string(),
+    genres: z.array(z.string()),
+    images: z.array(z.object({
+      id: z.string(),
+      entity_type: z.string(),
+      entity_id: z.string(),
+      purpose: z.string(),
+      uri: z.string(),
+      created_at: z.string(),
+    })),
+    external_ids: z.record(z.string(), z.string()),
+    metadata: z.record(z.string(), z.any()),
+    created_at: z.string(),
+    updated_at: z.string(),
+    version: z.number(),
+    is_active: z.boolean(),
+    quality_score: z.number(),
+  })).optional(),
+  release: z.object({
+    id: z.string(),
+    canonical_id: z.string(),
+    title: z.string(),
+    release_type: z.string(),
+    cover_uri: z.string().optional(),
+    genres: z.array(z.string()),
+    territories: z.array(z.string()),
+    external_ids: z.record(z.string(), z.string()),
+    metadata: z.record(z.string(), z.any()),
+    created_at: z.string(),
+    updated_at: z.string(),
+    version: z.number(),
+    is_active: z.boolean(),
+    quality_score: z.number(),
+  }).optional(),
   audio_features: z.any().optional(),
 });
 
@@ -36,77 +71,78 @@ export const getTrackProcedure = publicProcedure
   .query(async ({ input }): Promise<CatalogTrack | null> => {
     console.log(`[catalog] Getting track: ${input.id}`);
     
-    const uiTrack = allTracks.find(t => t.id === input.id && (t.type === 'song' || t.type === 'podcast' || t.type === 'audiobook'));
-    
-    if (!uiTrack) {
-      console.log(`[catalog] Track not found: ${input.id}`);
-      return null;
-    }
+    try {
+      const track = await catalogService.getTrack(input.id);
+      
+      if (!track) {
+        console.log(`[catalog] Track not found: ${input.id}`);
+        return null;
+      }
 
-    const track: CatalogTrack = {
-      id: uiTrack.id,
-      canonical_id: `track:${uiTrack.id}`,
-      isrc: `ISRC${uiTrack.id.toUpperCase()}`,
-      title: uiTrack.title,
-      release_id: uiTrack.album ? `release-${uiTrack.id}` : undefined,
-      duration_ms: uiTrack.duration * 1000,
-      explicit: false,
-      track_no: 1,
-      disc_no: 1,
-      preview_uri: uiTrack.audioUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      stream_uri: uiTrack.audioUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-      media_type: 'audio',
-      genres: ['pop', 'electronic'],
-      external_ids: {},
-      metadata: {},
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      version: 1,
-      etag: `"${uiTrack.id}"`,
-      is_active: true,
-      quality_score: 0.85,
-      artists: [
-        {
-          id: `artist-${uiTrack.id}`,
-          canonical_id: `artist:${uiTrack.artist.toLowerCase().replace(/\s+/g, '-')}`,
-          name: uiTrack.artist,
-          genres: ['pop', 'electronic'],
-          images: [
-            {
-              id: `img-${uiTrack.id}`,
-              entity_type: 'artist' as const,
-              entity_id: `artist-${uiTrack.id}`,
-              purpose: 'profile' as const,
-              uri: uiTrack.artwork,
-              created_at: new Date().toISOString(),
-            }
-          ],
+      const catalogTrack: CatalogTrack = {
+        id: track.canonical_id,
+        canonical_id: track.canonical_id,
+        isrc: track.isrc,
+        title: track.title,
+        release_id: track.release_id?.toString(),
+        duration_ms: track.duration_ms,
+        explicit: track.explicit,
+        track_no: track.track_no,
+        disc_no: track.disc_no,
+        preview_uri: track.preview_uri,
+        stream_uri: track.stream_uri,
+        media_type: 'audio',
+        genres: track.genres,
+        external_ids: track.external_ids,
+        metadata: track.metadata,
+        created_at: track.created_at,
+        updated_at: track.updated_at,
+        version: track.version,
+        etag: track.etag,
+        is_active: track.is_active,
+        quality_score: track.quality_score,
+        artists: track.metadata.artist ? [{
+          id: `artist-${track.id}`,
+          canonical_id: `artist:${track.metadata.artist.toLowerCase().replace(/\s+/g, '-')}`,
+          name: track.metadata.artist,
+          genres: track.genres,
+          images: [{
+            id: `img-${track.id}`,
+            entity_type: 'artist' as const,
+            entity_id: `artist-${track.id}`,
+            purpose: 'profile' as const,
+            uri: track.metadata.artwork || '',
+            created_at: track.created_at,
+          }],
           external_ids: {},
           metadata: {},
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: track.created_at,
+          updated_at: track.updated_at,
           version: 1,
           is_active: true,
           quality_score: 0.9,
-        }
-      ],
-      release: uiTrack.album ? {
-        id: `release-${uiTrack.id}`,
-        canonical_id: `release:${uiTrack.album.toLowerCase().replace(/\s+/g, '-')}`,
-        title: uiTrack.album,
-        release_type: 'album' as const,
-        cover_uri: uiTrack.artwork,
-        genres: ['pop', 'electronic'],
-        territories: ['US', 'CA', 'GB'],
-        external_ids: {},
-        metadata: {},
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        version: 1,
-        is_active: true,
-        quality_score: 0.85,
-      } : undefined,
-    };
-    
-    return track;
+        }] : undefined,
+        release: track.metadata.album ? {
+          id: `release-${track.id}`,
+          canonical_id: `release:${track.metadata.album.toLowerCase().replace(/\s+/g, '-')}`,
+          title: track.metadata.album,
+          release_type: 'album' as const,
+          cover_uri: track.metadata.artwork || '',
+          genres: track.genres,
+          territories: ['US', 'CA', 'GB'],
+          external_ids: {},
+          metadata: {},
+          created_at: track.created_at,
+          updated_at: track.updated_at,
+          version: 1,
+          is_active: true,
+          quality_score: 0.85,
+        } : undefined,
+      };
+      
+      return catalogTrack;
+    } catch (error) {
+      console.error('[catalog] Error getting track:', error);
+      return null;
+    }
   });
