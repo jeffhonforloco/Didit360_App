@@ -11,7 +11,7 @@ const TrackSchema = z.object({
   track_no: z.number().optional(),
   disc_no: z.number(),
   preview_uri: z.string().optional(),
-  media_type: z.string(),
+  media_type: z.literal('audio'),
   genres: z.array(z.string()),
   external_ids: z.record(z.string(), z.string()),
   metadata: z.record(z.string(), z.any()),
