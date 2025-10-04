@@ -70,100 +70,6 @@ export const getArtistsProcedure = publicProcedure
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      {
-        id: "artist-4",
-        name: "Space Voyager",
-        bio: "Cosmic electronic music explorer",
-        genre: "Electronic",
-        image: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800",
-        verified: true,
-        followers: 210000,
-        monthlyListeners: 680000,
-        albumCount: 8,
-        trackCount: 72,
-        popularity: 91,
-        socialLinks: {
-          instagram: "https://instagram.com/spacevoyager",
-          spotify: "https://open.spotify.com/artist/456",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "artist-5",
-        name: "Urban Echo",
-        bio: "City sounds and urban beats",
-        genre: "Hip Hop",
-        image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800",
-        verified: true,
-        followers: 156000,
-        monthlyListeners: 520000,
-        albumCount: 4,
-        trackCount: 38,
-        popularity: 86,
-        socialLinks: {
-          instagram: "https://instagram.com/urbanecho",
-          twitter: "https://twitter.com/urbanecho",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "artist-6",
-        name: "Sandstorm",
-        bio: "Desert rock and alternative sounds",
-        genre: "Rock",
-        image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800",
-        verified: false,
-        followers: 67000,
-        monthlyListeners: 240000,
-        albumCount: 6,
-        trackCount: 54,
-        popularity: 79,
-        socialLinks: {
-          spotify: "https://open.spotify.com/artist/789",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "artist-7",
-        name: "Alpine Sound",
-        bio: "Mountain-inspired ambient music",
-        genre: "Ambient",
-        image: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=800",
-        verified: false,
-        followers: 52000,
-        monthlyListeners: 195000,
-        albumCount: 9,
-        trackCount: 68,
-        popularity: 73,
-        socialLinks: {
-          spotify: "https://open.spotify.com/artist/101",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      {
-        id: "artist-8",
-        name: "Synthwave Collective",
-        bio: "Retro-futuristic synthwave group",
-        genre: "Synthwave",
-        image: "https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?w=800",
-        verified: true,
-        followers: 189000,
-        monthlyListeners: 610000,
-        albumCount: 5,
-        trackCount: 45,
-        popularity: 93,
-        socialLinks: {
-          instagram: "https://instagram.com/synthwavecollective",
-          twitter: "https://twitter.com/synthwavecollective",
-          spotify: "https://open.spotify.com/artist/202",
-        },
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
     ];
 
     let filteredArtists = mockArtists;
@@ -177,13 +83,10 @@ export const getArtistsProcedure = publicProcedure
       input.offset + input.limit
     );
 
-    const uiArtists = paginatedArtists.map(artist => ({
-      id: artist.id,
-      name: artist.name,
-      image: artist.image,
-      followers: artist.followers.toLocaleString(),
-      verified: artist.verified,
-    }));
-
-    return uiArtists;
+    return {
+      artists: paginatedArtists,
+      total: filteredArtists.length,
+      limit: input.limit,
+      offset: input.offset,
+    };
   });

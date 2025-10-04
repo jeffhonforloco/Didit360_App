@@ -51,15 +51,15 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   const [totalResults, setTotalResults] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(false);
 
-  // Debounce search query (optimized to 500ms for better performance)
+  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery.trim());
-    }, 500);
+    }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Search query using tRPC with pagination support and better error handling
+  // Search query using tRPC with pagination support
   const searchQueryTRPC = trpc.catalog.search.useQuery(
     { 
       q: debouncedQuery, 
@@ -69,10 +69,9 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
     },
     { 
       enabled: debouncedQuery.length > 0,
-      staleTime: 30000,
+      staleTime: 30000, // Cache results for 30 seconds
       refetchOnWindowFocus: false,
-      retry: 3,
-      retryDelay: (attemptIndex: number) => Math.min(1000 * 2 ** attemptIndex, 30000)
+      retry: 2
     }
   );
 
@@ -99,20 +98,16 @@ export const [SearchContext, useSearch] = createContextHook<SearchState>(() => {
   }, [searchQueryTRPC.data, currentOffset]);
 
   const searchResults = useMemo(() => {
-    if (!searchQueryTRPC.data || !Array.isArray(searchQueryTRPC.data)) {
-      console.log('[SearchContext] No valid search data');
-      return [];
-    }
+    if (!searchQueryTRPC.data) return [];
     
-    // Type-safe result mapping with validation
-    return searchQueryTRPC.data
-      .filter(item => item && typeof item === 'object' && 'id' in item && 'type' in item)
-      .map(item => ({
-        ...item,
-        relevance_score: typeof item.relevance_score === 'number' ? item.relevance_score : 0.8,
-        canonical_id: item.canonical_id || `${item.type}:${item.id}`,
-        quality_score: typeof item.quality_score === 'number' ? item.quality_score : 0.8
-      })) as SearchResult[];
+    // Type-safe result mapping
+    return searchQueryTRPC.data.map(item => ({
+      ...item,
+      // Ensure all required SearchResult fields are present
+      relevance_score: item.relevance_score ?? 0.8,
+      canonical_id: item.canonical_id || `${item.type}:${item.id}`,
+      quality_score: item.quality_score ?? 0.8
+    })) as SearchResult[];
   }, [searchQueryTRPC.data]);
 
   const isSearching = searchQueryTRPC.isLoading;

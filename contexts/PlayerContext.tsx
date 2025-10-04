@@ -51,35 +51,12 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   const GUEST_LIMIT_MS = 180000;
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const initializePlayer = async () => {
-      if (!isMounted) return;
-      
-      try {
-        await loadLastPlayed();
-      } catch (error) {
-        console.error('[Player] Failed to load last played:', error);
-      }
-      
-      // Initialize audio engine in background
-      setTimeout(() => {
-        if (!isMounted) return;
-        audioEngine.configure()
-          .then(() => {
-            if (isMounted) {
-              return audioEngine.setVolume(1.0);
-            }
-          })
-          .catch((e) => console.error('[Player] Audio engine init error:', e));
-      }, 100);
-    };
-    
-    initializePlayer();
-    
-    return () => {
-      isMounted = false;
-    };
+    loadLastPlayed();
+    // Initialize audio engine in background
+    setTimeout(() => {
+      audioEngine.configure().catch((e) => console.log('[Player] Audio engine init error', e));
+      audioEngine.setVolume(1.0).catch((e) => console.log('[Player] Initial volume set error', e));
+    }, 100);
   }, []);
 
   useEffect(() => {
@@ -211,7 +188,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         }
       }, 0);
     }
-  }, [startGuestTimer, addToHistory, saveLastPlayed]);
+  }, [startGuestTimer]);
 
   const togglePlayPause = useCallback(async () => {
     console.log('[Player] ===== TOGGLE PLAY/PAUSE CALLED =====');
@@ -392,7 +369,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     }
     
     console.log('[Player] ===== SKIP NEXT FINISHED =====');
-  }, [queue, startGuestTimer, currentTrack, subscription, saveLastPlayed]);
+  }, [queue, startGuestTimer, saveLastPlayed, currentTrack, subscription]);
 
   const skipPrevious = useCallback(async () => {
     console.log('[Player] ===== SKIP PREVIOUS CALLED =====');
@@ -490,69 +467,70 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    
     audioEngine.setEvents({
       onTrackStart: (t) => {
-        if (!isMounted) return;
         console.log('[AudioEngine] started', t.title);
-        
+        // Immediate UI update
         setCurrentTrack((prev) => {
           if (!prev || prev.id !== t.id) return t;
           return prev;
         });
-        setIsPlaying(true);
+        setIsPlaying(true); // Ensure UI state matches audio engine
         
-        audioEngine.setVolume(1.0).catch((e) => console.error('[Player] track start volume error:', e));
+        // Ensure volume is set when track starts
+        audioEngine.setVolume(1.0).catch((e) => console.log('[Player] track start volume error', e));
         
+        // Handle queue and preloading asynchronously
         setTimeout(() => {
-          if (!isMounted) return;
           setQueue((prev) => {
             if (prev.length > 0 && prev[0].id === t.id) {
               const remaining = prev.slice(1);
               if (remaining[0]) {
-                audioEngine.preload(remaining[0]).catch((e) => console.error('[Player] preload error:', e));
+                audioEngine.preload(remaining[0]).catch((e) => console.log('[Player] preload next after start error', e));
               }
-              saveLastPlayed(t).catch((e: unknown) => console.error('[Player] save last played error:', e));
+              saveLastPlayed(t);
               return remaining;
             }
             if (prev[0]) {
-              audioEngine.preload(prev[0]).catch((e) => console.error('[Player] preload ensure error:', e));
+              // ensure next is preloaded
+              audioEngine.preload(prev[0]).catch((e) => console.log('[Player] preload next ensure error', e));
             }
             return prev;
           });
         }, 0);
       },
       onTrackEnd: (t) => {
-        if (!isMounted) return;
         console.log('[AudioEngine] ended', t.title);
         if (queue.length > 0) {
           const nxt = queue[0];
+          // Immediate UI updates
           setCurrentTrack(nxt);
           setQueue((prev) => prev.slice(1));
-          setTimeout(() => {
-            if (isMounted) {
-              saveLastPlayed(nxt).catch((e: unknown) => console.error('[Player] save error:', e));
-            }
-          }, 0);
+          // Async storage
+          setTimeout(() => saveLastPlayed(nxt), 0);
         } else if (GUEST_LIMIT_MS > 0) {
           setIsPlaying(false);
         }
       },
       onError: (e) => {
-        if (!isMounted) return;
-        console.error('[AudioEngine] error:', e);
-        setIsPlaying(false);
+        console.log('[AudioEngine] error', e);
+        setIsPlaying(false); // Stop playing on error
       },
       onStateChange: (state) => {
-        if (!isMounted) return;
         console.log('[AudioEngine] state changed to:', state);
+        // Sync UI state with audio engine state, but only for non-video tracks
         const track = audioEngine.getCurrentTrack();
         if (track && track.type !== 'video' && !track.isVideo && !track.videoUrl) {
+          // Only update UI state if the engine track matches our current track
           if (currentTrack && track.id === currentTrack.id) {
             if (state === 'playing') {
+              console.log('[AudioEngine] Setting UI to playing state');
               setIsPlaying(true);
-            } else if (state === 'paused' || state === 'stopped' || state === 'error') {
+            } else if (state === 'paused' || state === 'stopped') {
+              console.log('[AudioEngine] Setting UI to paused state');
+              setIsPlaying(false);
+            } else if (state === 'error') {
+              console.log('[AudioEngine] Setting UI to paused state due to error');
               setIsPlaying(false);
             }
           }
@@ -560,15 +538,12 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       },
     });
     
+    // Configure audio engine preferences
     const crossfadeMs = (settings.crossfadeSeconds ?? 0) * 1000;
     audioEngine.setContentPrefs('song', { crossfadeMs, gapless: settings.gaplessPlayback });
     audioEngine.setContentPrefs('podcast', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('audiobook', { crossfadeMs: 0, gapless: false });
     audioEngine.setContentPrefs('video', { crossfadeMs: 0, gapless: false });
-    
-    return () => {
-      isMounted = false;
-    };
   }, [queue, settings.crossfadeSeconds, settings.gaplessPlayback, currentTrack]);
 
   return {

@@ -14,7 +14,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { Play, MoreVertical, Bell, Search, ChevronRight, Settings as SettingsIcon, TrendingUp, Sparkles, Music2, Headphones, Mic2, BookOpen, Video, Radio, Clock, Flame, Star, Zap, Heart, PlayCircle } from "lucide-react-native";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { router } from "expo-router";
-import { genres, browseCategories } from "@/data/mockData";
+import { recentlyPlayed, topCharts, newReleases, podcasts, audiobooks, genres, trendingNow, browseCategories, livePerformanceVideos, trendingVideos, popularArtists, allTracks } from "@/data/mockData";
 import type { Track } from "@/types";
 import type { CategoryItem } from "@/data/mockData";
 import { useUser } from "@/contexts/UserContext";
@@ -33,27 +33,18 @@ export default function HomeScreen() {
   const { recentlyPlayed: userRecentlyPlayed } = useLibrary();
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
-  
-  const featuredQuery = trpc.catalog.getFeatured.useQuery({ limit: 50 });
-  const tracksQuery = trpc.tracks.getTracks.useQuery({ limit: 100 });
-  const artistsQuery = trpc.artists.getArtists.useQuery({ limit: 20 });
-  const albumsQuery = trpc.albums.getAlbums.useQuery({ limit: 20 });
 
   useEffect(() => {
     const generatePersonalizedContent = () => {
       const sections: any[] = [];
       
-      const allTracks = tracksQuery.data || [];
-      const allArtists = artistsQuery.data || [];
-      const featured = featuredQuery.data || [];
-      
       if (!currentTrack) {
         sections.push(
-          { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: featured.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
-          { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: allArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
-          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: allTracks.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
-          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: allTracks.filter(t => t.type === 'video').slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
-          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: featured.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
+          { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: trendingNow.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
+          { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: popularArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
+          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
+          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
+          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
         return sections;
       }
@@ -63,7 +54,7 @@ export default function HomeScreen() {
       const trackArtist = currentTrack.artist || '';
 
       if (trackType === 'song') {
-        const similarSongs = allTracks.filter((t: Track) => 
+        const similarSongs = allTracks.filter(t => 
           t.type === 'song' && 
           t.id !== currentTrack.id &&
           (t.artist === trackArtist || t.album === trackGenre)
@@ -79,7 +70,7 @@ export default function HomeScreen() {
           });
         }
 
-        const sameArtist = allTracks.filter((t: Track) => 
+        const sameArtist = allTracks.filter(t => 
           t.type === 'song' && 
           t.artist === trackArtist && 
           t.id !== currentTrack.id
@@ -96,48 +87,48 @@ export default function HomeScreen() {
         }
 
         sections.push(
-          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: allTracks.filter((t: Track) => t.type === 'video').slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
-          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: featured.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
+          { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
+          { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
       } else if (trackType === 'video' || currentTrack.isVideo) {
-        const moreVideos = allTracks.filter((t: Track) => 
+        const moreVideos = allTracks.filter(t => 
           (t.type === 'video' || t.isVideo) && 
           t.id !== currentTrack.id
         ).slice(0, 8);
         
         sections.push(
           { type: 'videos', title: 'More Music Videos', subtitle: 'Keep watching', data: moreVideos, icon: <Video size={20} color="#FF0080" /> },
-          { type: 'live', title: 'Live Performances', subtitle: 'Experience the energy', data: allTracks.filter((t: Track) => t.type === 'video').slice(0, 6), icon: <Radio size={20} color="#F59E0B" /> },
-          { type: 'trending-videos', title: 'Trending Videos', subtitle: 'Most watched', data: allTracks.filter((t: Track) => t.type === 'video').slice(0, 8), icon: <TrendingUp size={20} color="#8B5CF6" /> },
+          { type: 'live', title: 'Live Performances', subtitle: 'Experience the energy', data: livePerformanceVideos.slice(0, 6), icon: <Radio size={20} color="#F59E0B" /> },
+          { type: 'trending-videos', title: 'Trending Videos', subtitle: 'Most watched', data: trendingVideos.slice(0, 8), icon: <TrendingUp size={20} color="#8B5CF6" /> },
         );
 
-        const musicTracks = allTracks.filter((t: Track) => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Switch to audio', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       } else if (trackType === 'podcast') {
-        const morePodcasts = allTracks.filter((t: Track) => 
+        const morePodcasts = allTracks.filter(t => 
           t.type === 'podcast' && 
           t.id !== currentTrack.id
         ).slice(0, 8);
         
         sections.push(
           { type: 'podcasts', title: 'More Podcasts', subtitle: 'Continue listening', data: morePodcasts, icon: <Headphones size={20} color="#FF0080" /> },
-          { type: 'trending', title: 'Trending Episodes', subtitle: 'Popular right now', data: allTracks.filter((t: Track) => t.type === 'podcast').slice(0, 8), icon: <TrendingUp size={20} color="#F7971E" /> },
+          { type: 'trending', title: 'Trending Episodes', subtitle: 'Popular right now', data: trendingNow.filter(t => t.type === 'podcast').slice(0, 8), icon: <TrendingUp size={20} color="#F7971E" /> },
         );
 
-        const musicTracks = allTracks.filter((t: Track) => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Discover Music', subtitle: 'Take a break from podcasts', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       } else if (trackType === 'audiobook') {
-        const moreAudiobooks = allTracks.filter((t: Track) => 
+        const moreAudiobooks = allTracks.filter(t => 
           t.type === 'audiobook' && 
           t.id !== currentTrack.id
         ).slice(0, 8);
         
         sections.push(
           { type: 'audiobooks', title: 'More Audiobooks', subtitle: 'Continue your journey', data: moreAudiobooks, icon: <BookOpen size={20} color="#FF0080" /> },
-          { type: 'trending', title: 'Popular Stories', subtitle: 'Trending audiobooks', data: allTracks.filter((t: Track) => t.type === 'audiobook').slice(0, 8), icon: <TrendingUp size={20} color="#6A85F1" /> },
+          { type: 'trending', title: 'Popular Stories', subtitle: 'Trending audiobooks', data: trendingNow.filter(t => t.type === 'audiobook').slice(0, 8), icon: <TrendingUp size={20} color="#6A85F1" /> },
         );
 
-        const musicTracks = allTracks.filter((t: Track) => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Take a music break', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       }
 
@@ -153,12 +144,10 @@ export default function HomeScreen() {
       return sections;
     };
 
-    if (!tracksQuery.isLoading && !artistsQuery.isLoading && !featuredQuery.isLoading) {
-      setTimeout(() => {
-        setPersonalizedSections(generatePersonalizedContent());
-      }, 0);
-    }
-  }, [currentTrack, userRecentlyPlayed, tracksQuery.data, artistsQuery.data, featuredQuery.data, tracksQuery.isLoading, artistsQuery.isLoading, featuredQuery.isLoading]);
+    setTimeout(() => {
+      setPersonalizedSections(generatePersonalizedContent());
+    }, 0);
+  }, [currentTrack, userRecentlyPlayed]);
 
   const quickAccessItems = useMemo(() => {
     const baseItems: Array<{ id: string; title: string; icon: string; gradient: readonly [string, string]; route: string }> = [
@@ -649,33 +638,29 @@ export default function HomeScreen() {
           </View>
         ))}
 
-        {tracksQuery.data && tracksQuery.data.filter((t: Track) => t.type === 'audiobook').length > 0 && (
-          <View style={styles.section}>
-            {renderSectionHeader("Auralora", "Discover amazing audiobooks", "auralora-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
-            <FlatList
-              data={tracksQuery.data.filter((t: Track) => t.type === 'audiobook').slice(0, 8)}
-              renderItem={renderSmartCard}
-              keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          </View>
-        )}
+        <View style={styles.section}>
+          {renderSectionHeader("Auralora", "Discover amazing audiobooks", "auralora-audiobooks", "/categories/audiobooks", <BookOpen size={20} color="#6A85F1" />)}
+          <FlatList
+            data={audiobooks.slice(0, 8)}
+            renderItem={renderSmartCard}
+            keyExtractor={(item, idx) => `audiobook-${item.id || idx}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
 
-        {tracksQuery.data && tracksQuery.data.filter((t: Track) => t.type === 'podcast').length > 0 && (
-          <View style={styles.section}>
-            {renderSectionHeader("VoxSaga", "Immerse in podcasts", "voxsaga-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
-            <FlatList
-              data={tracksQuery.data.filter((t: Track) => t.type === 'podcast').slice(0, 8)}
-              renderItem={renderSmartCard}
-              keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          </View>
-        )}
+        <View style={styles.section}>
+          {renderSectionHeader("VoxSaga", "Immerse in podcasts", "voxsaga-podcasts", "/categories/podcasts", <Headphones size={20} color="#F7971E" />)}
+          <FlatList
+            data={podcasts.slice(0, 8)}
+            renderItem={renderSmartCard}
+            keyExtractor={(item, idx) => `podcast-${item.id || idx}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
 
         <View style={styles.section}>
           {renderSectionHeader("Browse All", "Explore by category", "browse-categories", "/browse-categories")}
@@ -702,19 +687,17 @@ export default function HomeScreen() {
           />
         </View>
 
-        {userRecentlyPlayed.length > 0 && (
-          <View style={[styles.section, { marginBottom: 120 }]}> 
-            {renderSectionHeader("Recently Played", "Pick up where you left off", "recent")}
-            <FlatList
-              data={userRecentlyPlayed.slice(0, 8)}
-              renderItem={renderCard}
-              keyExtractor={(item, idx) => `recent-${item.id || idx}`}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalList}
-            />
-          </View>
-        )}
+        <View style={[styles.section, { marginBottom: 120 }]}> 
+          {renderSectionHeader("Recently Played", "Pick up where you left off", "recent")}
+          <FlatList
+            data={recentlyPlayed.slice(0, 8)}
+            renderItem={renderCard}
+            keyExtractor={(item, idx) => `recent-${item.id || idx}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalList}
+          />
+        </View>
       </Animated.ScrollView>
       </View>
     </View>
