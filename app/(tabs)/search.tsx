@@ -42,7 +42,7 @@ import {
   allPodcastEpisodes,
 } from "@/data/mockData";
 import type { Track } from "@/types";
-import { trpcClient } from "@/lib/trpc";
+import { trpcClient, trpc } from "@/lib/trpc";
 
 const browseCategories: Array<{ name: string; color: string; image: string; route?: string }> = [
   {
@@ -238,14 +238,41 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const searchInputRef = useRef<TextInput>(null);
 
-  const filteredTracks = allTracks.filter(
+  // Backend data fetching for search
+  const tracksQuery = trpc.tracks.getTracks.useQuery({ limit: 100 });
+  const artistsQuery = trpc.artists.getArtists.useQuery({ limit: 50 });
+
+  // Transform backend data to match frontend format
+  const backendTracks = (tracksQuery.data?.tracks || []).map(track => ({
+    id: track.id,
+    title: track.title,
+    artist: track.artistName,
+    album: track.albumName,
+    artwork: track.coverImage,
+    duration: Math.floor(track.duration / 1000),
+    type: 'song' as const,
+    audioUrl: track.streamUrl,
+    genre: track.genre,
+    explicit: track.explicit,
+  }));
+
+  const backendArtists = (artistsQuery.data?.artists || []).map(artist => ({
+    id: artist.id,
+    name: artist.name,
+    image: artist.image,
+    followers: `${(artist.followers / 1000).toFixed(0)}K`,
+    verified: artist.verified,
+    genre: artist.genre,
+  }));
+
+  const filteredTracks = backendTracks.filter(
     (track) =>
       track.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       track.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (track.album?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
   );
 
-  const filteredArtists = searchArtists.filter((artist) => artist.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredArtists = backendArtists.filter((artist) => artist.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const filteredAlbums = searchAlbums.filter(
     (album) => album.title.toLowerCase().includes(searchQuery.toLowerCase()) || album.artist.toLowerCase().includes(searchQuery.toLowerCase())

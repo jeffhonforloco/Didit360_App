@@ -1,0 +1,125 @@
+name: Backup
+
+on:
+  schedule:
+    # Run backup daily at 1 AM UTC
+    - cron: '0 1 * * *'
+  workflow_dispatch:
+    inputs:
+      backup_type:
+        description: 'Type of backup to perform'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - full
+          - incremental
+          - database-only
+
+jobs:
+  create-backup:
+    name: Create Backup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Create repository backup
+        run: |
+          echo "Creating repository backup..."
+          tar -czf repository-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=dist \
+            --exclude=build \
+            .
+
+      - name: Create database backup
+        if: github.event.inputs.backup_type == 'full' || github.event.inputs.backup_type == 'database-only'
+        run: |
+          echo "Creating database backup..."
+          # Add database backup commands here
+          echo "Database backup would be created here"
+
+      - name: Create configuration backup
+        run: |
+          echo "Creating configuration backup..."
+          tar -czf config-backup-$(date +%Y%m%d-%H%M%S).tar.gz \
+            .env.example \
+            package.json \
+            app.json \
+            tsconfig.json \
+            eslint.config.js
+
+      - name: Upload backup artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: backup-$(date +%Y%m%d-%H%M%S)
+          path: |
+            repository-backup-*.tar.gz
+            config-backup-*.tar.gz
+          retention-days: 30
+
+  verify-backup:
+    name: Verify Backup
+    runs-on: ubuntu-latest
+    needs: create-backup
+    steps:
+      - name: Download backup artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: backup-$(date +%Y%m%d-%H%M%S)
+
+      - name: Verify backup integrity
+        run: |
+          echo "Verifying backup integrity..."
+          
+          # Check if backup files exist
+          if [ -f "repository-backup-*.tar.gz" ]; then
+            echo "✅ Repository backup found"
+            tar -tzf repository-backup-*.tar.gz > /dev/null && echo "✅ Repository backup is valid"
+          else
+            echo "❌ Repository backup not found"
+            exit 1
+          fi
+          
+          if [ -f "config-backup-*.tar.gz" ]; then
+            echo "✅ Configuration backup found"
+            tar -tzf config-backup-*.tar.gz > /dev/null && echo "✅ Configuration backup is valid"
+          else
+            echo "❌ Configuration backup not found"
+            exit 1
+          fi
+
+  cleanup-old-backups:
+    name: Cleanup Old Backups
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cleanup old artifacts
+        run: |
+          echo "Cleaning up old backup artifacts..."
+          # GitHub Actions automatically cleans up artifacts after retention period
+          echo "Old backups will be automatically cleaned up after 30 days"
+
+  notify-backup:
+    name: Notify Backup
+    runs-on: ubuntu-latest
+    needs: [create-backup, verify-backup]
+    if: always()
+    steps:
+      - name: Notify backup completion
+        run: |
+          if [ "${{ needs.create-backup.result }}" == "success" ] && [ "${{ needs.verify-backup.result }}" == "success" ]; then
+            echo "✅ Backup completed successfully!"
+            echo "📦 Repository and configuration backed up"
+            echo "🔒 Backup integrity verified"
+          else
+            echo "❌ Backup failed. Please check the logs."
+          fi

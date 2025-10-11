@@ -458,17 +458,59 @@ export class MockCatalogService implements CatalogService {
   }> {
     console.log(`[catalog] Searching: ${query} (type: ${type})`);
     
-    const results = query ? [
+    // Mock search results with more realistic data
+    const mockResults = [
       {
         id: 'track-1',
-        type: type === 'all' ? 'track' : type,
-        title: `Result for "${query}"`,
+        type: 'track',
+        title: `Sunset Dreams`,
+        subtitle: 'Electronic Waves • Neon Nights',
         artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800',
         version: 1,
       },
-    ] : [];
+      {
+        id: 'track-2',
+        type: 'track',
+        title: `Midnight City`,
+        subtitle: 'Neon Lights • Urban Dreams',
+        artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+        version: 1,
+      },
+      {
+        id: 'artist-1',
+        type: 'artist',
+        title: 'Electronic Waves',
+        subtitle: 'Electronic • 125K followers',
+        artwork: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800',
+        version: 1,
+      },
+      {
+        id: 'album-1',
+        type: 'release',
+        title: 'Neon Nights',
+        subtitle: 'Electronic Waves • 2024',
+        artwork: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800',
+        version: 1,
+      },
+    ];
     
-    return { results, total: results.length };
+    // Filter by type if specified
+    const filteredResults = type === 'all' 
+      ? mockResults 
+      : mockResults.filter(result => result.type === type);
+    
+    // Simple text matching
+    const searchResults = query 
+      ? filteredResults.filter(result => 
+          result.title.toLowerCase().includes(query.toLowerCase()) ||
+          result.subtitle?.toLowerCase().includes(query.toLowerCase())
+        )
+      : [];
+    
+    return { 
+      results: searchResults.slice(offset, offset + limit), 
+      total: searchResults.length 
+    };
   }
 
   async getUpdates(since: string, until: string, limit: number): Promise<{

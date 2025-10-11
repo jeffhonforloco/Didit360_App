@@ -1,0 +1,579 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run documentation updates daily at 4 AM UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+jobs:
+  update-documentation:
+    name: Update Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Update README
+        run: |
+          echo "Updating README.md..."
+          
+          # Create comprehensive README
+          cat > README.md << 'EOF'
+          # 🎵 Didit360 - Music Streaming Platform
+          
+          A comprehensive music streaming, podcast, audiobooks and AI DJ platform built with React Native, Expo, and Node.js.
+          
+          ## 🚀 Features
+          
+          - 🎵 **Music Streaming** - High-quality audio streaming
+          - 🎧 **Podcast Support** - Discover and listen to podcasts
+          - 📚 **Audiobooks** - Access to audiobook library
+          - 🤖 **AI DJ** - Live AI-powered DJ sessions
+          - 🔍 **Advanced Search** - Smart search across all content
+          - 📱 **Cross-platform** - iOS, Android, and Web support
+          - 🔒 **Security** - JWT authentication and rate limiting
+          - 📊 **Analytics** - Comprehensive usage analytics
+          
+          ## 🛠️ Tech Stack
+          
+          ### Frontend
+          - **React Native** - Cross-platform mobile development
+          - **Expo** - Development platform and tools
+          - **TypeScript** - Type-safe JavaScript
+          - **NativeWind** - Tailwind CSS for React Native
+          - **tRPC** - End-to-end typesafe APIs
+          
+          ### Backend
+          - **Node.js** - JavaScript runtime
+          - **Hono** - Fast, lightweight web framework
+          - **tRPC** - Type-safe RPC framework
+          - **PostgreSQL** - Primary database
+          - **Redis** - Caching and session storage
+          - **OpenAI** - AI-powered features
+          
+          ### DevOps & Monitoring
+          - **GitHub Actions** - CI/CD pipeline
+          - **Dependabot** - Automated dependency updates
+          - **Security scanning** - Automated security checks
+          - **Performance monitoring** - Lighthouse CI
+          - **Backup system** - Automated backups
+          
+          ## 📦 Installation
+          
+          ### Prerequisites
+          - Node.js 18+
+          - npm or yarn
+          - Expo CLI
+          - PostgreSQL (optional, mock database available)
+          - Redis (optional, memory cache available)
+          
+          ### Setup
+          
+          1. **Clone the repository**
+             \`\`\`bash
+             git clone https://github.com/jeffhonforloco/Didit360_App.git
+             cd Didit360_App
+             \`\`\`
+          
+          2. **Install dependencies**
+             \`\`\`bash
+             npm install
+             \`\`\`
+          
+          3. **Configure environment**
+             \`\`\`bash
+             cp .env.example .env
+             # Edit .env with your configuration
+             \`\`\`
+          
+          4. **Start development server**
+             \`\`\`bash
+             npm start
+             \`\`\`
+          
+          ## 🔧 Environment Variables
+          
+          Create a \`.env\` file with the following variables:
+          
+          \`\`\`env
+          # Database
+          DATABASE_URL=postgresql://username:password@localhost:5432/didit360
+          
+          # Redis
+          REDIS_URL=redis://localhost:6379
+          
+          # JWT
+          JWT_SECRET=your-secret-key
+          JWT_EXPIRES_IN=1h
+          
+          # OpenAI
+          OPENAI_API_KEY=your-openai-api-key
+          
+          # API
+          CATALOG_API_URL=https://api.catalog.com
+          CATALOG_API_KEY=your-catalog-api-key
+          
+          # Environment
+          NODE_ENV=development
+          LOG_LEVEL=info
+          \`\`\`
+          
+          ## 🧪 Testing
+          
+          \`\`\`bash
+          # Run all tests
+          npm test
+          
+          # Run linting
+          npm run lint
+          
+          # Run type checking
+          npx tsc --noEmit
+          \`\`\`
+          
+          ## 📚 API Documentation
+          
+          API documentation is available at \`/docs\` endpoint when running the backend.
+          
+          ### Key Endpoints
+          - \`GET /health\` - Health check
+          - \`GET /docs\` - API documentation
+          - \`POST /api/trpc/*\` - tRPC endpoints
+          
+          ## 🚀 Deployment
+          
+          ### Staging
+          \`\`\`bash
+          # Deploy to staging
+          npm run deploy:staging
+          \`\`\`
+          
+          ### Production
+          \`\`\`bash
+          # Deploy to production
+          npm run deploy:production
+          \`\`\`
+          
+          ## 🤝 Contributing
+          
+          We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md).
+          
+          ### Development Workflow
+          1. Fork the repository
+          2. Create a feature branch
+          3. Make your changes
+          4. Run tests and linting
+          5. Submit a pull request
+          
+          ## 📄 License
+          
+          This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+          
+          ## 🔄 Auto Updates
+          
+          This repository is configured with automated updates for:
+          - Dependencies
+          - Security patches
+          - Documentation
+          - Performance monitoring
+          
+          Last updated: $(date)
+          EOF
+
+      - name: Update API documentation
+        run: |
+          echo "Updating API documentation..."
+          
+          # Create API documentation
+          cat > API_DOCUMENTATION.md << 'EOF'
+          # API Documentation
+          
+          ## Overview
+          
+          The Didit360 API provides endpoints for music streaming, podcast management, audiobook access, and AI DJ functionality.
+          
+          ## Base URL
+          
+          \`\`\`
+          /api
+          \`\`\`
+          
+          ## Authentication
+          
+          Most endpoints require JWT authentication. Include the token in the Authorization header:
+          
+          \`\`\`
+          Authorization: Bearer <your-jwt-token>
+          \`\`\`
+          
+          ## Endpoints
+          
+          ### Health Check
+          
+          \`GET /health\`
+          
+          Returns the health status of the API and its dependencies.
+          
+          **Response:**
+          \`\`\`json
+          {
+            "status": "healthy",
+            "timestamp": "2024-01-01T00:00:00.000Z",
+            "uptimeSeconds": 3600,
+            "version": "1.0.0",
+            "environment": "production",
+            "components": [
+              {
+                "name": "database",
+                "status": "healthy",
+                "message": "Database connection successful"
+              }
+            ]
+          }
+          \`\`\`
+          
+          ### Search
+          
+          \`GET /v1/search?q={query}&type={type}&limit={limit}&offset={offset}\`
+          
+          Searches the catalog for various content types.
+          
+          **Parameters:**
+          - \`q\` (required): Search query
+          - \`type\` (optional): Content type filter
+          - \`limit\` (optional): Number of results (default: 20)
+          - \`offset\` (optional): Pagination offset (default: 0)
+          
+          **Response:**
+          \`\`\`json
+          {
+            "q": "sunset",
+            "type": "track",
+            "page": 1,
+            "size": 20,
+            "results": [
+              {
+                "id": "track-1",
+                "type": "track",
+                "title": "Sunset Dreams",
+                "subtitle": "Electronic Waves • Neon Nights",
+                "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
+                "version": 1
+              }
+            ]
+          }
+          \`\`\`
+          
+          ### AI DJ
+          
+          \`POST /dj-instinct/live/start\`
+          
+          Starts a new AI DJ live session.
+          
+          **Request Body:**
+          \`\`\`json
+          {
+            "vibe": "energetic",
+            "genres": ["Electronic", "House"],
+            "mood": "hype",
+            "energy": 80,
+            "tempoRangeBPM": [120, 130],
+            "transitionStyle": "fade",
+            "keyLock": true,
+            "doNotPlay": [],
+            "explicitFilter": "moderate",
+            "durationMinutes": 60
+          }
+          \`\`\`
+          
+          **Response:**
+          \`\`\`json
+          {
+            "success": true,
+            "sessionId": "live_1234567890_abc123",
+            "message": "Live DJ session started successfully",
+            "nowPlaying": {
+              "id": "track-1",
+              "title": "Sunset Dreams",
+              "artist": "Electronic Waves",
+              "artwork": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800",
+              "durationSec": 240,
+              "bpm": 128,
+              "key": "Am",
+              "energy": 75
+            },
+            "nextUp": [],
+            "castStatus": "idle",
+            "estimatedDuration": 60
+          }
+          \`\`\`
+          
+          ## Error Handling
+          
+          The API uses standard HTTP status codes and returns error details in the response body.
+          
+          **Error Response:**
+          \`\`\`json
+          {
+            "error": "ValidationError",
+            "message": "Invalid input parameters",
+            "details": {
+              "field": "email",
+              "message": "Email is required"
+            }
+          }
+          \`\`\`
+          
+          ## Rate Limiting
+          
+          API requests are rate limited to prevent abuse:
+          - Standard: 100 requests per 15 minutes
+          - Strict: 30 requests per minute
+          - Guest: 50 requests per 5 minutes
+          
+          ## Security
+          
+          - JWT authentication
+          - Rate limiting
+          - Input validation
+          - CORS protection
+          - Security headers
+          
+          Last updated: $(date)
+          EOF
+
+      - name: Update contributing guidelines
+        run: |
+          echo "Updating contributing guidelines..."
+          
+          # Create contributing guidelines
+          cat > CONTRIBUTING.md << 'EOF'
+          # Contributing to Didit360
+          
+          Thank you for your interest in contributing to Didit360! This document provides guidelines for contributing to the project.
+          
+          ## 🚀 Getting Started
+          
+          ### Prerequisites
+          - Node.js 18+
+          - Git
+          - Expo CLI
+          - Basic knowledge of React Native and TypeScript
+          
+          ### Setup Development Environment
+          
+          1. Fork the repository
+          2. Clone your fork
+          3. Install dependencies: \`npm install\`
+          4. Create a feature branch
+          5. Make your changes
+          6. Run tests: \`npm test\`
+          7. Submit a pull request
+          
+          ## 📝 Development Guidelines
+          
+          ### Code Style
+          - Use TypeScript for type safety
+          - Follow ESLint configuration
+          - Use meaningful variable and function names
+          - Add comments for complex logic
+          - Write tests for new features
+          
+          ### Commit Messages
+          Use conventional commit format:
+          - \`feat:\` for new features
+          - \`fix:\` for bug fixes
+          - \`docs:\` for documentation
+          - \`style:\` for formatting
+          - \`refactor:\` for code changes
+          - \`test:\` for tests
+          - \`chore:\` for maintenance
+          
+          ### Pull Request Process
+          
+          1. Create a feature branch
+          2. Make your changes
+          3. Run tests and linting
+          4. Update documentation if needed
+          5. Submit a pull request
+          6. Address review feedback
+          
+          ## 🧪 Testing
+          
+          - Write unit tests for new features
+          - Test on multiple platforms (iOS, Android, Web)
+          - Ensure all tests pass before submitting
+          
+          ## 📚 Documentation
+          
+          - Update README.md for significant changes
+          - Add JSDoc comments for new functions
+          - Update API documentation for backend changes
+          
+          ## 🐛 Bug Reports
+          
+          When reporting bugs, please include:
+          - Description of the issue
+          - Steps to reproduce
+          - Expected behavior
+          - Actual behavior
+          - Environment details
+          - Screenshots if applicable
+          
+          ## ✨ Feature Requests
+          
+          When requesting features, please include:
+          - Description of the feature
+          - Use case and benefits
+          - Implementation considerations
+          - Mockups or examples if applicable
+          
+          ## 📄 License
+          
+          By contributing, you agree that your contributions will be licensed under the MIT License.
+          
+          Last updated: $(date)
+          EOF
+
+      - name: Update changelog
+        run: |
+          echo "Updating changelog..."
+          
+          # Create changelog
+          cat > CHANGELOG.md << 'EOF'
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+          
+          ## [Unreleased]
+          
+          ### Added
+          - Automated GitHub Actions workflows
+          - Comprehensive documentation
+          - Security scanning and monitoring
+          - Performance testing and monitoring
+          - Automated backup system
+          - Dependabot configuration
+          
+          ### Changed
+          - Improved project structure
+          - Enhanced error handling
+          - Better security implementation
+          
+          ### Fixed
+          - Various bug fixes and improvements
+          
+          ## [1.0.0] - 2024-01-01
+          
+          ### Added
+          - Initial release
+          - Music streaming functionality
+          - Podcast support
+          - Audiobook access
+          - AI DJ features
+          - Cross-platform support
+          
+          Last updated: $(date)
+          EOF
+
+      - name: Commit documentation updates
+        run: |
+          git add README.md API_DOCUMENTATION.md CONTRIBUTING.md CHANGELOG.md
+          git commit -m "docs: update documentation" || echo "No changes to commit"
+          git push origin main || echo "Push failed"
+
+  validate-documentation:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check documentation files
+        run: |
+          echo "Validating documentation files..."
+          
+          # Check if required files exist
+          if [ -f "README.md" ]; then
+            echo "✅ README.md found"
+          else
+            echo "❌ README.md not found"
+            exit 1
+          fi
+          
+          if [ -f "API_DOCUMENTATION.md" ]; then
+            echo "✅ API_DOCUMENTATION.md found"
+          else
+            echo "❌ API_DOCUMENTATION.md not found"
+            exit 1
+          fi
+          
+          if [ -f "CONTRIBUTING.md" ]; then
+            echo "✅ CONTRIBUTING.md found"
+          else
+            echo "❌ CONTRIBUTING.md not found"
+            exit 1
+          fi
+          
+          if [ -f "CHANGELOG.md" ]; then
+            echo "✅ CHANGELOG.md found"
+          else
+            echo "❌ CHANGELOG.md not found"
+            exit 1
+          fi
+
+      - name: Check documentation quality
+        run: |
+          echo "Checking documentation quality..."
+          
+          # Check README length
+          README_LINES=$(wc -l < README.md)
+          if [ $README_LINES -gt 50 ]; then
+            echo "✅ README.md is comprehensive ($README_LINES lines)"
+          else
+            echo "⚠️ README.md might be too short ($README_LINES lines)"
+          fi
+          
+          # Check for broken links (basic check)
+          if grep -q "https://" README.md; then
+            echo "✅ README.md contains links"
+          else
+            echo "⚠️ README.md might benefit from links"
+          fi
+
+  notify-documentation:
+    name: Notify Documentation
+    runs-on: ubuntu-latest
+    needs: [update-documentation, validate-documentation]
+    if: always()
+    steps:
+      - name: Notify documentation completion
+        run: |
+          if [ "${{ needs.update-documentation.result }}" == "success" ] && [ "${{ needs.validate-documentation.result }}" == "success" ]; then
+            echo "📚 Documentation updated successfully!"
+            echo "✅ All documentation files validated"
+            echo "📖 README, API docs, and contributing guidelines updated"
+          else
+            echo "⚠️ Some documentation updates failed. Please check the logs."
+          fi

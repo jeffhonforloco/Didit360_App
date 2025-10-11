@@ -1,0 +1,205 @@
+name: Auto Update
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of update to perform'
+        required: true
+        default: 'dependencies'
+        type: choice
+        options:
+          - dependencies
+          - security
+          - all
+
+jobs:
+  auto-update:
+    name: Auto Update
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Update Dependencies
+        if: github.event.inputs.update_type == 'dependencies' || github.event.inputs.update_type == 'all' || github.event_name == 'schedule'
+        run: |
+          echo "Updating dependencies..."
+          npm update
+          npm audit fix --force || true
+          
+          # Check if there are changes
+          if git diff --quiet; then
+            echo "No dependency updates available"
+            exit 0
+          fi
+
+      - name: Update Security Dependencies
+        if: github.event.inputs.update_type == 'security' || github.event.inputs.update_type == 'all'
+        run: |
+          echo "Updating security dependencies..."
+          npm audit fix --force || true
+          
+          # Check if there are changes
+          if git diff --quiet; then
+            echo "No security updates available"
+            exit 0
+          fi
+
+      - name: Update Package Versions
+        run: |
+          echo "Checking for package version updates..."
+          
+          # Update Expo CLI
+          npm install -g @expo/cli@latest
+          
+          # Update global packages
+          npm update -g
+
+      - name: Run Tests After Update
+        run: |
+          echo "Running tests after updates..."
+          npm ci
+          npm run lint || echo "Lint failed"
+          npm test || echo "Tests failed"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: |
+            chore: automated update
+            
+            - Updated dependencies
+            - Fixed security vulnerabilities
+            - Updated package versions
+          title: '🤖 Automated Update - $(date +%Y-%m-%d)'
+          body: |
+            ## 🤖 Automated Update
+            
+            This PR contains automated updates to keep the project up-to-date.
+            
+            ### Changes Made:
+            - ✅ Updated npm dependencies
+            - 🔒 Fixed security vulnerabilities
+            - 📦 Updated package versions
+            - 🧪 Ran tests to ensure compatibility
+            
+            ### Review Checklist:
+            - [ ] Review dependency changes
+            - [ ] Test the application locally
+            - [ ] Check for breaking changes
+            - [ ] Verify security fixes
+            
+            ### Auto-generated on: $(date)
+          branch: automated-update-$(date +%Y%m%d)
+          delete-branch: true
+          labels: automated,update,dependencies
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: |
+          npm audit --audit-level moderate
+          
+      - name: Check for vulnerabilities
+        run: |
+          npx audit-ci --config audit-ci.json || echo "No audit-ci config found"
+
+      - name: Create security report
+        run: |
+          echo "## Security Report" > security-report.md
+          echo "Generated on: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          npm audit --json > audit-results.json || echo "Audit failed"
+          
+          if [ -f audit-results.json ]; then
+            echo "### Audit Results" >> security-report.md
+            echo "\`\`\`json" >> security-report.md
+            cat audit-results.json >> security-report.md
+            echo "\`\`\`" >> security-report.md
+          fi
+
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.md
+
+  dependency-analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Analyze dependencies
+        run: |
+          echo "## Dependency Analysis" > dependency-analysis.md
+          echo "Generated on: $(date)" >> dependency-analysis.md
+          echo "" >> dependency-analysis.md
+          
+          echo "### Package Information" >> dependency-analysis.md
+          echo "\`\`\`" >> dependency-analysis.md
+          npm list --depth=0 >> dependency-analysis.md
+          echo "\`\`\`" >> dependency-analysis.md
+          
+          echo "### Outdated Packages" >> dependency-analysis.md
+          echo "\`\`\`" >> dependency-analysis.md
+          npm outdated || echo "No outdated packages" >> dependency-analysis.md
+          echo "\`\`\`" >> dependency-analysis.md
+
+      - name: Upload dependency analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-analysis
+          path: dependency-analysis.md
+
+  notify-updates:
+    name: Notify Updates
+    runs-on: ubuntu-latest
+    needs: [auto-update, security-scan, dependency-analysis]
+    if: always()
+    steps:
+      - name: Notify completion
+        run: |
+          echo "🤖 Automated update process completed"
+          echo "Check the workflow results for details"

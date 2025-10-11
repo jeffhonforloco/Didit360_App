@@ -4,12 +4,29 @@ import { cors } from "hono/cors";
 import { appRouter } from "./trpc/app-router";
 import { createContext } from "./trpc/create-context";
 import type { LivePromptConfig, LiveParams, SafetyUpdate, LiveStartResponse, PairingResponse, Health, TrackLite } from "@/types/live";
+import { logger } from "./services/logger";
+import { healthService } from "./services/health";
+import { apiDocumentationService } from "./services/api-docs";
+import { securityService } from "./services/security";
+import { createRateLimitMiddleware, RateLimitConfigs } from "./services/rate-limiter";
 
 // app will be mounted at /api
 const app = new Hono();
 
 // Enable CORS for all routes
-app.use("*", cors());
+app.use("*", cors(securityService.getCORSConfig()));
+
+// Security middleware
+app.use("*", (c, next) => {
+  const headers = securityService.getSecurityHeaders();
+  Object.entries(headers).forEach(([key, value]) => {
+    c.res.headers.set(key, value);
+  });
+  return next();
+});
+
+// Rate limiting middleware
+app.use("*", createRateLimitMiddleware(RateLimitConfigs.standard));
 
 // ---- Lightweight observability: request logging + metrics + correlation ----
 const metrics = {
@@ -100,38 +117,49 @@ function notModified(c: any) {
   return c.body(null, 304);
 }
 
-// Simple health check endpoint
-app.get("/", (c) => {
+// Health check endpoints
+app.get("/", async (c) => {
   try {
-    const health = {
-      status: "ok",
-      message: "Didit360 API is running",
-      timestamp: new Date().toISOString(),
-      uptime: Math.floor((Date.now() - metrics.startedAt) / 1000),
-      version: "1.0.0",
-      environment: process.env.NODE_ENV || 'development',
-      endpoints: {
-        trpc: "/api/trpc",
-        metrics: "/api/metrics",
-        health: "/api"
-      },
-      deployment: {
-        platform: typeof process !== 'undefined' ? process.platform : 'unknown',
-        nodeVersion: typeof process !== 'undefined' ? process.version : 'unknown',
-        memoryUsage: typeof process !== 'undefined' && process.memoryUsage ? process.memoryUsage() : 'unknown'
-      },
-      connection: {
-        test: "Backend connection successful",
-        ready: true
-      }
-    };
-    console.log('[API] Health check requested:', health);
-    return c.json(health);
+    const health = await healthService.getHealthStatus();
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    return c.json(health, statusCode);
   } catch (error) {
-    console.error('[API] Health check error:', error);
+    logger.error('Health check error', error instanceof Error ? error : new Error(String(error)));
     return c.json({ 
       status: "error", 
       message: "Health check failed", 
+      error: String(error),
+      timestamp: new Date().toISOString() 
+    }, 500);
+  }
+});
+
+app.get("/health", async (c) => {
+  try {
+    const health = await healthService.getHealthStatus();
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    return c.json(health, statusCode);
+  } catch (error) {
+    logger.error('Health check error', error instanceof Error ? error : new Error(String(error)));
+    return c.json({ 
+      status: "error", 
+      message: "Health check failed", 
+      error: String(error),
+      timestamp: new Date().toISOString() 
+    }, 500);
+  }
+});
+
+app.get("/health/detailed", async (c) => {
+  try {
+    const health = await healthService.getDetailedHealth();
+    const statusCode = health.status === 'healthy' ? 200 : 503;
+    return c.json(health, statusCode);
+  } catch (error) {
+    logger.error('Detailed health check error', error instanceof Error ? error : new Error(String(error)));
+    return c.json({ 
+      status: "error", 
+      message: "Detailed health check failed", 
       error: String(error),
       timestamp: new Date().toISOString() 
     }, 500);
@@ -432,6 +460,33 @@ app.get("/v1/rights/streamable", (c) => {
 
   const payload = { allowed: reasons.length === 0, reason: reasons[0] } as { allowed: boolean; reason?: string };
   return c.json(payload);
+});
+
+// API Documentation endpoints
+app.get("/docs", (c) => {
+  const documentation = apiDocumentationService.getOpenAPIDocumentation();
+  return c.json(documentation);
+});
+
+app.get("/docs/openapi.json", (c) => {
+  const documentation = apiDocumentationService.getOpenAPIDocumentation();
+  return c.json(documentation);
+});
+
+app.get("/docs/markdown", (c) => {
+  const markdown = apiDocumentationService.getMarkdownDocumentation();
+  return c.text(markdown, 200, { 'Content-Type': 'text/markdown' });
+});
+
+// API version endpoint
+app.get("/version", (c) => {
+  return c.json({
+    version: "1.0.0",
+    name: "Didit360 API",
+    description: "Music streaming, podcast, audiobooks and AI DJ platform API",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+  });
 });
 
 export default app;
