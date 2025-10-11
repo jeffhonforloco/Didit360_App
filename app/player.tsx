@@ -45,7 +45,7 @@ import { VideoPlayer, VideoPlayerRef } from "@/components/VideoPlayer";
 import { DJInstinctEntry } from "@/components/DJInstinctEntry";
 import SliderCompat from "@/components/SliderCompat";
 import type { Track } from "@/types";
-import { audioEngine, Progress } from "@/lib/AudioEngine";
+import { simpleAudioEngine, Progress } from "@/lib/AudioEngineSimple";
 
 
 export default function PlayerScreen() {
@@ -80,7 +80,7 @@ export default function PlayerScreen() {
   }, []);
 
   useEffect(() => {
-    const unsub = audioEngine.subscribeProgress(updateProgress);
+    const unsub = simpleAudioEngine.subscribeProgress(updateProgress);
     return unsub;
   }, [updateProgress]);
 
@@ -120,11 +120,11 @@ export default function PlayerScreen() {
   useEffect(() => {
     try {
       if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
-        const active = audioEngine.getCurrentTrack();
+        const active = simpleAudioEngine.getCurrentTrack();
         if (!active || active.id !== currentTrack.id) {
           console.log('[Player] Ensuring audio is loaded for', currentTrack.title);
           const next = queue?.[0];
-          audioEngine.loadAndPlay(currentTrack, next).catch((e) => console.log('[Player] ensure load error', e));
+          simpleAudioEngine.loadAndPlay(currentTrack).catch((e) => console.log('[Player] ensure load error', e));
         }
       }
     } catch (e) {
@@ -155,7 +155,7 @@ export default function PlayerScreen() {
       if (!isPlaying) {
         console.log('[Player] Web platform - attempting direct audio engine play');
         // Try direct audio engine play first to capture user interaction
-        audioEngine.play().then(() => {
+        simpleAudioEngine.play().then(() => {
           console.log('[Player] Direct audio engine play successful');
         }).catch((e) => {
           console.log('[Player] Direct audio engine play failed, using toggle:', e);
@@ -270,7 +270,7 @@ export default function PlayerScreen() {
     setPositionMs(target);
     
     // Perform the actual seek
-    audioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] seek error', err));
+    simpleAudioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] seek error', err));
   }, [width, durationMs]);
 
   const handleVideoSeek = useCallback((e: any) => {
@@ -329,7 +329,7 @@ export default function PlayerScreen() {
       setIsDragging(false);
       
       // Perform the actual seek
-      audioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] drag seek error', err));
+      simpleAudioEngine.seekTo(target).catch((err: unknown) => console.log('[Player] drag seek error', err));
     },
     onPanResponderTerminate: () => {
       console.log('[Player] Audio pan responder terminate');
@@ -402,9 +402,9 @@ export default function PlayerScreen() {
         // The VideoPlayer component will handle the volume change via props
       } else {
         // For audio tracks, use audio engine
-        const active = audioEngine.getCurrentTrack();
+        const active = simpleAudioEngine.getCurrentTrack();
         if (active) {
-          audioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[Player] audio volume error', err));
+          simpleAudioEngine.setVolume(newVolume).catch((err: unknown) => console.log('[Player] audio volume error', err));
         }
       }
     }

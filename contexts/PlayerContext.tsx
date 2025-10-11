@@ -405,7 +405,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           
           if (previousTrack.type !== 'video' && !previousTrack.isVideo) {
             console.log('[Player] Loading and playing previous track');
-            await audioEngine.loadAndPlay(previousTrack, newQueue[0]);
+            await simpleAudioEngine.loadAndPlay(previousTrack);
             console.log('[Player] ✅ Previous track loaded and playing');
           } else {
             console.log('[Player] Video track, navigating to player');
@@ -444,7 +444,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   const stopPlayer = useCallback(async () => {
     console.log("[Player] Stopping player and clearing state");
     try {
-      await audioEngine.stop();
+      await simpleAudioEngine.stop();
     } catch (e) {
       console.log('[Player] engine stop error', e);
     }
@@ -515,7 +515,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       onStateChange: (state) => {
         console.log('[AudioEngine] state changed to:', state);
         // Sync UI state with audio engine state, but only for non-video tracks
-        const track = audioEngine.getCurrentTrack();
+        const track = simpleAudioEngine.getCurrentTrack();
         if (track && track.type !== 'video' && !track.isVideo && !track.videoUrl) {
           // Only update UI state if the engine track matches our current track
           if (currentTrack && track.id === currentTrack.id) {
@@ -536,10 +536,8 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     
     // Configure audio engine preferences
     const crossfadeMs = (settings.crossfadeSeconds ?? 0) * 1000;
-    audioEngine.setContentPrefs('song', { crossfadeMs, gapless: settings.gaplessPlayback });
-    audioEngine.setContentPrefs('podcast', { crossfadeMs: 0, gapless: false });
-    audioEngine.setContentPrefs('audiobook', { crossfadeMs: 0, gapless: false });
-    audioEngine.setContentPrefs('video', { crossfadeMs: 0, gapless: false });
+    // Note: Simplified audio engine doesn't have content preferences
+    // These settings are handled by the audio engine internally
   }, [queue, settings.crossfadeSeconds, settings.gaplessPlayback, currentTrack]);
 
   return {
