@@ -44,6 +44,7 @@ import { useLibrary } from "@/contexts/LibraryContext";
 import { VideoPlayer, VideoPlayerRef } from "@/components/VideoPlayer";
 import { DJInstinctEntry } from "@/components/DJInstinctEntry";
 import SliderCompat from "@/components/SliderCompat";
+import { PlayerDebugger } from "@/components/PlayerDebugger";
 import type { Track } from "@/types";
 import { simpleAudioEngine, Progress } from "@/lib/AudioEngineSimple";
 
@@ -150,25 +151,9 @@ export default function PlayerScreen() {
       return;
     }
     
-    // For web, ensure user interaction is properly handled
-    if (Platform.OS === 'web' && currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
-      if (!isPlaying) {
-        console.log('[Player] Web platform - attempting direct audio engine play');
-        // Try direct audio engine play first to capture user interaction
-        simpleAudioEngine.play().then(() => {
-          console.log('[Player] Direct audio engine play successful');
-        }).catch((e) => {
-          console.log('[Player] Direct audio engine play failed, using toggle:', e);
-          togglePlayPause();
-        });
-      } else {
-        console.log('[Player] Web platform - calling togglePlayPause for pause');
-        togglePlayPause();
-      }
-    } else {
-      console.log('[Player] Native platform or no track - calling togglePlayPause');
-      togglePlayPause();
-    }
+    // Always use the PlayerContext's togglePlayPause for consistency
+    console.log('[Player] Calling togglePlayPause from PlayerContext');
+    togglePlayPause();
   }, [togglePlayPause, isPlaying, currentTrack]);
 
   const handleSkipNext = useCallback(() => {
@@ -1457,6 +1442,9 @@ export default function PlayerScreen() {
                   </View>
                 )}
               </View>
+              
+              {/* Debug Info - Remove in production */}
+              <PlayerDebugger />
             </SafeAreaView>
           </LinearGradient>
         </View>
@@ -1830,7 +1818,7 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'space-around',
     alignItems: 'center',
     paddingHorizontal: 20,
     marginBottom: 40,
@@ -1889,7 +1877,7 @@ const styles = StyleSheet.create({
   controls: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: 20,
     marginBottom: 60,
     minHeight: 100,
@@ -1913,7 +1901,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    marginHorizontal: 20,
+    marginHorizontal: 30,
   },
   bottomActions: {
     flexDirection: "row",
