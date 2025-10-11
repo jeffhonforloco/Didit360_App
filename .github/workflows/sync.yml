@@ -1,13 +1,14 @@
-name: Sync Repository
+name: Sync Repository (Disabled)
 
-on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-  schedule:
-    # Run every 6 hours to sync changes
-    - cron: '0 */6 * * *'
+# Temporarily disabled
+# on:
+#   push:
+#     branches: [ main, develop ]
+#   pull_request:
+#     branches: [ main ]
+#   schedule:
+#     # Run every 6 hours to sync changes
+#     - cron: '0 */6 * * *'
   workflow_dispatch:
 
 jobs:

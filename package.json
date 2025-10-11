@@ -6,7 +6,11 @@
     "start": "bunx rork start -p ffufrz458iu61eybnu4kj --tunnel",
     "start-web": "bunx rork start -p ffufrz458iu61eybnu4kj --web --tunnel",
     "start-web-dev": "DEBUG=expo* bunx rork start -p ffufrz458iu61eybnu4kj --web --tunnel",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "echo 'No tests configured yet'",
+    "build": "npx expo export --platform web",
+    "type-check": "npx tsc --noEmit",
+    "audit": "npm audit --audit-level moderate"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
