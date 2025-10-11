@@ -31,6 +31,13 @@ import { getIngestJobsProcedure } from "./routes/admin/ingest/get-jobs/route";
 import { getMixMindSessionsProcedure } from "./routes/admin/mixmind/get-sessions/route";
 import { getMixMindConfigProcedure, updateMixMindConfigProcedure } from "./routes/admin/mixmind/get-config/route";
 
+// Auth
+import { signinProcedure } from "./routes/auth/signin/route";
+import { signupProcedure } from "./routes/auth/signup/route";
+import { signoutProcedure } from "./routes/auth/signout/route";
+import { meProcedure } from "./routes/auth/me/route";
+import { refreshProcedure } from "./routes/auth/refresh/route";
+
 // Enrichment
 import { 
   extractAudioFeaturesProcedure, 
@@ -105,6 +112,13 @@ export const appRouter = createTRPCRouter({
     hi: hiRoute, // mutation (backward compatibility)
     hiQuery: hiQuery, // query version
     hiMutation: hiMutation, // explicit mutation
+  }),
+  auth: createTRPCRouter({
+    signin: signinProcedure,
+    signup: signupProcedure,
+    signout: signoutProcedure,
+    me: meProcedure,
+    refresh: refreshProcedure,
   }),
   library: createTRPCRouter({
     get: getLibraryProcedure,

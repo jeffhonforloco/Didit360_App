@@ -244,13 +244,27 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
       setProfile(null);
       console.log('[UserContext] Profile set to null immediately');
       
+      // Call backend signout if we have a token
+      try {
+        const token = await AsyncStorage.getItem('auth_token');
+        if (token) {
+          // Note: In a real app, you'd call the backend signout endpoint here
+          // For now, we'll just clear local storage
+          console.log('[UserContext] Would call backend signout with token');
+        }
+      } catch (backendError) {
+        console.log('[UserContext] Backend signout failed, continuing with local cleanup:', backendError);
+      }
+      
       // Then clear storage - clear everything to ensure clean state
       await Promise.all([
         AsyncStorage.setItem(SIGNED_OUT_KEY, 'true'), // Mark as signed out
         AsyncStorage.removeItem(PROFILE_KEY),
         AsyncStorage.removeItem(PASSWORD_KEY), // Also clear password
+        AsyncStorage.removeItem('auth_token'), // Clear auth token
+        AsyncStorage.removeItem('refresh_token'), // Clear refresh token
       ]);
-      console.log('[UserContext] Profile and password removed from AsyncStorage');
+      console.log('[UserContext] Profile and tokens removed from AsyncStorage');
       console.log('[UserContext] signOut completed successfully');
       
     } catch (err) {

@@ -12,7 +12,7 @@ import { Play, Pause, SkipForward, Video, X, Volume2, VolumeX } from "lucide-rea
 import { router, usePathname } from "expo-router";
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { audioEngine, Progress } from "@/lib/AudioEngine";
+import { simpleAudioEngine, Progress } from "@/lib/AudioEngineSimple";
 import { searchArtists, popularArtists } from "@/data/mockData";
 import AdPlayer from "@/components/AdPlayer";
 
@@ -37,13 +37,13 @@ export function MiniPlayer() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = audioEngine.subscribeProgress(updateProgress);
+    const unsubscribe = simpleAudioEngine.subscribeProgress(updateProgress);
     return unsubscribe;
   }, [updateProgress]);
 
   // Initialize volume from audio engine
   useEffect(() => {
-    const currentVolume = audioEngine.getVolume();
+    const currentVolume = simpleAudioEngine.getVolume();
     setVolume(currentVolume);
     setIsMuted(currentVolume === 0);
   }, []);
@@ -122,7 +122,7 @@ export function MiniPlayer() {
     
     if (currentTrack && currentTrack.type !== 'video' && !currentTrack.isVideo) {
       try {
-        await audioEngine.setVolume(newVolume);
+        await simpleAudioEngine.setVolume(newVolume);
         console.log('[MiniPlayer] ✅ Volume set successfully to:', newVolume);
       } catch (err) {
         console.log('[MiniPlayer] ❌ Volume set error:', err);
@@ -155,7 +155,7 @@ export function MiniPlayer() {
     setPositionMs(target);
     
     try {
-      await audioEngine.seekTo(target);
+      await simpleAudioEngine.seekTo(target);
       console.log('[MiniPlayer] ✅ Seek successful to:', target, 'ms');
     } catch (err) {
       console.log('[MiniPlayer] ❌ Seek error:', err);

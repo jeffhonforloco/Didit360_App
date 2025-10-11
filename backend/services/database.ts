@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { ErrorHandler, DatabaseError } from './error-handler';
+import { realDatabaseService } from './database-real';
 
 // Database connection interface
 export interface DatabaseConnection {
@@ -397,3 +398,7 @@ export class DatabaseService {
 
 // Database service instance
 export const dbService = new DatabaseService(database);
+
+// Enhanced database service for better functionality
+import { databaseService as enhancedDatabaseService } from './database-service';
+export { enhancedDatabaseService as databaseService };

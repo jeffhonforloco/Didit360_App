@@ -6,7 +6,7 @@ import { allTracks } from "@/data/mockData";
 import { router } from "expo-router";
 import { useUser } from "@/contexts/UserContext";
 import { useSubscription } from "@/contexts/SubscriptionContext";
-import { audioEngine } from "@/lib/AudioEngine";
+import { simpleAudioEngine } from "@/lib/AudioEngineSimple";
 import { trpcClient } from "@/lib/trpc";
 
 interface HistoryEntry {
@@ -54,8 +54,8 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     loadLastPlayed();
     // Initialize audio engine in background
     setTimeout(() => {
-      audioEngine.configure().catch((e) => console.log('[Player] Audio engine init error', e));
-      audioEngine.setVolume(1.0).catch((e) => console.log('[Player] Initial volume set error', e));
+      simpleAudioEngine.configure().catch((e) => console.log('[Player] Audio engine init error', e));
+      simpleAudioEngine.setVolume(1.0).catch((e) => console.log('[Player] Initial volume set error', e));
     }, 100);
   }, []);
 
@@ -74,7 +74,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       try {
         const t = currentTrack;
         if (t && t.type !== 'video' && !t.isVideo) {
-          audioEngine.pause().catch((e) => console.log('[Player] guest pause error', e));
+          simpleAudioEngine.pause().catch((e) => console.log('[Player] guest pause error', e));
         }
       } catch {}
       try {
@@ -160,12 +160,12 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
       // Start audio playback
       if (track.type !== 'video' && !track.isVideo) {
         console.log('[Player] Starting audio playback for:', track.title, 'audioUrl:', track.audioUrl);
-        audioEngine
-          .loadAndPlay(track, similarTracks[0])
+        simpleAudioEngine
+          .loadAndPlay(track)
           .then(() => {
             console.log('[Player] Audio load and play successful');
             // Ensure volume is set after successful load
-            audioEngine.setVolume(1.0).catch((e) => console.log('[Player] post-load volume error', e));
+            simpleAudioEngine.setVolume(1.0).catch((e) => console.log('[Player] post-load volume error', e));
           })
           .catch((e) => console.log('[Player] audio load error', e));
       } else {
@@ -216,7 +216,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     
     // Ensure audio engine is configured
     try {
-      await audioEngine.configure();
+      await simpleAudioEngine.configure();
     } catch (e) {
       console.log('[Player] Audio engine configuration error:', e);
     }
@@ -232,27 +232,27 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         console.log('[Player] ▶️ Attempting to PLAY audio...');
         
         // Check if audio engine has a track loaded
-        const currentEngineTrack = audioEngine.getCurrentTrack();
+        const currentEngineTrack = simpleAudioEngine.getCurrentTrack();
         console.log('[Player] Current engine track:', currentEngineTrack?.title);
         
         if (!currentEngineTrack || currentEngineTrack.id !== currentTrack.id) {
           console.log('[Player] 📥 Track not loaded in engine, loading now...');
-          await audioEngine.loadAndPlay(currentTrack);
+          await simpleAudioEngine.loadAndPlay(currentTrack);
           console.log('[Player] ✅ Track loaded and playing successfully');
         } else {
           console.log('[Player] 🎯 Track already loaded, calling play()');
-          await audioEngine.play();
+          await simpleAudioEngine.play();
           console.log('[Player] ✅ play() successful');
           // Ensure volume is properly set after play
-          const currentVolume = audioEngine.getVolume();
+          const currentVolume = simpleAudioEngine.getVolume();
           if (currentVolume === 0) {
-            await audioEngine.setVolume(1.0);
+            await simpleAudioEngine.setVolume(1.0);
             console.log('[Player] 🔊 Volume restored to 1.0');
           }
         }
       } else {
-        console.log('[Player] ⏸️ Calling audioEngine.pause()');
-        await audioEngine.pause();
+        console.log('[Player] ⏸️ Calling simpleAudioEngine.pause()');
+        await simpleAudioEngine.pause();
         console.log('[Player] ✅ pause() successful');
       }
     } catch (error) {
@@ -306,7 +306,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         
         if (nextTrack.type !== 'video' && !nextTrack.isVideo) {
           console.log('[Player] Loading and playing next audio track');
-          await audioEngine.loadAndPlay(nextTrack, remaining[0]);
+          await simpleAudioEngine.loadAndPlay(nextTrack);
           console.log('[Player] ✅ Next track loaded and playing');
         } else {
           console.log('[Player] Video track, navigating to player');
@@ -346,7 +346,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
           await saveLastPlayed(nextTrack);
           
           if (nextTrack.type !== 'video' && !nextTrack.isVideo) {
-            await audioEngine.loadAndPlay(nextTrack, newQueue[0]);
+            await simpleAudioEngine.loadAndPlay(nextTrack);
             console.log('[Player] ✅ New track loaded and playing');
           } else {
             setTimeout(() => {
@@ -467,7 +467,7 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
   }, []);
 
   useEffect(() => {
-    audioEngine.setEvents({
+    simpleAudioEngine.setEvents({
       onTrackStart: (t) => {
         console.log('[AudioEngine] started', t.title);
         // Immediate UI update
@@ -478,23 +478,19 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
         setIsPlaying(true); // Ensure UI state matches audio engine
         
         // Ensure volume is set when track starts
-        audioEngine.setVolume(1.0).catch((e) => console.log('[Player] track start volume error', e));
+        simpleAudioEngine.setVolume(1.0).catch((e) => console.log('[Player] track start volume error', e));
         
         // Handle queue and preloading asynchronously
         setTimeout(() => {
           setQueue((prev) => {
             if (prev.length > 0 && prev[0].id === t.id) {
               const remaining = prev.slice(1);
-              if (remaining[0]) {
-                audioEngine.preload(remaining[0]).catch((e) => console.log('[Player] preload next after start error', e));
-              }
+              // Note: Simplified audio engine doesn't have preload functionality
+              // This is handled by the loadAndPlay method
               saveLastPlayed(t);
               return remaining;
             }
-            if (prev[0]) {
-              // ensure next is preloaded
-              audioEngine.preload(prev[0]).catch((e) => console.log('[Player] preload next ensure error', e));
-            }
+            // Note: Simplified audio engine doesn't have preload functionality
             return prev;
           });
         }, 0);

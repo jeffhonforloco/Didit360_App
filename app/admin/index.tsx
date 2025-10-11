@@ -11,6 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
+import { AdminConnectionTest } from '@/components/AdminConnectionTest';
 
 
 export default function AdminDashboard() {
@@ -123,6 +124,7 @@ export default function AdminDashboard() {
   if (isLoading) {
     return (
       <AdminLayout title="Didit360 Admin Dashboard">
+        <AdminConnectionTest />
         <View style={styles.loadingContainer}>
           <Text style={styles.loadingText}>Loading dashboard...</Text>
         </View>
@@ -133,6 +135,7 @@ export default function AdminDashboard() {
   if (error) {
     return (
       <AdminLayout title="Didit360 Admin Dashboard">
+        <AdminConnectionTest />
         <View style={styles.loadingContainer}>
           <Text style={styles.errorText}>Error loading dashboard: {String((error as any)?.message || error)}</Text>
         </View>
@@ -156,6 +159,7 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Didit360 Admin Dashboard">
+      <AdminConnectionTest />
       <ScrollView contentContainerStyle={styles.scrollContent} testID="admin-dashboard">
         {/* Connection Status */}
         <ConnectionStatus showDetails={true} />

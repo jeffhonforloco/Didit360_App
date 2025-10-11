@@ -34,6 +34,38 @@ export default function HomeScreen() {
   const [scrollY] = useState(new Animated.Value(0));
   const [personalizedSections, setPersonalizedSections] = useState<any[]>([]);
 
+  // Backend data fetching
+  const tracksQuery = trpc.tracks.getTracks.useQuery({ limit: 100 });
+  const artistsQuery = trpc.artists.getArtists.useQuery({ limit: 50 });
+  const featuredQuery = trpc.catalog.getFeatured.useQuery({ limit: 20, type: 'all' });
+
+  // Extract and transform backend data
+  const allTracksFromBackend = (tracksQuery.data?.tracks || []).map(track => ({
+    id: track.id,
+    title: track.title,
+    artist: track.artistName,
+    album: track.albumName,
+    artwork: track.coverImage,
+    duration: Math.floor(track.duration / 1000), // Convert ms to seconds
+    type: 'song' as const,
+    audioUrl: track.streamUrl,
+    genre: track.genre,
+    explicit: track.explicit,
+    popularity: track.popularity,
+  }));
+
+  const allArtistsFromBackend = (artistsQuery.data?.artists || []).map(artist => ({
+    id: artist.id,
+    name: artist.name,
+    image: artist.image,
+    followers: `${(artist.followers / 1000).toFixed(0)}K`,
+    verified: artist.verified,
+    genre: artist.genre,
+    bio: artist.bio,
+  }));
+
+  const featuredItems = featuredQuery.data?.items || [];
+
   useEffect(() => {
     const generatePersonalizedContent = () => {
       const sections: any[] = [];
@@ -41,8 +73,8 @@ export default function HomeScreen() {
       if (!currentTrack) {
         sections.push(
           { type: 'trending', title: 'Trending Now', subtitle: "What's hot right now", data: trendingNow.slice(0, 8), icon: <TrendingUp size={20} color="#FF0080" /> },
-          { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: popularArtists.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
-          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: newReleases.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
+          { type: 'artists', title: 'Popular Artists', subtitle: "Top artists you'll love", data: allArtistsFromBackend.slice(0, 8), icon: <Mic2 size={20} color="#8B5CF6" /> },
+          { type: 'new', title: 'New Releases', subtitle: 'Fresh tracks for you', data: allTracksFromBackend.slice(0, 8), icon: <Music2 size={20} color="#00C6FF" />, route: '/new-releases' },
           { type: 'videos', title: 'Music Videos', subtitle: 'Watch the visuals', data: trendingVideos.slice(0, 6), icon: <Video size={20} color="#F59E0B" /> },
           { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
@@ -54,7 +86,7 @@ export default function HomeScreen() {
       const trackArtist = currentTrack.artist || '';
 
       if (trackType === 'song') {
-        const similarSongs = allTracks.filter(t => 
+        const similarSongs = allTracksFromBackend.filter(t => 
           t.type === 'song' && 
           t.id !== currentTrack.id &&
           (t.artist === trackArtist || t.album === trackGenre)
@@ -70,7 +102,7 @@ export default function HomeScreen() {
           });
         }
 
-        const sameArtist = allTracks.filter(t => 
+        const sameArtist = allTracksFromBackend.filter(t => 
           t.type === 'song' && 
           t.artist === trackArtist && 
           t.id !== currentTrack.id
@@ -91,7 +123,7 @@ export default function HomeScreen() {
           { type: 'charts', title: 'Top Charts', subtitle: 'Most played this week', data: topCharts.slice(0, 8), icon: <Flame size={20} color="#EF4444" /> },
         );
       } else if (trackType === 'video' || currentTrack.isVideo) {
-        const moreVideos = allTracks.filter(t => 
+        const moreVideos = allTracksFromBackend.filter(t => 
           (t.type === 'video' || t.isVideo) && 
           t.id !== currentTrack.id
         ).slice(0, 8);
@@ -102,7 +134,7 @@ export default function HomeScreen() {
           { type: 'trending-videos', title: 'Trending Videos', subtitle: 'Most watched', data: trendingVideos.slice(0, 8), icon: <TrendingUp size={20} color="#8B5CF6" /> },
         );
 
-        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracksFromBackend.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Switch to audio', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       } else if (trackType === 'podcast') {
         const morePodcasts = allTracks.filter(t => 
@@ -115,7 +147,7 @@ export default function HomeScreen() {
           { type: 'trending', title: 'Trending Episodes', subtitle: 'Popular right now', data: trendingNow.filter(t => t.type === 'podcast').slice(0, 8), icon: <TrendingUp size={20} color="#F7971E" /> },
         );
 
-        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracksFromBackend.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Discover Music', subtitle: 'Take a break from podcasts', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       } else if (trackType === 'audiobook') {
         const moreAudiobooks = allTracks.filter(t => 
@@ -128,7 +160,7 @@ export default function HomeScreen() {
           { type: 'trending', title: 'Popular Stories', subtitle: 'Trending audiobooks', data: trendingNow.filter(t => t.type === 'audiobook').slice(0, 8), icon: <TrendingUp size={20} color="#6A85F1" /> },
         );
 
-        const musicTracks = allTracks.filter(t => t.type === 'song').slice(0, 8);
+        const musicTracks = allTracksFromBackend.filter(t => t.type === 'song').slice(0, 8);
         sections.push({ type: 'music', title: 'Listen to Music', subtitle: 'Take a music break', data: musicTracks, icon: <Music2 size={20} color="#00C6FF" /> });
       }
 
@@ -147,7 +179,7 @@ export default function HomeScreen() {
     setTimeout(() => {
       setPersonalizedSections(generatePersonalizedContent());
     }, 0);
-  }, [currentTrack, userRecentlyPlayed]);
+  }, [currentTrack, userRecentlyPlayed, allTracksFromBackend, allArtistsFromBackend]);
 
   const quickAccessItems = useMemo(() => {
     const baseItems: Array<{ id: string; title: string; icon: string; gradient: readonly [string, string]; route: string }> = [

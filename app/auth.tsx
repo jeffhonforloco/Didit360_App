@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { useUser } from "@/contexts/UserContext";
 import { router } from "expo-router";
+import { trpc } from "@/lib/trpc";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type AuthMode = 'signup' | 'signin';
 
@@ -21,6 +23,9 @@ export default function AuthModal() {
   const onContinueGuest = useCallback(() => {
     router.back();
   }, []);
+
+  const signupMutation = trpc.auth.signup.useMutation();
+  const signinMutation = trpc.auth.signin.useMutation();
 
   const onSignUp = useCallback(async () => {
     const e = email.trim();
@@ -43,14 +48,32 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
-      await updateProfile({ email: e, displayName: n });
+      const result = await signupMutation.mutateAsync({
+        email: e,
+        password: p,
+        displayName: n,
+      });
+      
+      // Store auth tokens
+      await AsyncStorage.setItem('auth_token', result.token);
+      await AsyncStorage.setItem('refresh_token', result.refreshToken);
+      
+      // Update user profile
+      await updateProfile({ 
+        email: result.user.email, 
+        displayName: result.user.displayName,
+        id: result.user.id 
+      });
+      
       router.dismissAll();
     } catch (err) {
       console.error("[Auth] sign up error", err);
+      if (Platform.OS === "web") console.log("Sign up failed");
+      else Alert.alert("Error", "Sign up failed. Please try again.");
     } finally {
       setLoading(false);
     }
-  }, [email, name, password, updateProfile]);
+  }, [email, name, password, updateProfile, signupMutation]);
 
   const onSignIn = useCallback(async () => {
     const e = email.trim();
@@ -67,16 +90,31 @@ export default function AuthModal() {
     }
     setLoading(true);
     try {
-      // For demo purposes, we'll just sign them in with the email
-      // In a real app, you'd validate credentials against your backend
-      await updateProfile({ email: e, displayName: e.split('@')[0] });
+      const result = await signinMutation.mutateAsync({
+        email: e,
+        password: p,
+      });
+      
+      // Store auth tokens
+      await AsyncStorage.setItem('auth_token', result.token);
+      await AsyncStorage.setItem('refresh_token', result.refreshToken);
+      
+      // Update user profile
+      await updateProfile({ 
+        email: result.user.email, 
+        displayName: result.user.displayName,
+        id: result.user.id 
+      });
+      
       router.dismissAll();
     } catch (err) {
       console.error("[Auth] sign in error", err);
+      if (Platform.OS === "web") console.log("Sign in failed");
+      else Alert.alert("Error", "Sign in failed. Please check your credentials.");
     } finally {
       setLoading(false);
     }
-  }, [email, password, updateProfile]);
+  }, [email, password, updateProfile, signinMutation]);
 
   return (
     <View style={[styles.container, { paddingTop: Math.max(16, insets.top), paddingBottom: Math.max(16, insets.bottom) }]}

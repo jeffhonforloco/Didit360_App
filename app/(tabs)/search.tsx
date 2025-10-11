@@ -35,8 +35,6 @@ import {
 import { usePlayer } from "@/contexts/PlayerContext";
 import { useSearch } from "@/contexts/SearchContext";
 import {
-  allTracks,
-  searchArtists,
   searchAlbums,
   podcastShows,
   allPodcastEpisodes,
@@ -221,9 +219,9 @@ export default function SearchScreen() {
     position: { x: number; y: number };
   }>({ visible: false, track: null, position: { x: 0, y: 0 } });
   const { playTrack } = usePlayer();
-  const { 
-    recentSearches, 
-    removeFromSearchHistory, 
+  const {
+    recentSearches,
+    removeFromSearchHistory,
     clearSearchHistory,
     searchQuery,
     searchType,
@@ -391,9 +389,9 @@ export default function SearchScreen() {
     </View>
   );
 
-  const renderLocalResult = ({ item }: { item: Track | (typeof searchArtists)[number] | (typeof searchAlbums)[number] | (typeof podcastShows)[number] }) => {
+  const renderLocalResult = ({ item }: { item: Track | (typeof backendArtists)[number] | (typeof searchAlbums)[number] | (typeof podcastShows)[number] }) => {
     if ("name" in item && "image" in item) {
-      const artist = item as (typeof searchArtists)[number];
+      const artist = item as (typeof backendArtists)[number];
       return (
         <TouchableOpacity style={styles.searchResult} onPress={() => router.push(`/profile/${artist.id}` as never)} activeOpacity={0.8} testID={`artist-${artist.id}`}>
           <Image source={{ uri: artist.image }} style={[styles.resultImage, styles.artistImage]} />
