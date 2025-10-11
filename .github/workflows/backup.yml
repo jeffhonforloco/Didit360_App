@@ -73,7 +73,7 @@ jobs:
     needs: create-backup
     steps:
       - name: Download backup artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: backup-$(date +%Y%m%d-%H%M%S)
 
