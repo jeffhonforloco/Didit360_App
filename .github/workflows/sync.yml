@@ -135,7 +135,7 @@ jobs:
           tar -czf repository-backup-$(date +%Y%m%d-%H%M%S).tar.gz .
           
       - name: Upload backup
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: repository-backup
           path: repository-backup-*.tar.gz
