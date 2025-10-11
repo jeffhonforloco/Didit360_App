@@ -6,6 +6,7 @@ import { useUser } from "@/contexts/UserContext";
 import { router } from "expo-router";
 import { trpc } from "@/lib/trpc";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthDebugger } from "@/components/AuthDebugger";
 
 type AuthMode = 'signup' | 'signin';
 
@@ -66,10 +67,11 @@ export default function AuthModal() {
       });
       
       router.dismissAll();
-    } catch (err) {
+    } catch (err: any) {
       console.error("[Auth] sign up error", err);
-      if (Platform.OS === "web") console.log("Sign up failed");
-      else Alert.alert("Error", "Sign up failed. Please try again.");
+      const errorMessage = err?.message || err?.data?.message || "Sign up failed. Please try again.";
+      if (Platform.OS === "web") console.log("Sign up failed:", errorMessage);
+      else Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -107,10 +109,11 @@ export default function AuthModal() {
       });
       
       router.dismissAll();
-    } catch (err) {
+    } catch (err: any) {
       console.error("[Auth] sign in error", err);
-      if (Platform.OS === "web") console.log("Sign in failed");
-      else Alert.alert("Error", "Sign in failed. Please check your credentials.");
+      const errorMessage = err?.message || err?.data?.message || "Sign in failed. Please check your credentials.";
+      if (Platform.OS === "web") console.log("Sign in failed:", errorMessage);
+      else Alert.alert("Error", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -187,6 +190,9 @@ export default function AuthModal() {
         <TouchableOpacity style={styles.secondaryBtn} onPress={onContinueGuest} testID="continue-guest">
           <Text style={styles.secondaryText}>Continue as guest</Text>
         </TouchableOpacity>
+        
+        {/* Debug Info - Remove in production */}
+        <AuthDebugger />
       </View>
     </View>
   );
