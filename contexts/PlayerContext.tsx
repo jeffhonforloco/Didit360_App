@@ -36,13 +36,16 @@ interface PlayerState {
 }
 
 export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => {
+  // Hooks must be called unconditionally
   const userContext = useUser();
+  const subscription = useSubscription();
+  
+  // Safely extract values with fallbacks
   const profile = userContext?.profile || null;
   const settings = userContext?.settings || {
     crossfadeSeconds: 6,
     gaplessPlayback: true,
   };
-  const subscription = useSubscription();
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [queue, setQueue] = useState<Track[]>([]);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);

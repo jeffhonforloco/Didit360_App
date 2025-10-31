@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { Platform } from "react-native";
 import createContextHook from "@nkzw/create-context-hook";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useUser } from "./UserContext";
@@ -91,9 +92,10 @@ const AD_FREQUENCY_FREE = 180000;
 const DAILY_SKIP_LIMIT_FREE = 6;
 
 export const [SubscriptionProvider, useSubscription] = createContextHook<SubscriptionState>(() => {
-  const { profile } = useUser();
+  const userContext = useUser();
+  const profile = userContext?.profile || null;
   const [tier, setTier] = useState<SubscriptionTier>("free");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Start false to prevent blocking
   const [lastAdTimestamp, setLastAdTimestamp] = useState(0);
   const [streamCount, setStreamCount] = useState(0);
   const [skipCount, setSkipCount] = useState(0);
@@ -101,8 +103,15 @@ export const [SubscriptionProvider, useSubscription] = createContextHook<Subscri
   const [djInstinctTrialsRemaining, setDjInstinctTrialsRemaining] = useState(2);
 
   useEffect(() => {
-    loadSubscriptionData();
-  }, [profile]);
+    // Defer loading on web to avoid blocking hydration
+    if (typeof window !== 'undefined' && Platform.OS === 'web') {
+      requestAnimationFrame(() => {
+        loadSubscriptionData();
+      });
+    } else {
+      loadSubscriptionData();
+    }
+  }, [profile, loadSubscriptionData]);
 
   useEffect(() => {
     const checkDailyReset = () => {
