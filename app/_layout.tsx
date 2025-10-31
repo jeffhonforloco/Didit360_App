@@ -144,7 +144,9 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   const pathname = usePathname();
-  const [appReady, setAppReady] = React.useState(false);
+  // CRITICAL: Start with appReady=true on web to prevent hydration mismatch
+  // Server and client must render the same initial content
+  const [appReady, setAppReady] = React.useState(Platform.OS === 'web' ? true : false);
   
   useEffect(() => {
     if (__DEV__) {
@@ -153,9 +155,9 @@ export default function RootLayout() {
   }, []);
   
   useEffect(() => {
-    // For web, set app ready immediately to avoid hydration timeout
+    // For web, initialization is already done (appReady starts as true)
+    // Just defer any setup work
     if (Platform.OS === 'web') {
-      setAppReady(true);
       // Defer initialization to next tick to avoid blocking hydration
       if (typeof window !== 'undefined') {
         requestAnimationFrame(() => {
@@ -214,7 +216,8 @@ export default function RootLayout() {
 
   const RootContainer = Platform.OS === 'web' ? View : GestureHandlerRootView;
 
-  if (!appReady) {
+  // Only show loading state on native platforms (web always renders full tree to avoid hydration mismatch)
+  if (!appReady && Platform.OS !== 'web') {
     return (
       <View style={[styles.container, styles.loading]} />
     );
