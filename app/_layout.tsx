@@ -22,7 +22,10 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
 import { logEvent, logPerf, genId } from "@/lib/logger";
 
-SplashScreen.preventAutoHideAsync();
+// Only prevent auto-hide on native platforms (web doesn't use splash screen)
+if (Platform.OS !== 'web') {
+  SplashScreen.preventAutoHideAsync();
+}
 
 // SafeImage guard to prevent empty URI errors
 function installImageGuard() {

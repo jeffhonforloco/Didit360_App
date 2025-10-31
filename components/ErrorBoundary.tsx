@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
 import { logEvent } from '@/lib/logger';
-import { useToast } from '@/components/ui/Toast';
 
 interface ErrorBoundaryState {
   hasError: boolean;
