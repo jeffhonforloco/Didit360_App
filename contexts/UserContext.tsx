@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createContextHook from "@nkzw/create-context-hook";
 import { router } from "expo-router";
@@ -170,8 +171,18 @@ export const [UserProvider, useUser] = createContextHook<UserState>(() => {
   }, []);
 
   useEffect(() => {
-    console.log('[UserContext] useEffect - starting load');
-    void load();
+    // On web, defer loading to avoid blocking hydration
+    if (typeof window !== 'undefined' && Platform.OS === 'web') {
+      // Use requestAnimationFrame to defer after hydration
+      requestAnimationFrame(() => {
+        console.log('[UserContext] useEffect - starting load (deferred for web)');
+        void load();
+      });
+    } else {
+      // On native, load immediately
+      console.log('[UserContext] useEffect - starting load');
+      void load();
+    }
     
     // Fallback timeout to prevent infinite loading
     const timeout = setTimeout(() => {
