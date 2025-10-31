@@ -150,6 +150,26 @@ export default function RootLayout() {
   }, []);
   
   useEffect(() => {
+    // For web, set app ready immediately to avoid hydration timeout
+    if (Platform.OS === 'web') {
+      setAppReady(true);
+      // Defer initialization to next tick to avoid blocking hydration
+      if (typeof window !== 'undefined') {
+        requestAnimationFrame(() => {
+          try {
+            const sessionId = genId('sess');
+            const traceId = genId('trace');
+            (globalThis as any).__OBS = { sessionId, traceId };
+            console.log('[RootLayout] App ready (web)');
+          } catch (error) {
+            console.error('[RootLayout] Init error:', error);
+          }
+        });
+      }
+      return;
+    }
+    
+    // For native, use async initialization
     const initApp = async () => {
       try {
         console.log('[RootLayout] Initializing app...');
