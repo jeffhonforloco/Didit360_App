@@ -274,19 +274,21 @@ export const [PlayerProvider, usePlayer] = createContextHook<PlayerState>(() => 
     console.log('[Player] Queue length:', queue.length);
     
     // Check skip limit for free users
-    if (subscription.tier === 'free' && !subscription.canSkip()) {
+    // Safely check subscription with fallbacks
+    const subTier = subscription?.tier || 'free';
+    if (subTier === 'free' && subscription && !subscription.canSkip()) {
       console.log('[Player] Skip limit reached for free user');
       router.push('/subscription' as any);
       return;
     }
     
     // Record skip for free users
-    if (subscription.tier === 'free') {
+    if (subTier === 'free' && subscription) {
       subscription.recordSkip();
     }
     
     // Check if ad should be shown
-    if (subscription.shouldShowAd()) {
+    if (subscription?.shouldShowAd && subscription.shouldShowAd()) {
       console.log('[Player] Showing ad before skip');
       setShowAdModal(true);
       return;
